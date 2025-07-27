@@ -1,4 +1,3 @@
-// middleware/mongodb.js
 import mongoose from 'mongoose';
 
 const connectDB = handler => async (req, res) => {

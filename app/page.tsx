@@ -32,6 +32,7 @@ import MyMap from "@/components/ui/mapsData"
 import HeroSlider from "@/components/ui/HeroSlider"
 import SupportChat from "@/components/SupportChat"
 import logo from "./../public/logoGro.png"
+import { useRouter } from "next/navigation"
 export function FoodDeliveryWebsite() {
   const [darkMode, setDarkMode] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -43,7 +44,8 @@ export function FoodDeliveryWebsite() {
   const [showAdminAuth, setShowAdminAuth] = useState(false)
   const [showAdminDashboard, setShowAdminDashboard] = useState(false)
   const [adminUser, setAdminUser] = useState(null)
-
+const [userData, setUserData] = useState<any>(null)
+const router=useRouter()
   // Sample data
   const foodCategories = [
     { id: 1, name: "North Indian", image: "/placeholder.svg?height=80&width=80", icon: "🍛" },
@@ -227,7 +229,15 @@ export function FoodDeliveryWebsite() {
     setShowAdminAuth(false)
     setShowAdminDashboard(true)
   }
-  let userData = JSON.parse(localStorage.getItem("G-user"))
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const storedUser = localStorage.getItem("G-user")
+    if (storedUser) {
+      setUserData(JSON.parse(storedUser))
+    }
+  }
+}, [])
   const logout =()=>{
     localStorage.removeItem("G-user")
     localStorage.removeItem("token")
@@ -875,7 +885,7 @@ export function FoodDeliveryWebsite() {
   )
 }
 
-const UserDashboard = ({ onClose }) => {
+const UserDashboard = ({ onClose }:any) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full">
@@ -889,7 +899,7 @@ const UserDashboard = ({ onClose }) => {
   )
 }
 
-const AuthSystem = ({ onClose, onLoginSuccess }) => {
+const AuthSystem = ({ onClose, onLoginSuccess }:any) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full">

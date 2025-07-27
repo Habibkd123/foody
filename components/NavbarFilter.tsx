@@ -109,7 +109,7 @@ const Navbar: React.FC = () => {
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <nav className="flex gap-3 items-center px-4 py-2 bg-[#fdfbf5] relative z-30 mx-auto">
+    <nav className="flex gap-3 items-center px-4 py-2 bg-[#fdfbf5] relative z-50 mx-auto">
       {navItems.map((item) => (
         <div
           key={item.label}
