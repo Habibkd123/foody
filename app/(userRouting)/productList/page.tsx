@@ -423,8 +423,208 @@ const products = [
   { id: 114, name: 'Maggi 2-Minute Noodles Masala', price: 48, originalPrice: 50, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/maggi-noodles.jpg', rating: 4.4, reviews: 678, category: 'ready-to-cook', discount: 4 },
   { id: 115, name: 'Bambino Vermicelli', price: 65, originalPrice: 70, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/bambino-vermicelli.jpg', rating: 4.3, reviews: 123, category: 'ready-to-cook', discount: 7 }
 ];
-  // Real-time filtering logic with proper typing
-  const filteredProducts: Product[] = products.filter((product: Product) => {
+//   // Real-time filtering logic with proper typing
+//   const filteredProducts: Product[] = products.filter((product: Product) => {
+//     // Search filter
+//     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+//       return false;
+//     }
+
+//     // Category filter
+//     if (filters.category !== 'all' && product.category !== filters.category) {
+//       return false;
+//     }
+
+//     // Price range filter
+//     if (filters.priceRanges.length > 0) {
+//       const priceRangeMap: Record<string, { min: number; max: number }> = {
+//         'under-100': { min: 0, max: 100 },
+//         '100-300': { min: 100, max: 300 },
+//         '300-500': { min: 300, max: 500 },
+//         '500-1000': { min: 500, max: 1000 },
+//         'above-1000': { min: 1000, max: Infinity }
+//       };
+
+//       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
+//         const range = priceRangeMap[rangeKey];
+//         return product.price >= range.min && product.price <= range.max;
+//       });
+
+//       if (!matchesPrice) return false;
+//     }
+
+//     // Rating filter
+//     if (filters.ratings.length > 0) {
+//       const matchesRating = filters.ratings.some((rating: number) => product.rating >= rating);
+//       if (!matchesRating) return false;
+//     }
+
+//     return true;
+//   });
+
+//   const toggleWishlist = (item: any) => {
+//     const exists = wishListsData.find((fav: Product) => fav.id === item.id);
+//     if (exists) {
+//       setWistListsData(wishListsData.filter((fav: Product) => fav.id !== item.id));
+//     } else {
+//       setWistListsData([...wishListsData, item]);
+//     }
+//   };
+
+//   const addToCart = (item: any) => {
+//     const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
+//     if (existingItem) {
+//       setCartItems(
+//         cartItems.map((cartItem: CartItem) =>
+//           cartItem.id === item.id
+//             ? { ...cartItem, quantity: cartItem.quantity + 1 }
+//             : cartItem
+//         )
+//       );
+//     } else {
+//       setCartItems([...cartItems, { ...item, quantity: 1 }]);
+//     }
+//   };
+
+//   const removeFromCart = (itemId: any) => {
+//     setCartItems(cartItems.filter((item: any) => item.id !== itemId))
+//   }
+
+//   const updateQuantity = (itemId: any, newQuantity: any) => {
+//     if (newQuantity === 0) {
+//       removeFromCart(itemId)
+//     } else {
+//       setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
+//     }
+//   }
+
+//   const getTotalPrice = () => {
+//     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
+//   }
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
+//       {/* Header */}
+//       <div className='sticky top-0'>
+//         <AnnouncementBar />
+//       </div>
+//       <div className="sticky top-0 z-50">
+//         <header className="bg-white shadow-sm border-b  sticky top-0 z-[60]">
+//           <div className="max-w-7xl mx-auto  py-2 border-b-1">
+//             <div className="flex items-center justify-between">
+//               <div className="flex items-center gap-2">
+
+//               <img src="./logoGro.png" className="w-12 h-12 rounded-md" alt="logo" />
+//               <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+//                 Gro-Delivery
+//               </h1>
+//               </div>
+//               <div className="flex items-center space-x-4">
+
+//                 <div className="relative z-40">
+//                   {/* Search Icon */}
+//                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
+
+//                   {/* Input Box */}
+//                   <input
+//                     type="text"
+//                     placeholder="Search products..."
+//                     className="pl-10 pr-[220px] w-full py-2 border border-1 border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+//                     value={filters.searchTerm}
+//                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+//                       updateFilter('searchTerm', e.target.value)
+//                     }
+//                   />
+//                 </div>
+//                 <div className="z-50">
+
+//                 <LocationSelector />
+//                 </div>
+
+//                 <button className="relative p-2 hover:bg-gray-100 rounded-lg" onClick={() => setCartOpen(!cartOpen)}>
+//                   <Link href="/wishlist">
+//                     <Heart className="w-6 h-6 text-orange-600" />
+//                     {wishListsData.length > 0 && (
+//                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+//                         {wishListsData.length}
+//                       </span>
+//                     )}
+//                   </Link>
+//                 </button>
+
+
+//                 <div className="flex items-center space-x-4 relative z-[120px]">
+
+//                   <AddCardList cartItems={cartItems} removeFromCart={removeFromCart} updateQuantity={updateQuantity} getTotalPrice={getTotalPrice} setCartItems={setCartItems} cartOpen={cartOpen} setCartOpen={setCartOpen} />
+//                   {/* Mobile Menu Button */}
+//                   <Button
+//                     variant="ghost"
+//                     size="icon"
+//                     className="md:hidden text-gray-700 dark:text-gray-300"
+//                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+//                   >
+//                     {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-" />}
+//                   </Button>
+//                 </div>
+
+//                 {/* show here some profile logo */}
+//                 <div className='flex items-center cursor-pointer'>
+
+//                   <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </header>
+//         <NavbarFilter />
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="max-w-8xl mx-auto px-1 py-2">
+//         <div className="flex gap-6">
+//           {/* Sidebar Filters */}
+//           <SidebarFilters />
+
+//           {/* Products Grid */}
+//           <div className="flex-1">
+//             <div className="mb-6 flex items-center justify-between">
+//               <h2 className="text-2xl font-bold text-gray-800">
+//                 Fresh Groceries ({filteredProducts.length} products)
+//               </h2>
+//               <div className="text-sm text-gray-600">
+//                 {filters.category !== 'all' && (
+//                   <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full mr-2">
+//                     Category: {filters.category}
+//                   </span>
+//                 )}
+//                 {filters.priceRanges.length > 0 && (
+//                   <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full mr-2">
+//                     Price filters applied
+//                   </span>
+//                 )}
+//                 {filters.ratings.length > 0 && (
+//                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+//                     Rating filters applied
+//                   </span>
+//                 )}
+//               </div>
+//             </div>
+
+//             <ProductCardGrid
+//               products={filteredProducts}
+//               onAddToCart={addToCart}
+//               onToggleWishlist={toggleWishlist}
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProductGrid;
+
+
+const filteredProducts: Product[] = products.filter((product: Product) => {
     // Search filter
     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
@@ -501,34 +701,34 @@ const products = [
   const getTotalPrice = () => {
     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
       {/* Header */}
-      <div className='sticky top-0'>
+      <div className='sticky top-0 z-40'>
         <AnnouncementBar />
       </div>
+      
       <div className="sticky top-0 z-50">
-        <header className="bg-white shadow-sm border-b  sticky top-0 z-[60]">
-          <div className="max-w-7xl mx-auto  py-2 border-b-1">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-
-              <img src="./logoGro.png" className="w-12 h-12 rounded-md" alt="logo" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                Gro-Delivery
-              </h1>
+              {/* Logo - Responsive sizing */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <img src="./logoGro.png" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md" alt="logo" />
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                  Gro-Delivery
+                </h1>
               </div>
-              <div className="flex items-center space-x-4">
 
-                <div className="relative z-40">
-                  {/* Search Icon */}
+              {/* Search Bar - Hidden on mobile, visible on tablet+ */}
+              <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0" style={{marginLeft:"140px"}}>
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
-
-                  {/* Input Box */}
                   <input
                     type="text"
                     placeholder="Search products..."
-                    className="pl-10 pr-[220px] w-full py-2 border border-1 border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+                    className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
                     value={filters.searchTerm}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       updateFilter('searchTerm', e.target.value)
@@ -536,77 +736,164 @@ const products = [
                   />
                 </div>
                 <div className="z-50">
-
-                <LocationSelector />
+                  <LocationSelector />
                 </div>
+              </div>
 
-                <button className="relative p-2 hover:bg-gray-100 rounded-lg" onClick={() => setCartOpen(!cartOpen)}>
+              {/* Right side icons */}
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                {/* Wishlist */}
+                <button className="relative p-2 hover:bg-gray-100 rounded-lg">
                   <Link href="/wishlist">
-                    <Heart className="w-6 h-6 text-orange-600" />
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                     {wishListsData.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">
                         {wishListsData.length}
                       </span>
                     )}
                   </Link>
                 </button>
 
-
-                <div className="flex items-center space-x-4 relative z-[120px]">
-
-                  <AddCardList cartItems={cartItems} removeFromCart={removeFromCart} updateQuantity={updateQuantity} getTotalPrice={getTotalPrice} setCartItems={setCartItems} cartOpen={cartOpen} setCartOpen={setCartOpen} />
+                {/* Cart */}
+                <div className="flex items-center space-x-2 relative z-[120px]">
+                  <AddCardList 
+                    cartItems={cartItems} 
+                    removeFromCart={removeFromCart} 
+                    updateQuantity={updateQuantity} 
+                    getTotalPrice={getTotalPrice} 
+                    setCartItems={setCartItems} 
+                    cartOpen={cartOpen} 
+                    setCartOpen={setCartOpen} 
+                  />
+                  
                   {/* Mobile Menu Button */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden text-gray-700 dark:text-gray-300"
+                    className="md:hidden text-gray-700"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   >
-                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-" />}
+                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                   </Button>
                 </div>
 
-                {/* show here some profile logo */}
-                <div className='flex items-center cursor-pointer'>
-
-                  <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+                {/* Profile - Hidden on mobile */}
+                <div className='hidden sm:flex items-center cursor-pointer'>
+                  <img className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile Search Bar */}
+            <div className="md:hidden mt-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+                  value={filters.searchTerm}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    updateFilter('searchTerm', e.target.value)
+                  }
+                />
+              </div>
+              <div className="mt-2">
+                <LocationSelector />
               </div>
             </div>
           </div>
         </header>
-        <NavbarFilter />
+        
+        {/* Navigation Filter */}
+        <div className="hidden md:block">
+          <NavbarFilter />
+        </div>
       </div>
 
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+          <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Menu</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              {/* Profile in mobile menu */}
+              <div className="flex items-center space-x-3 mb-6 p-3 bg-gray-50 rounded-lg">
+                <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+                <div>
+                  <p className="font-medium">Your Account</p>
+                  <p className="text-sm text-gray-600">Manage your profile</p>
+                </div>
+              </div>
+
+              {/* Mobile Navigation */}
+              <NavbarFilter />
+              
+              {/* Mobile Filters */}
+              <div className="mt-6">
+                <SidebarFilters />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      <div className="max-w-8xl mx-auto px-1 py-2">
-        <div className="flex gap-6">
-          {/* Sidebar Filters */}
-          <SidebarFilters />
+      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+        <div className="flex gap-2 lg:gap-6">
+          {/* Desktop Sidebar Filters */}
+          <div className="hidden lg:block">
+            <SidebarFilters />
+          </div>
 
           {/* Products Grid */}
           <div className="flex-1">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">
+            {/* Header with responsive text */}
+            <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                 Fresh Groceries ({filteredProducts.length} products)
               </h2>
-              <div className="text-sm text-gray-600">
+              
+              {/* Filter tags - responsive */}
+              <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                 {filters.category !== 'all' && (
-                  <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full mr-2">
+                  <span className="bg-orange-100 text-orange-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                     Category: {filters.category}
                   </span>
                 )}
                 {filters.priceRanges.length > 0 && (
-                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full mr-2">
+                  <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                     Price filters applied
                   </span>
                 )}
                 {filters.ratings.length > 0 && (
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                  <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                     Rating filters applied
                   </span>
                 )}
               </div>
+            </div>
+
+            {/* Mobile Filter Button */}
+            <div className="lg:hidden mb-4">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters & Categories
+              </Button>
             </div>
 
             <ProductCardGrid
