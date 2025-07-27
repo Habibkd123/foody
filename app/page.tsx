@@ -228,7 +228,11 @@ export function FoodDeliveryWebsite() {
     setShowAdminDashboard(true)
   }
   let userData = JSON.parse(localStorage.getItem("G-user"))
-
+  const logout =()=>{
+    localStorage.removeItem("G-user")
+    localStorage.removeItem("token")
+    router.push("/")
+  }
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
       {/* Sticky Header */}
@@ -268,7 +272,7 @@ export function FoodDeliveryWebsite() {
                 Login
               </Button>:
               <Button
-                onClick={() => setShowAuth(true)}
+                onClick={() => logout()}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full"
               >
                 Logout
