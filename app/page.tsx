@@ -30,8 +30,9 @@ import AdminAuthSystem from "@/components/admin-auth-system"
 import AdminDashboard from "@/components/admin-dashboard"
 import MyMap from "@/components/ui/mapsData"
 import HeroSlider from "@/components/ui/HeroSlider"
-
-export default function FoodDeliveryWebsite() {
+import SupportChat from "@/components/SupportChat"
+import logo from "./../public/logoGro.png"
+export function FoodDeliveryWebsite() {
   const [darkMode, setDarkMode] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [cartItems, setCartItems] = useState<any>([])
@@ -55,7 +56,7 @@ export default function FoodDeliveryWebsite() {
     { id: 8, name: "Fast Food", image: "/placeholder.svg?height=80&width=80", icon: "🍔" },
   ]
 
-   const restaurants = [
+  const restaurants = [
     {
       id: 1,
       name: "Spice Garden",
@@ -184,11 +185,11 @@ export default function FoodDeliveryWebsite() {
     },
   ]
 
-  const addToCart = (item:any) => {
-    const existingItem = cartItems.find((cartItem:any) => cartItem.id === item.id)
+  const addToCart = (item: any) => {
+    const existingItem = cartItems.find((cartItem: any) => cartItem.id === item.id)
     if (existingItem) {
       setCartItems(
-        cartItems.map((cartItem:any) =>
+        cartItems.map((cartItem: any) =>
           cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem,
         ),
       )
@@ -197,20 +198,20 @@ export default function FoodDeliveryWebsite() {
     }
   }
 
-  const removeFromCart = (itemId:any) => {
-    setCartItems(cartItems.filter((item:any) => item.id !== itemId))
+  const removeFromCart = (itemId: any) => {
+    setCartItems(cartItems.filter((item: any) => item.id !== itemId))
   }
 
-  const updateQuantity = (itemId:any, newQuantity:any) => {
+  const updateQuantity = (itemId: any, newQuantity: any) => {
     if (newQuantity === 0) {
       removeFromCart(itemId)
     } else {
-      setCartItems(cartItems.map((item:any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
+      setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
     }
   }
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total:any, item:any) => total + item.price * item.quantity, 0)
+    return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
   }
 
   useEffect(() => {
@@ -221,11 +222,12 @@ export default function FoodDeliveryWebsite() {
     }
   }, [darkMode])
 
-  const handleAdminLoginSuccess = (user:any) => {
+  const handleAdminLoginSuccess = (user: any) => {
     setAdminUser(user)
     setShowAdminAuth(false)
     setShowAdminDashboard(true)
   }
+  let userData = JSON.parse(localStorage.getItem("G-user"))
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
@@ -235,10 +237,11 @@ export default function FoodDeliveryWebsite() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">FD</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">FoodDelivery</span>
+              {/* <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center"> */}
+                {/* <span className="text-white font-bold text-sm">FD</span> */}
+                <img src="./logoGro.png" alt="FoodDelivery Logo" className="w-12 h-12 rounded-md" />
+              {/* </div> */}
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Gro-Delivery</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -258,13 +261,19 @@ export default function FoodDeliveryWebsite() {
               <a href="#profile" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 Profile
               </a>
-              {/* <Button
+             {!userData? <Button
                 onClick={() => setShowAuth(true)}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full"
               >
                 Login
-              </Button>
+              </Button>:
               <Button
+                onClick={() => setShowAuth(true)}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full"
+              >
+                Logout
+              </Button>}
+              {/* <Button
                 onClick={() => setShowAdminAuth(true)}
                 variant="outline"
                 className="border-purple-500 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 px-4 py-2 rounded-full bg-transparent"
@@ -290,7 +299,7 @@ export default function FoodDeliveryWebsite() {
                     <ShoppingCart className="h-5 w-5" />
                     {cartItems.length > 0 && (
                       <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-orange-500">
-                        {cartItems.reduce((sum:any, item:any) => sum + item.quantity, 0)}
+                        {cartItems.reduce((sum: any, item: any) => sum + item.quantity, 0)}
                       </Badge>
                     )}
                   </Button>
@@ -304,7 +313,7 @@ export default function FoodDeliveryWebsite() {
                       <p className="text-center text-gray-500 py-8">Your cart is empty</p>
                     ) : (
                       <>
-                        {cartItems.map((item:any) => (
+                        {cartItems.map((item: any) => (
                           <div
                             key={item.id}
                             className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -402,11 +411,11 @@ export default function FoodDeliveryWebsite() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          // style={{
-          //   backgroundImage: "url('https://plus.unsplash.com/premium_photo-1663858367001-89e5c92d1e0e?q=80&w=415&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-          // }}
+        // style={{
+        //   backgroundImage: "url('https://plus.unsplash.com/premium_photo-1663858367001-89e5c92d1e0e?q=80&w=415&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+        // }}
         >
-          <HeroSlider/>
+          <HeroSlider />
         </div>
 
         <div className="relative z-20 text-center text-white px-4 max-w-4xl mx-auto">
@@ -483,9 +492,8 @@ export default function FoodDeliveryWebsite() {
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <Badge
-                    className={`absolute top-3 right-3 ${
-                      restaurant.isOpen ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
-                    }`}
+                    className={`absolute top-3 right-3 ${restaurant.isOpen ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"
+                      }`}
                   >
                     {restaurant.isOpen ? "Open now" : "Closed"}
                   </Badge>
@@ -745,7 +753,7 @@ export default function FoodDeliveryWebsite() {
               {/* Map Placeholder */}
               <div className="bg-gray-200 dark:bg-gray-700 h-64 rounded-lg flex items-center justify-center">
                 {/* <p className="text-gray-500 dark:text-gray-400">Map Integration</p> */}
-                <MyMap/>
+                <MyMap />
               </div>
             </div>
           </div>
@@ -877,7 +885,7 @@ const UserDashboard = ({ onClose }) => {
   )
 }
 
-const AuthSystem = ({ onClose, onLoginSuccess } ) => {
+const AuthSystem = ({ onClose, onLoginSuccess }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full">
@@ -893,3 +901,16 @@ const AuthSystem = ({ onClose, onLoginSuccess } ) => {
     </div>
   )
 }
+
+
+
+
+export default function Page() {
+  return (
+    <main>
+      <FoodDeliveryWebsite />
+      <SupportChat />
+    </main>
+  );
+}
+

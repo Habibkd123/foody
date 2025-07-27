@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import './globals.css'
-
+import { WishListProvider } from '@/context/WishListsContext'
+import { FilterProvider } from '@/context/FilterContext'
+import { CartProvider } from '@/context/CartContext'
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Grocery Mart',
+  description: 'Grocery for your services',
+  generator: 'Grocery Mart',
+  icons: './logoGro.png'
 }
 
 export default function RootLayout({
@@ -14,7 +17,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+
+        <WishListProvider >
+          <FilterProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </FilterProvider>
+        </WishListProvider>
+      </body>
     </html>
   )
 }
+

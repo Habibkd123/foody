@@ -1,0 +1,10 @@
+model Order {
+  id        String   @id @default(cuid())
+  items     Json
+  address   Json
+  tip       Int
+  note      String?
+  status    String   @default("pending")
+  driverId  String?
+  createdAt DateTime @default(now())
+}

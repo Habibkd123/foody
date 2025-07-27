@@ -1,0 +1,6 @@
+.custom-corner {
+  border-top-left-radius: 0.75rem; /* like rounded-tl-lg */
+  border-bottom-right-radius: 0.5rem; /* optional if needed */
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+}

@@ -1,8 +1,7 @@
 "use client"
 
-import React from "react"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import {
   Shield,
   Users,
@@ -229,7 +228,7 @@ export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
                 <div
-                  className={`w-10 h-10 ${ADMIN_ROLES[user.role].color} rounded-full flex items-center justify-center`}
+                  className={`w-10 h-10 ${ADMIN_ROLES[user.role]?.color} rounded-full flex items-center justify-center`}
                 >
                   {React.createElement(ADMIN_ROLES[user.role].icon, {
                     className: "h-5 w-5 text-white",
