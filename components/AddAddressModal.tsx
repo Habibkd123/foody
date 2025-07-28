@@ -571,16 +571,13 @@
 // };
 
 // export default DeliveryAddressPage;
-
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GoogleMap, Marker, useLoadScript, Autocomplete } from "@react-google-maps/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Home, Briefcase, Hotel, MapPin, Navigation } from 'lucide-react';
-import MapWithSearch from './MapWithSearch';
-import LocationSearchMap from './MapWithSearch';
+import { Home, Briefcase, Hotel, MapPin, Navigation, X } from 'lucide-react';
 
 const libraries: any = ["places"];
 
@@ -610,7 +607,7 @@ const DeliveryAddressPage = () => {
     const [address, setAddress] = useState('');
     const [distance, setDistance] = useState<number | null>(null);
 
-    const autocompleteRef = useRef<any>(null); // 🔥 NEW
+    const autocompleteRef = useRef<any>(null);
 
     const { isLoaded } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -681,7 +678,7 @@ const DeliveryAddressPage = () => {
         setIsSheetOpen(false);
     };
 
-    const handlePlaceChanged = () => { // 🔥 NEW
+    const handlePlaceChanged = () => {
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
             if (!place.geometry) return;
@@ -692,26 +689,51 @@ const DeliveryAddressPage = () => {
         }
     };
 
-    if (!isLoaded) return <div className="p-8">Loading map...</div>;
+    if (!isLoaded) return (
+        <div className="flex items-center justify-center h-screen w-full">
+            <div className="text-lg">Loading map...</div>
+        </div>
+    );
 
     return (
-        <div className="relative h-screen w-full">
+        <div className="relative h-screen w-full overflow-hidden">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent side="top" className="h-[95vh] mt-5 w-[74%] mx-auto p-0 rounded-t-2xl">
-                    <div className='grid grid-cols-2 gap-4'>
-                        {/* Left side - Map */}
-                        <div className="relative h-[75vh]">
+                <SheetContent 
+                    side="top" 
+                    className="h-[95vh] mt-2 sm:mt-5 w-[95%] sm:w-[90%] lg:w-[80%] xl:w-[74%] mx-auto p-0 rounded-t-2xl max-w-7xl"
+                >
+                    {/* Mobile Header */}
+                    <div className="lg:hidden flex items-center justify-between p-4 border-b">
+                        <h2 className="text-lg font-semibold">Enter Delivery Address</h2>
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setIsSheetOpen(false)}
+                            className="p-1"
+                        >
+                            <X className="w-5 h-5" />
+                        </Button>
+                    </div>
 
-                            {/* 🔥 Autocomplete Search Input */}
-                            <div className="absolute top-4 left-4 right-4 z-10">
-                                <Autocomplete onLoad={(ref) => (autocompleteRef.current = ref)} onPlaceChanged={handlePlaceChanged}>
+                    {/* Main Content */}
+                    <div className="flex flex-col lg:grid lg:grid-cols-2 gap-0 lg:gap-4 h-full">
+                        {/* Map Section */}
+                        <div className="relative h-[40vh] sm:h-[45vh] lg:h-[75vh] order-1">
+                            {/* Search Input */}
+                            <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10">
+                                <Autocomplete 
+                                    onLoad={(ref) => (autocompleteRef.current = ref)} 
+                                    onPlaceChanged={handlePlaceChanged}
+                                >
                                     <input
                                         type="text"
                                         placeholder="Search for location"
-                                        className="w-full p-2 rounded-md border bg-white shadow"
+                                        className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-md border bg-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </Autocomplete>
                             </div>
+
+                            {/* Google Map */}
                             <GoogleMap
                                 mapContainerStyle={mapContainerStyle}
                                 center={marker}
@@ -720,6 +742,7 @@ const DeliveryAddressPage = () => {
                                 options={{
                                     disableDefaultUI: true,
                                     zoomControl: true,
+                                    gestureHandling: 'greedy',
                                 }}
                             >
                                 <Marker position={marker} />
@@ -728,79 +751,113 @@ const DeliveryAddressPage = () => {
                             {/* Current Location Button */}
                             <button
                                 onClick={getUserLocation}
-                                className="absolute bottom-20 right-6 z-10 bg-white p-3 rounded-full shadow"
+                                className="absolute bottom-16 sm:bottom-20 lg:bottom-24 right-3 sm:right-6 z-10 bg-white p-2 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
                             >
-                                <Navigation className="text-gray-600 w-5 h-5" />
+                                <Navigation className="text-gray-600 w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
-   <div className='p-2'>
-                            <div className="px-4 py-2 mt-2 border border-gray-200 rounded-lg  bg-red-50 w-full ">
-                                <h1 className="font-semibold">Delivering your order to:</h1>
-                                <div className="flex items-center space-x-2 mt-2">
-                                    <img
-                                        src="https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=225/layout-engine/2024-01/image.png"
-                                        alt="Map location"
-                                        className="w-12 h-12 object-cover rounded"
-                                    />
-                                    {/* <div className="text-sm">
-                                    <p className="font-medium">{form.area || "Selected Area"}</p>
-                                    <p>Lat: {marker.lat.toFixed(4)}, Lng: {marker.lng.toFixed(4)}</p>
-                                </div> */}
-                                    <div>
-                                        <div className="font-medium text-lg">Suraj Nagar</div>
-                                        <div className="text-gray-600 text-sm">Jhotwara, Jaipur</div>
+
+                            {/* Address Display Box */}
+                            <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4 lg:left-4 lg:right-4">
+                                <div className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg bg-red-50 shadow-lg">
+                                    <h3 className="font-semibold text-sm sm:text-base mb-2">Delivering your order to:</h3>
+                                    <div className="flex items-center space-x-2 sm:space-x-3">
+                                        <img
+                                            src="https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=225/layout-engine/2024-01/image.png"
+                                            alt="Map location"
+                                            className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 object-cover rounded flex-shrink-0"
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                            <div className="font-medium text-sm sm:text-base lg:text-lg truncate">Suraj Nagar</div>
+                                            <div className="text-gray-600 text-xs sm:text-sm truncate">Jhotwara, Jaipur</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            </div>
-                            {/* Address Box */}
-                            {/* <div className="absolute bottom-4 left-4 right-4 bg-red-50 p-4 rounded-lg shadow">
-                                <p className="text-sm text-gray-700">{address || "Fetching address..."}</p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Lat: {marker.lat.toFixed(4)} | Lng: {marker.lng.toFixed(4)}
-                                </p>
-                                {distance !== null && (
-                                    <p className="text-xs text-green-600 mt-1">
-                                        Distance from default: {distance} km
-                                    </p>
-                                )}
-                            </div> */}
                         </div>
 
-                        {/* Right side - Form */}
-                        <div className="space-y-2 p-4 overflow-y-auto">
-                            <SheetHeader className="text-left pb-4">
-                                <SheetTitle className="text-xl font-semibold">Enter complete address</SheetTitle>
-                            </SheetHeader>
-
-                            <div>
-                                <label className="text-sm font-medium text-gray-700 mb-2 block">Save as *</label>
-                                <div className="flex gap-2 flex-wrap">
-                                    {addressTypes.map(({ id, label, icon: Icon }) => (
-                                        <button
-                                            key={id}
-                                            onClick={() => setSelectedAddressType(id)}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors ${
-                                                selectedAddressType === id
-                                                    ? 'bg-orange-50 text-orange-600 border-orange-200'
-                                                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                                            }`}
-                                        >
-                                            <Icon className="w-4 h-4" />
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Form Section */}
+                        <div className="flex-1 lg:order-2 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+                            {/* Desktop Header */}
+                            <div className="hidden lg:block">
+                                <SheetHeader className="text-left pb-4 border-b mb-6">
+                                    <SheetTitle className="text-xl xl:text-2xl font-semibold">
+                                        Enter complete address
+                                    </SheetTitle>
+                                </SheetHeader>
                             </div>
 
-                            <Input placeholder="Flat / House no / Building name *" value={formData.flatNumber} onChange={(e) => handleInputChange('flatNumber', e.target.value)} />
-                            <Input placeholder="Floor (optional)" value={formData.floor} onChange={(e) => handleInputChange('floor', e.target.value)} />
-                            <Input placeholder="Nearby landmark (optional)" value={formData.landmark} onChange={(e) => handleInputChange('landmark', e.target.value)} />
-                            <Input placeholder="Your name *" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} />
-                            <Input placeholder="Your phone number" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                            {/* Mobile Header */}
+                            <div className="lg:hidden mb-4">
+                                <h3 className="text-lg font-semibold">Complete Address</h3>
+                            </div>
 
-                            <Button onClick={handleSaveAddress} className="w-full bg-green-600 hover:bg-green-700 text-white text-lg mt-4">
-                                Save Address
-                            </Button>
+                            <div className="space-y-4 sm:space-y-5">
+                                {/* Address Type Selection */}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 mb-3 block">
+                                        Save as *
+                                    </label>
+                                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+                                        {addressTypes.map(({ id, label, icon: Icon }) => (
+                                            <button
+                                                key={id}
+                                                onClick={() => setSelectedAddressType(id)}
+                                                className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2.5 sm:py-2 rounded-lg text-sm border transition-colors ${
+                                                    selectedAddressType === id
+                                                        ? 'bg-orange-50 text-orange-600 border-orange-200'
+                                                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                <Icon className="w-4 h-4 flex-shrink-0" />
+                                                <span className="truncate">{label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Form Inputs */}
+                                <div className="space-y-3 sm:space-y-4">
+                                    <Input 
+                                        placeholder="Flat / House no / Building name *" 
+                                        value={formData.flatNumber} 
+                                        onChange={(e) => handleInputChange('flatNumber', e.target.value)}
+                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                    />
+                                    <Input 
+                                        placeholder="Floor (optional)" 
+                                        value={formData.floor} 
+                                        onChange={(e) => handleInputChange('floor', e.target.value)}
+                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                    />
+                                    <Input 
+                                        placeholder="Nearby landmark (optional)" 
+                                        value={formData.landmark} 
+                                        onChange={(e) => handleInputChange('landmark', e.target.value)}
+                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                    />
+                                    <Input 
+                                        placeholder="Your name *" 
+                                        value={formData.name} 
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
+                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                    />
+                                    <Input 
+                                        placeholder="Your phone number *" 
+                                        value={formData.phone} 
+                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                        type="tel"
+                                    />
+                                </div>
+
+                                {/* Save Button */}
+                                <Button 
+                                    onClick={handleSaveAddress} 
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white h-12 sm:h-14 text-base sm:text-lg font-medium mt-6 sm:mt-8 transition-colors"
+                                >
+                                    Save Address
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </SheetContent>

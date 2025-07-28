@@ -814,6 +814,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import HeroSlider from "@/components/ui/HeroSlider"
 import SupportChat from "@/components/SupportChat"
+import { useRouter } from "next/navigation"
 
 // Grocery Products Data
 const products = [
@@ -859,6 +860,7 @@ const products = [
 ]
 
 export function Grocery() {
+  const router =useRouter()
   const [darkMode, setDarkMode] = useState<boolean>(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const [cartItems, setCartItems] = useState<Array<any>>([])
@@ -992,7 +994,7 @@ export function Grocery() {
               <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 Contact
               </a>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full">
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
                 Login
               </Button>
             </nav>
