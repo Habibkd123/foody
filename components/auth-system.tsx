@@ -892,6 +892,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useRouter } from "next/navigation"
 
 interface AuthSystemProps {
   onClose: () => void
@@ -906,6 +907,7 @@ export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [otpTimer, setOtpTimer] = useState(0)
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -957,6 +959,7 @@ export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps)
       }
       
       console.log('User created successfully:', result)
+      
       return result
     } catch (error) {
       console.error('Error creating user:', error)
@@ -990,14 +993,11 @@ export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps)
         localStorage.setItem("G-user",JSON.stringify(result.data.user))
         // Store token in memory (not localStorage as per artifact restrictions)
         // In a real app, you would use localStorage here
-        const tokenStorage = {
-          token: result.data.token
-        }
-        Object.defineProperty(window, 'tokenStorage', {
-          value: tokenStorage,
-          writable: false,
-        });
+        
         console.log('Login successful, token:', result.data.token)
+        // window.location.reload()
+        router.push("/productList")
+
         return result
       } else {
         throw new Error('Invalid response from server')
@@ -1200,9 +1200,10 @@ export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps)
       <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-0">
-            <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+            {/* <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg">FD</span>
-            </div>
+            </div> */}
+            <img src="./logoGro.png" style={{width: "50px", height: "50px",borderRadius: "50%"}}/>
           </div>
 
           <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">

@@ -1,24 +1,4 @@
-// "use client";
-// import React, { useState } from 'react';
-// import { Search, Heart, ShoppingCart, Menu, X } from 'lucide-react';
-// import SidebarFilters from "@/components/SidebarFilters"
-// import NavbarFilter from "@/components/NavbarFilter"
-// import ProductCardGrid from "@/components/ProductGrid"
-// import AnnouncementBar from '@/components/AnnouncementBar';
-// import "@/styles/productist.css";
-// import SupportChat from '@/components/SupportChat';
-// import LocationSelector from '@/components/LocationSelector';
-// import { Button } from "@/components/ui/button"
-// import AddCardList from '@/components/AddCards';
-// import Link from 'next/link';
-// import { WishListContext } from '@/context/WishListsContext';
-// const ProductGrid = () => {
-//   const {wishListsData,setWistListsData} = React.useContext<any>(WishListContext);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [selectedCategory, setSelectedCategory] = useState('all');
-//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-//   const [cartItems, setCartItems] = useState<any>([])
-//   const [cartOpen, setCartOpen] = useState<boolean>(false)
+
 "use client";
 
 import NavbarFilter from "@/components/NavbarFilter";
@@ -34,6 +14,7 @@ import LocationSelector from "@/components/LocationSelector";
 import Link from "next/link";
 import AddCardList from "@/components/AddCards";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 // Type Definitions
 interface Product {
@@ -65,218 +46,14 @@ interface PriceRange {
   max: number;
 }
 
-//   const toggleWishlist = (item: any) => {
-//     const exists = wishListsData.find((fav:any) => fav.id === item.id);
-//     if (exists) {
-// setWistListsData(JSON.stringify(wishListsData.filter((fav:any) => fav.id !== item.id)))
-//     } else {
-//       setWistListsData(JSON.stringify([...wishListsData, item]))
-//     }
-//   };
-
-//   const categories = [
-//     'All Categories',
-//     'Beverages',
-//     'Snacks & Confectionery',
-//     'Personal Care',
-//     'Health & Wellness',
-//     'Home & Kitchen',
-//     'Dairy Products',
-//     'Frozen Foods',
-//     'Baby Care',
-//     'Cleaning Supplies'
-//   ];
-
-//   const products = [
-//     { id: 1, name: 'Premium Green Tea', price: 299, originalPrice: 399, image: 'https://picsum.photos/200', rating: 4.5, reviews: 128, category: 'beverages', discount: 25 },
-//     { id: 2, name: 'Organic Honey', price: 450, originalPrice: 550, image: 'https://picsum.photos/200', rating: 4.8, reviews: 89, category: 'health', discount: 18 },
-//     { id: 3, name: 'Face Wash Gel', price: 180, originalPrice: 220, image: 'https://picsum.photos/200', rating: 4.2, reviews: 156, category: 'personal-care', discount: 18 },
-//     { id: 4, name: 'Chocolate Cookies', price: 120, originalPrice: 150, image: 'https://picsum.photos/200', rating: 4.6, reviews: 203, category: 'snacks', discount: 20 },
-//     { id: 5, name: 'Vitamin C Tablets', price: 350, originalPrice: 420, image: 'https://picsum.photos/200', rating: 4.4, reviews: 67, category: 'health', discount: 17 },
-//     { id: 6, name: 'Coffee Beans 500g', price: 680, originalPrice: 800, image: 'https://picsum.photos/200', rating: 4.7, reviews: 245, category: 'beverages', discount: 15 },
-//     { id: 7, name: 'Hand Sanitizer', price: 89, originalPrice: 110, image: 'https://picsum.photos/200', rating: 4.3, reviews: 178, category: 'personal-care', discount: 19 },
-//     { id: 8, name: 'Protein Bars Pack', price: 380, originalPrice: 450, image: 'https://picsum.photos/200', rating: 4.5, reviews: 92, category: 'health', discount: 16 },
-//     { id: 9, name: 'Himalayan Salt', price: 140, originalPrice: 180, image: 'https://picsum.photos/200', rating: 4.6, reviews: 134, category: 'home', discount: 22 },
-//     { id: 10, name: 'Energy Drink Pack', price: 250, originalPrice: 300, image: 'https://picsum.photos/200', rating: 4.1, reviews: 167, category: 'beverages', discount: 17 },
-//     { id: 11, name: 'Almond Butter', price: 520, originalPrice: 620, image: 'https://picsum.photos/200', rating: 4.7, reviews: 76, category: 'health', discount: 16 },
-//     { id: 12, name: 'Moisturizer Cream', price: 320, originalPrice: 400, image: 'https://picsum.photos/200', rating: 4.4, reviews: 198, category: 'personal-care', discount: 20 },
-//     { id: 13, name: 'Dark Chocolate Bar', price: 180, originalPrice: 220, image: 'https://picsum.photos/200', rating: 4.8, reviews: 289, category: 'snacks', discount: 18 },
-//     { id: 14, name: 'Coconut Oil 500ml', price: 280, originalPrice: 340, image: 'https://picsum.photos/200', rating: 4.5, reviews: 143, category: 'home', discount: 18 },
-//     { id: 15, name: 'Herbal Shampoo', price: 220, originalPrice: 280, image: 'https://picsum.photos/200', rating: 4.3, reviews: 112, category: 'personal-care', discount: 21 },
-//     { id: 16, name: 'Mixed Nuts 250g', price: 450, originalPrice: 520, image: 'https://picsum.photos/200', rating: 4.6, reviews: 187, category: 'snacks', discount: 13 },
-//     { id: 17, name: 'Green Coffee Extract', price: 680, originalPrice: 800, image: 'https://picsum.photos/200', rating: 4.2, reviews: 58, category: 'health', discount: 15 },
-//     { id: 18, name: 'Dish Soap Liquid', price: 150, originalPrice: 180, image: 'https://picsum.photos/200', rating: 4.4, reviews: 234, category: 'cleaning', discount: 17 },
-//     { id: 19, name: 'Oats Breakfast', price: 180, originalPrice: 220, image: 'https://picsum.photos/200', rating: 4.7, reviews: 156, category: 'health', discount: 18 },
-//     { id: 20, name: 'Body Lotion', price: 290, originalPrice: 350, image: 'https://picsum.photos/200', rating: 4.5, reviews: 167, category: 'personal-care', discount: 17 },
-//     { id: 21, name: 'Fruit Juice 1L', price: 120, originalPrice: 150, image: 'https://picsum.photos/200', rating: 4.3, reviews: 298, category: 'beverages', discount: 20 },
-//     { id: 22, name: 'Laundry Detergent', price: 380, originalPrice: 450, image: 'https://picsum.photos/200', rating: 4.6, reviews: 189, category: 'cleaning', discount: 16 },
-//     { id: 23, name: 'Quinoa Seeds 500g', price: 420, originalPrice: 500, image: 'https://picsum.photos/200', rating: 4.4, reviews: 87, category: 'health', discount: 16 },
-//     { id: 24, name: 'Baby Wipes Pack', price: 180, originalPrice: 220, image: 'https://picsum.photos/200', rating: 4.7, reviews: 267, category: 'baby-care', discount: 18 },
-//   ];
-
-//   const filteredProducts = products.filter(product => {
-//     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-//     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-//     return matchesSearch && matchesCategory;
-//   });
-
-//   const addToCart = (item: any) => {
-//     const existingItem = cartItems.find((cartItem: any) => cartItem.id === item.id)
-//     if (existingItem) {
-//       setCartItems(
-//         cartItems.map((cartItem: any) =>
-//           cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem,
-//         ),
-//       )
-//     } else {
-//       setCartItems([...cartItems, { ...item, quantity: 1 }])
-//     }
-//   }
-
-
-//   const removeFromCart = (itemId: any) => {
-//     setCartItems(cartItems.filter((item: any) => item.id !== itemId))
-//   }
-
-//   const updateQuantity = (itemId: any, newQuantity: any) => {
-//     if (newQuantity === 0) {
-//       removeFromCart(itemId)
-//     } else {
-//       setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
-//     }
-//   }
-
-//   const getTotalPrice = () => {
-//     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
-//   }
-
-
-//   return (
-//     <div className="h-screen overflow-hidden flex flex-col">
-//       {/* Navbar */}
-//       <div className='sticky top-0 z-50'>
-//         <AnnouncementBar />
-//       </div>
-//       <div className="sticky top-0 z-50">
-//         <header className="bg-white shadow-sm border-b  sticky top-0 z-50">
-//           <div className="max-w-7xl mx-auto  py-2 border-b-1">
-//             <div className="flex items-center justify-between">
-//               <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-//                 ShopMart
-//               </h1>
-//               <div className="flex items-center space-x-4">
-
-//                 <div className="relative z-50">
-//                   {/* Search Icon */}
-//                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
-
-//                   {/* Input Box */}
-//                   <input
-//                     type="text"
-//                     placeholder="Search products..."
-//                     className="pl-10 pr-[220px] w-full py-2 border border-1 border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
-//                     value={searchTerm}
-//                     onChange={(e) => setSearchTerm(e.target.value)}
-//                   />
-//                 </div>
-//                 <LocationSelector />
-
-//                 <button className="relative p-2 hover:bg-gray-100 rounded-lg" onClick={() => setCartOpen(!cartOpen)}>
-//                  <Link href="/wishlist">
-//                   <Heart className="w-6 h-6 text-orange-600" />
-//                   {wishListsData.length > 0 && (
-//                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-//                       {wishListsData.length}
-//                     </span>
-//                   )}
-//                   </Link>
-//                 </button>
-
-
-//                 <div className="flex items-center space-x-4">
-
-//                   <AddCardList cartItems={cartItems} removeFromCart={removeFromCart} updateQuantity={updateQuantity} getTotalPrice={getTotalPrice} setCartItems={setCartItems} cartOpen={cartOpen} setCartOpen={setCartOpen} />
-//                   {/* Mobile Menu Button */}
-//                   <Button
-//                     variant="ghost"
-//                     size="icon"
-//                     className="md:hidden text-gray-700 dark:text-gray-300"
-//                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-//                   >
-//                     {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-//                   </Button>
-//                 </div>
-
-//                 {/* show here some profile logo */}
-//                 <div className='flex items-center cursor-pointer'>
-
-//                   <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </header>
-//         <NavbarFilter />
-//       </div>
-
-//       {/* Body: Sidebar + Main */}
-//       <div className="flex flex-1 overflow-hidden">
-//         {/* Sidebar */}
-//         <div className="w-64 bg-white shadow-lg overflow-y-auto sticky top-0 ">
-//           <SidebarFilters />
-//         </div>
-
-//         {/* Main Content Scrollable */}
-//         <div className="flex-1 overflow-y-auto bg-gray-100 px-4">
-//           <div className="mt-5">
-//             <ProductCardGrid
-//               products={filteredProducts}
-//               onAddToCart={addToCart}
-//               onToggleWishlist={toggleWishlist}
-
-//             />
-//           </div>
-
-//           {/* Pagination */}
-//           <div className="mt-8 flex justify-center">
-//             <nav className="flex items-center space-x-2">
-//               <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Previous</button>
-//               {[1, 2, 3, 4, 5].map((page) => (
-//                 <button
-//                   key={page}
-//                   className={`px-3 py-2 border rounded-lg ${page === 1
-//                     ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white border-transparent'
-//                     : 'border-gray-300 hover:bg-gray-50'
-//                     }`}
-//                 >
-//                   {page}
-//                 </button>
-//               ))}
-//               <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Next</button>
-//             </nav>
-//           </div>
-//         </div>
-
-//       </div>
-//       <SupportChat />
-
-//     </div>
-//   );
-
-// };
-
-// export default ProductGrid;
-
-
-
-
-
-
-
-
+interface Filter {
+  categories: Category[];
+  priceRanges: PriceRange[];
+}
 
 // Main Product Grid Component
 const ProductGrid: React.FC = () => {
+  const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
   const { wishListsData, setWistListsData } = useWishListContext();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -423,205 +200,7 @@ const products = [
   { id: 114, name: 'Maggi 2-Minute Noodles Masala', price: 48, originalPrice: 50, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/maggi-noodles.jpg', rating: 4.4, reviews: 678, category: 'ready-to-cook', discount: 4 },
   { id: 115, name: 'Bambino Vermicelli', price: 65, originalPrice: 70, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/bambino-vermicelli.jpg', rating: 4.3, reviews: 123, category: 'ready-to-cook', discount: 7 }
 ];
-//   // Real-time filtering logic with proper typing
-//   const filteredProducts: Product[] = products.filter((product: Product) => {
-//     // Search filter
-//     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
-//       return false;
-//     }
 
-//     // Category filter
-//     if (filters.category !== 'all' && product.category !== filters.category) {
-//       return false;
-//     }
-
-//     // Price range filter
-//     if (filters.priceRanges.length > 0) {
-//       const priceRangeMap: Record<string, { min: number; max: number }> = {
-//         'under-100': { min: 0, max: 100 },
-//         '100-300': { min: 100, max: 300 },
-//         '300-500': { min: 300, max: 500 },
-//         '500-1000': { min: 500, max: 1000 },
-//         'above-1000': { min: 1000, max: Infinity }
-//       };
-
-//       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
-//         const range = priceRangeMap[rangeKey];
-//         return product.price >= range.min && product.price <= range.max;
-//       });
-
-//       if (!matchesPrice) return false;
-//     }
-
-//     // Rating filter
-//     if (filters.ratings.length > 0) {
-//       const matchesRating = filters.ratings.some((rating: number) => product.rating >= rating);
-//       if (!matchesRating) return false;
-//     }
-
-//     return true;
-//   });
-
-//   const toggleWishlist = (item: any) => {
-//     const exists = wishListsData.find((fav: Product) => fav.id === item.id);
-//     if (exists) {
-//       setWistListsData(wishListsData.filter((fav: Product) => fav.id !== item.id));
-//     } else {
-//       setWistListsData([...wishListsData, item]);
-//     }
-//   };
-
-//   const addToCart = (item: any) => {
-//     const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
-//     if (existingItem) {
-//       setCartItems(
-//         cartItems.map((cartItem: CartItem) =>
-//           cartItem.id === item.id
-//             ? { ...cartItem, quantity: cartItem.quantity + 1 }
-//             : cartItem
-//         )
-//       );
-//     } else {
-//       setCartItems([...cartItems, { ...item, quantity: 1 }]);
-//     }
-//   };
-
-//   const removeFromCart = (itemId: any) => {
-//     setCartItems(cartItems.filter((item: any) => item.id !== itemId))
-//   }
-
-//   const updateQuantity = (itemId: any, newQuantity: any) => {
-//     if (newQuantity === 0) {
-//       removeFromCart(itemId)
-//     } else {
-//       setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
-//     }
-//   }
-
-//   const getTotalPrice = () => {
-//     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
-//   }
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-//       {/* Header */}
-//       <div className='sticky top-0'>
-//         <AnnouncementBar />
-//       </div>
-//       <div className="sticky top-0 z-50">
-//         <header className="bg-white shadow-sm border-b  sticky top-0 z-[60]">
-//           <div className="max-w-7xl mx-auto  py-2 border-b-1">
-//             <div className="flex items-center justify-between">
-//               <div className="flex items-center gap-2">
-
-//               <img src="./logoGro.png" className="w-12 h-12 rounded-md" alt="logo" />
-//               <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-//                 Gro-Delivery
-//               </h1>
-//               </div>
-//               <div className="flex items-center space-x-4">
-
-//                 <div className="relative z-40">
-//                   {/* Search Icon */}
-//                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
-
-//                   {/* Input Box */}
-//                   <input
-//                     type="text"
-//                     placeholder="Search products..."
-//                     className="pl-10 pr-[220px] w-full py-2 border border-1 border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
-//                     value={filters.searchTerm}
-//                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                       updateFilter('searchTerm', e.target.value)
-//                     }
-//                   />
-//                 </div>
-//                 <div className="z-50">
-
-//                 <LocationSelector />
-//                 </div>
-
-//                 <button className="relative p-2 hover:bg-gray-100 rounded-lg" onClick={() => setCartOpen(!cartOpen)}>
-//                   <Link href="/wishlist">
-//                     <Heart className="w-6 h-6 text-orange-600" />
-//                     {wishListsData.length > 0 && (
-//                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-//                         {wishListsData.length}
-//                       </span>
-//                     )}
-//                   </Link>
-//                 </button>
-
-
-//                 <div className="flex items-center space-x-4 relative z-[120px]">
-
-//                   <AddCardList cartItems={cartItems} removeFromCart={removeFromCart} updateQuantity={updateQuantity} getTotalPrice={getTotalPrice} setCartItems={setCartItems} cartOpen={cartOpen} setCartOpen={setCartOpen} />
-//                   {/* Mobile Menu Button */}
-//                   <Button
-//                     variant="ghost"
-//                     size="icon"
-//                     className="md:hidden text-gray-700 dark:text-gray-300"
-//                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-//                   >
-//                     {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-" />}
-//                   </Button>
-//                 </div>
-
-//                 {/* show here some profile logo */}
-//                 <div className='flex items-center cursor-pointer'>
-
-//                   <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </header>
-//         <NavbarFilter />
-//       </div>
-
-//       {/* Main Content */}
-//       <div className="max-w-8xl mx-auto px-1 py-2">
-//         <div className="flex gap-6">
-//           {/* Sidebar Filters */}
-//           <SidebarFilters />
-
-//           {/* Products Grid */}
-//           <div className="flex-1">
-//             <div className="mb-6 flex items-center justify-between">
-//               <h2 className="text-2xl font-bold text-gray-800">
-//                 Fresh Groceries ({filteredProducts.length} products)
-//               </h2>
-//               <div className="text-sm text-gray-600">
-//                 {filters.category !== 'all' && (
-//                   <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full mr-2">
-//                     Category: {filters.category}
-//                   </span>
-//                 )}
-//                 {filters.priceRanges.length > 0 && (
-//                   <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full mr-2">
-//                     Price filters applied
-//                   </span>
-//                 )}
-//                 {filters.ratings.length > 0 && (
-//                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
-//                     Rating filters applied
-//                   </span>
-//                 )}
-//               </div>
-//             </div>
-
-//             <ProductCardGrid
-//               products={filteredProducts}
-//               onAddToCart={addToCart}
-//               onToggleWishlist={toggleWishlist}
-//             />
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ProductGrid;
 
 
 const filteredProducts: Product[] = products.filter((product: Product) => {
@@ -778,7 +357,7 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
                 </div>
 
                 {/* Profile - Hidden on mobile */}
-                <div className='hidden sm:flex items-center cursor-pointer'>
+                <div className='hidden sm:flex items-center cursor-pointer' onClick={() => router.push('/profile')}>
                   <img className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
                 </div>
               </div>
@@ -828,7 +407,7 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
               </div>
               
               {/* Profile in mobile menu */}
-              <div className="flex items-center space-x-3 mb-6 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3 mb-6 p-3 bg-gray-50 rounded-lg" onClick={() => router.push('/profile')}>
                 <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
                 <div>
                   <p className="font-medium">Your Account</p>
@@ -837,7 +416,7 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
               </div>
 
               {/* Mobile Navigation */}
-              <NavbarFilter />
+              {/* <NavbarFilter /> */}
               
               {/* Mobile Filters */}
               <div className="mt-6">
