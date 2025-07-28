@@ -813,6 +813,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import HeroSlider from "@/components/ui/HeroSlider"
+import SupportChat from "@/components/SupportChat"
 
 // Grocery Products Data
 const products = [
@@ -1115,13 +1116,15 @@ export function Grocery() {
       {/* Hero Section */}
       <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
-        {/* <div
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&auto=format&fit=crop&q=80')",
-          }}
-        ></div> */}
+          // style={{
+          //   backgroundImage: "url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&auto=format&fit=crop&q=80')",
+          // }}
+        >
+
  <HeroSlider />
+        </div>
         <div className="relative z-20 text-center text-white px-4 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in-up">
             Fresh Groceries delivered to your doorstep
