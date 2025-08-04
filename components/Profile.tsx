@@ -64,6 +64,12 @@ const Profile = () => {
       }
     }
   }, [])
+  const handleLogout = () => {
+    localStorage.removeItem("G-user")
+    localStorage.removeItem("token")
+    window.location.reload()
+
+  }
   return (
     <section id="profile" className="py-16 bg-gray-50 dark:bg-gray-800">
       <div className="container mx-auto px-4">
@@ -100,7 +106,8 @@ const Profile = () => {
                       <p className="text-gray-600 dark:text-gray-400"> {userData?.phone}</p>
                     </div>
                   </div>
-                  <Button className="bg-orange-500 hover:bg-orange-600">Edit Profile</Button>
+                  <Button className="bg-orange-500 hover:bg-orange-600 me-2">Edit Profile</Button>
+                  <Button className="bg-orange-500 hover:bg-orange-600" onClick={handleLogout}>Logout</Button>
                 </CardContent>
               </Card>
             </TabsContent>

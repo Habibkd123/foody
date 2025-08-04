@@ -1,19 +1,9 @@
 "use client";
 import React, { useState, createContext, useContext, ReactNode } from 'react';
-import { Search, Heart, ShoppingCart, Menu, X, Filter, Star } from 'lucide-react';
+import { Product } from '@/types/global';
 
 // Type Definitions
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  category: string;
-  discount: number;
-}
+
 
 interface CartItem extends Product {
   quantity: number;

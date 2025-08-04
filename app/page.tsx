@@ -815,6 +815,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import HeroSlider from "@/components/ui/HeroSlider"
 import SupportChat from "@/components/SupportChat"
 import { useRouter } from "next/navigation"
+import AddCardList from "@/components/AddCards"
+import MyMap from "@/components/ui/mapsData"
 
 // Grocery Products Data
 const products = [
@@ -825,34 +827,34 @@ const products = [
   { id: 20, name: 'Catch Coriander Powder/Dhania', price: 65, originalPrice: 80, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/6df5cd41-6ace-47e9-952c-6a245a4994dc.png', rating: 4.6, reviews: 187, category: 'masala', discount: 19 },
   { id: 21, name: 'Organic Tattva Red Organic Chilli Powder', price: 94, originalPrice: 110, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/4d2590f5-d68f-435a-af14-d9c09d2753b1.png', rating: 4.6, reviews: 187, category: 'masala', discount: 15 },
   { id: 22, name: 'Tata Sampann Chilli Powder with Natural Oils', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c3f31b7f-0492-45b8-a14a-ad6dae3ca393.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
-  
+
   // Cooking Oils
   { id: 28, name: 'Natureland Organic Mustard Oil Cold Pressed', price: 238, originalPrice: 375, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ba77235a-8b79-4c60-b68f-ccb559878363.png', rating: 4.6, reviews: 187, category: 'oil', discount: 37 },
   { id: 29, name: 'Chambal Refined Soyabean Oil', price: 129, originalPrice: 163, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/394ff2b1-52e1-430c-8e35-2eab0ad407df.png', rating: 4.6, reviews: 187, category: 'oil', discount: 21 },
   { id: 30, name: 'Fortune Sunlite Refined Sunflower Oil (870 g)', price: 159, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/08e99bfb-e035-4320-85ac-dd81880237c9.png', rating: 4.6, reviews: 187, category: 'oil', discount: 12 },
-  
+
   // // Rice & Grains
   // { id: 45, name: 'India Gate Basmati Rice Classic', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/basmati-rice-classic.jpg', rating: 4.5, reviews: 432, category: 'grains', discount: 7 },
   // { id: 46, name: 'Daawat Rozana Super Basmati Rice', price: 395, originalPrice: 420, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/daawat-rozana.jpg', rating: 4.4, reviews: 298, category: 'grains', discount: 6 },
   // { id: 50, name: 'Ashirvaad Whole Wheat Flour', price: 285, originalPrice: 300, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ashirvaad-atta.jpg', rating: 4.7, reviews: 567, category: 'grains', discount: 5 },
-  
+
   // // Dairy Products
   // { id: 51, name: 'Amul Fresh Paneer', price: 85, originalPrice: 90, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-paneer.jpg', rating: 4.4, reviews: 189, category: 'dairy', discount: 6 },
   // { id: 52, name: 'Mother Dairy Classic Curd', price: 28, originalPrice: 30, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mother-dairy-curd.jpg', rating: 4.3, reviews: 245, category: 'dairy', discount: 7 },
   // { id: 53, name: 'Amul Butter - Salted', price: 56, originalPrice: 60, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-butter.jpg', rating: 4.6, reviews: 678, category: 'dairy', discount: 7 },
-  
+
   // // Vegetables & Fruits
   // { id: 56, name: 'Fresh Onions (1 kg)', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-onions.jpg', rating: 4.1, reviews: 89, category: 'vegetables', discount: 13 },
   // { id: 57, name: 'Fresh Tomatoes (500g)', price: 28, originalPrice: 32, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-tomatoes.jpg', rating: 4.0, reviews: 67, category: 'vegetables', discount: 13 },
   // { id: 58, name: 'Fresh Potatoes (1 kg)', price: 25, originalPrice: 28, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-potatoes.jpg', rating: 4.2, reviews: 123, category: 'vegetables', discount: 11 },
   // { id: 59, name: 'Fresh Bananas (1 dozen)', price: 48, originalPrice: 55, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-bananas.jpg', rating: 4.3, reviews: 145, category: 'fruits', discount: 13 },
   // { id: 60, name: 'Fresh Apples - Shimla (500g)', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/shimla-apples.jpg', rating: 4.4, reviews: 178, category: 'fruits', discount: 11 },
-  
+
   // // Household Items
   // { id: 71, name: 'Surf Excel Easy Wash Detergent Powder', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/surf-excel.jpg', rating: 4.5, reviews: 456, category: 'household', discount: 7 },
   // { id: 72, name: 'Vim Dishwash Liquid Gel', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/vim-liquid.jpg', rating: 4.2, reviews: 234, category: 'household', discount: 11 },
   // { id: 73, name: 'Harpic Toilet Cleaner', price: 125, originalPrice: 140, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/harpic-cleaner.jpg', rating: 4.3, reviews: 189, category: 'household', discount: 11 },
-  
+
   // // Personal Care
   // { id: 66, name: 'Colgate Total Advanced Health Toothpaste', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/colgate-total.jpg', rating: 4.3, reviews: 234, category: 'personal-care', discount: 11 },
   // { id: 67, name: 'Head & Shoulders Anti-Dandruff Shampoo', price: 245, originalPrice: 270, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/head-shoulders.jpg', rating: 4.2, reviews: 189, category: 'personal-care', discount: 9 },
@@ -860,7 +862,7 @@ const products = [
 ]
 
 export function Grocery() {
-  const router =useRouter()
+  const router = useRouter()
   const [darkMode, setDarkMode] = useState<boolean>(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const [cartItems, setCartItems] = useState<Array<any>>([])
@@ -873,39 +875,37 @@ export function Grocery() {
   // Categories for grocery items
   const groceryCategories = [
     { id: 'all', name: "All Items", icon: "🛒" },
+    { id: 'grocery', name: "Grocery", icon: "🛍️" },
+    { id: 'mix', name: "Mix", icon: "🍞️" },
+    { id: 'bakery', name: "Bakery", icon: "🍞" },
+    { id: 'okoay', name: "Okoay", icon: "🌴" },
     { id: 'masala', name: "Masala & Spices", icon: "🌶️" },
     { id: 'oil', name: "Cooking Oils", icon: "🫒" },
-    { id: 'grains', name: "Rice & Grains", icon: "🌾" },
-    { id: 'dairy', name: "Dairy Products", icon: "🥛" },
-    { id: 'vegetables', name: "Vegetables", icon: "🥕" },
-    { id: 'fruits', name: "Fruits", icon: "🍎" },
-    { id: 'household', name: "Household", icon: "🧽" },
-    { id: 'personal-care', name: "Personal Care", icon: "🧴" },
-  ]
 
+  ]
+  const date = new Date();
+  const upcomingDate = new Date(date.setDate(date.getDate() + 10));
+  const formattedUpcomingDate = upcomingDate.toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
   const offers = [
     {
       id: 1,
       title: "Flat 20% Off",
       code: "SAVE20",
       description: "On orders above ₹500",
-      expiry: "31 Dec 2024",
+      expiry: formattedUpcomingDate,
       color: "bg-gradient-to-r from-orange-400 to-red-500",
     },
-    {
-      id: 2,
-      title: "Buy 1 Get 1 Free",
-      code: "BOGO",
-      description: "On selected items",
-      expiry: "25 Dec 2024",
-      color: "bg-gradient-to-r from-green-400 to-blue-500",
-    },
+
     {
       id: 3,
       title: "Free Delivery",
       code: "FREEDEL",
-      description: "On orders above ₹300",
-      expiry: "30 Dec 2024",
+      description: "On orders above ₹500",
+      expiry: formattedUpcomingDate,
       color: "bg-gradient-to-r from-purple-400 to-pink-500",
     },
   ]
@@ -958,14 +958,37 @@ export function Grocery() {
     }
   }, [darkMode])
 
-  const handleAddToCart = (item:any) => {
+  const handleAddToCart = (item: any) => {
     if (!userData) {
       alert("Please login first")
       return
     }
     addToCart(item)
   }
+  useEffect(() => {
+    let getToken = localStorage.getItem("token")
+    if (getToken) {
+      setUserData(getToken)
+    }
+  }, [])
 
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // important!
+      });
+      setUserData(null)
+
+
+    } catch (error: any) {
+      alert(error?.message)
+    }
+  }
+  console.log("data", userData)
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
       {/* Sticky Header */}
@@ -994,9 +1017,13 @@ export function Grocery() {
               <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 Contact
               </a>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
+              {!userData ? <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
                 Login
-              </Button>
+              </Button> :
+                <Button onClick={() => logout()} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" >
+                  Logout
+                </Button>
+                 }
             </nav>
 
             {/* Right Side Icons */}
@@ -1010,76 +1037,28 @@ export function Grocery() {
                 {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
 
-              {/* Cart */}
-              <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-gray-700 dark:text-gray-300">
-                    <ShoppingCart className="h-5 w-5" />
-                    {cartItems.length > 0 && (
-                      <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-orange-500">
-                        {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Shopping Cart</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 space-y-4">
-                    {cartItems.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">Your cart is empty</p>
-                    ) : (
-                      <>
-                        {cartItems.map((item) => (
-                          <div key={item.id} className="flex items-center space-x-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                            <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium truncate">{item.name}</h4>
-                              <p className="text-sm text-orange-500">₹{item.price}</p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-6 w-6"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="text-sm w-8 text-center">{item.quantity}</span>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-6 w-6"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 text-red-500"
-                                onClick={() => removeFromCart(item.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                        <div className="border-t pt-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <span className="font-semibold">Total: ₹{getTotalPrice()}</span>
-                          </div>
-                          <Button className="w-full bg-orange-500 hover:bg-orange-600">
-                            Proceed to Checkout
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </SheetContent>
-              </Sheet>
+
+              <div className="flex items-center space-x-2 relative z-[120px]">
+                <AddCardList
+                  cartItems={cartItems}
+                  removeFromCart={removeFromCart}
+                  updateQuantity={updateQuantity}
+                  getTotalPrice={getTotalPrice}
+                  setCartItems={setCartItems}
+                  cartOpen={cartOpen}
+                  setCartOpen={setCartOpen}
+                />
+
+                {/* Mobile Menu Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden text-gray-700"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+              </div>
 
               {/* Mobile Menu Button */}
               <Button
@@ -1109,9 +1088,9 @@ export function Grocery() {
                 <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                   Contact
                 </a>
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
-                Login
-              </Button>
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
+                  Login
+                </Button>
               </div>
             </nav>
           )}
@@ -1123,12 +1102,9 @@ export function Grocery() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          // style={{
-          //   backgroundImage: "url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&auto=format&fit=crop&q=80')",
-          // }}
         >
 
- <HeroSlider />
+          <HeroSlider />
         </div>
         <div className="relative z-20 text-center text-white px-4 max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in-up">
@@ -1151,7 +1127,7 @@ export function Grocery() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={()=>router.push("productList")} size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full">
+            <Button onClick={() => router.push("productList")} size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full">
               Shop Now
             </Button>
             <Button
@@ -1172,25 +1148,22 @@ export function Grocery() {
 
           <div className="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
             {groceryCategories.map((category) => (
-              <div 
-                key={category.id} 
-                className={`flex-shrink-0 w-32 text-center group cursor-pointer ${
-                  selectedCategory === category.id ? 'opacity-100' : 'opacity-70 hover:opacity-100'
-                }`}
+              <div
+                key={category.id}
+                className={`flex-shrink-0 w-32 text-center group cursor-pointer ${selectedCategory === category.id ? 'opacity-100' : 'opacity-70 hover:opacity-100'
+                  }`}
                 onClick={() => setSelectedCategory(category.id)}
               >
-                <div className={`w-20 h-20 mx-auto mb-3 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ${
-                  selectedCategory === category.id 
-                    ? 'bg-orange-500 text-white' 
-                    : 'bg-white/20 dark:bg-gray-700/50'
-                }`}>
+                <div className={`w-20 h-20 mx-auto mb-3 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ${selectedCategory === category.id
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-white/20 dark:bg-gray-700/50'
+                  }`}>
                   <span className="text-3xl">{category.icon}</span>
                 </div>
-                <p className={`text-sm font-medium transition-colors ${
-                  selectedCategory === category.id 
-                    ? 'text-orange-500' 
-                    : 'text-gray-700 dark:text-gray-300 group-hover:text-orange-500'
-                }`}>
+                <p className={`text-sm font-medium transition-colors ${selectedCategory === category.id
+                  ? 'text-orange-500'
+                  : 'text-gray-700 dark:text-gray-300 group-hover:text-orange-500'
+                  }`}>
                   {category.name}
                 </p>
               </div>
@@ -1250,7 +1223,7 @@ export function Grocery() {
 
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg mb-1 text-gray-900 dark:text-white line-clamp-2">{product.name}</h3>
-                  
+
                   <div className="flex items-center space-x-1 mb-2">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     <span className="text-sm font-medium">{product.rating}</span>
@@ -1320,7 +1293,7 @@ export function Grocery() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Why Choose Gro-Delivery?</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1329,7 +1302,7 @@ export function Grocery() {
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Fast Delivery</h3>
               <p className="text-gray-600 dark:text-gray-400">Get your groceries delivered within 30 minutes</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="h-8 w-8 text-green-500" />
@@ -1337,7 +1310,7 @@ export function Grocery() {
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Quality Products</h3>
               <p className="text-gray-600 dark:text-gray-400">Fresh and high-quality groceries every time</p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShoppingCart className="h-8 w-8 text-blue-500" />
@@ -1394,7 +1367,8 @@ export function Grocery() {
 
               {/* Map Placeholder */}
               <div className="bg-gray-200 dark:bg-gray-700 h-64 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500 dark:text-gray-400">Map Integration</p>
+                {/* <p className="text-gray-500 dark:text-gray-400">Map Integration</p> */}
+                <MyMap />
               </div>
             </div>
           </div>

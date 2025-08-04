@@ -1,15 +1,48 @@
-'use client';
+"use client";
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Search, ShoppingCart, Heart, Star, Filter, Grid, List, Trash2, Plus, Minus, X, Menu, MapPin } from 'lucide-react';
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import AddAddressModal from './AddAddressModal';
+import { MapPin } from 'lucide-react';
+import { useOrder } from '@/context/OrderContext';
 
-const AddressModal = ({ addressOpen, setAddressOpen }: any) => {
-    const [showAddressModal, setShowAddressModal] = useState(false);
+// Dummy addresses for now
+const dummyAddresses = [
+    {
+        label: "Home",
+        name: "John Doe",
+        area: "Block A, Sector 21",
+        phone: "9876543210",
+        marker: { lat: 28.6139, lng: 77.2090 },
+        distance: "2km"
+    },
+    {
+        label: "Work",
+        name: "John Office",
+        area: "Cyber City, Gurugram",
+        phone: "9123456789",
+        distance: "3km",
+        marker: { lat: 28.5045, lng: 77.3281 },
+    },
+];
+
+const AddressModal = ({ addressOpen, setAddressOpen, type }: any) => {
+    const { dispatch } = useOrder();
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addresses, setAddresses] = useState(dummyAddresses);
+    const [selectedAddress, setSelectedAddress] = useState<any>(null);
+
+    const handleAddAddress = (newAddress: any) => {
+        setAddresses((prev: any) => [...prev, newAddress]);
+        setShowAddModal(false);
+    };
+
+    const handleSelectedAddress = (item: any) => {
+        setSelectedAddress(item)
+        dispatch({ type: "SET_ADDRESS", address: item });
+        dispatch({ type: "SET_DISTANCE", distance: item?.distance });
+        setAddressOpen(false)
+    }
 
     return (
         <>
@@ -19,82 +52,52 @@ const AddressModal = ({ addressOpen, setAddressOpen }: any) => {
                         <SheetTitle>Select delivery address</SheetTitle>
                     </SheetHeader>
 
-                    {/* ADD NEW ADDRESS */}
-                    <div className="p-3">
-                        <Button className="w-full bg-green-600 text-white mb-4" onClick={() => setShowAddressModal(!showAddressModal)}>
+                    <div className="p-3 space-y-4">
+                        <Button className="w-full bg-green-600 text-white" onClick={() => setShowAddModal(true)}>
                             + Add a new address
                         </Button>
 
-                        {/* SAVED ADDRESSES MOCK */}
-                        <div className="bg-gray-100 rounded-lg p-3 mb-2">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="font-bold text-black">Home</p>
-                                    <p className="text-xs text-gray-600">Habib kd, 123 Main St, City, Country, Zip 1222<br />Suraj Nagar, Jhotwara, Jaipur</p>
+                        {addresses.map((addr, index) => (
+                            <div
+                                key={index}
+                                onClick={() => handleSelectedAddress(addr)}
+                                className={`rounded-lg p-3 cursor-pointer transition border ${selectedAddress === addr
+                                    ? "border-green-600 bg-green-50"
+                                    : "border-gray-300 bg-white"
+                                    }`}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <p className="font-bold text-black">{addr.label}</p>
+                                        <p className="text-sm text-gray-700">{addr.name}, {addr.area}</p>
+                                        <p className="text-sm text-gray-500">📍 Lat: {addr?.marker?.lat}, Lng: {addr?.marker?.lng}</p>
+                                        <p className="text-sm text-gray-600">📞 {addr.phone}</p>
+                                    </div>
+                                    <MapPin className="text-green-600 mt-1" />
                                 </div>
-                                <Button size="icon" variant="ghost" className="text-green-600">
-                                    ✏️
-                                </Button>
                             </div>
-                        </div>
+                        ))}
+
+                        {selectedAddress && (
+                            <div className="mt-4 p-4 border rounded bg-green-100 text-green-900">
+                                <p className="font-semibold">Selected Address:</p>
+                                <p>{selectedAddress.label} - {selectedAddress.name}, {selectedAddress.area}</p>
+                            </div>
+                        )}
                     </div>
                 </SheetContent>
             </Sheet>
-            {showAddressModal && (
-                <AddAddressModal onSave={() => setShowAddressModal(false)} open={showAddressModal} onClose={() => setShowAddressModal(false)} />
+
+            {showAddModal && (
+                <AddAddressModal
+                    open={showAddModal}
+                    onClose={() => setShowAddModal(false)}
+                    setShowAddModal={setShowAddModal}
+                    handleAddAddress={handleAddAddress}
+                />
             )}
         </>
-    )
-}
+    );
+};
 
-export default AddressModal
-
-
-
-// "use client";
-// import React, { useState } from "react";
-// import AddAddressModal from "@/components/AddAddressModal"; // adjust the path
-
-// const ParentComponent = ({ addressOpen, setAddressOpen }: any) => {
-//   const [open, setOpen] = useState(false);
-//   const [addresses, setAddresses] = useState<any[]>([]);
-
-//   const handleSaveAddress = (newAddress: any) => {
-//     setAddresses((prev) => [...prev, newAddress]);
-//     setAddressOpen(true);
-//     console.log("Address saved:", newAddress);
-//   };
-
-//   return (
-//     <div className="p-6">
-//       <button
-//         onClick={() => setAddressOpen(true)}
-//         className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"
-//       >
-//         Add New Address
-//       </button>
-
-//       <AddAddressModal
-//         open={addressOpen}
-//         onClose={() => setAddressOpen(false)}
-//         onSave={handleSaveAddress}
-//       />
-
-//       <div className="mt-6">
-//         <h2 className="text-lg font-semibold mb-2">Saved Addresses:</h2>
-//         {addresses.map((addr, index) => (
-//           <div
-//             key={index}
-//             className="p-4 border rounded mb-3 bg-white shadow-sm"
-//           >
-//             <p><strong>{addr.label}</strong> - {addr.house}, {addr.area}</p>
-//             <p>{addr.name} | {addr.phone}</p>
-//             <p>Lat: {addr.location.lat}, Lng: {addr.location.lng}</p>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ParentComponent;
+export default AddressModal;

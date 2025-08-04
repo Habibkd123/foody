@@ -4,9 +4,9 @@ import 'swiper/css';
 
 export default function HeroSlider() {
     const images = [
-        "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1708184528301-b0dad28dded5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fFBhc3RhJTIwQ29ybmVyJTIwSXRhbGlhbmZvb2R8ZW58MHx8MHx8fDA%3D",
-        "https://images.unsplash.com/photo-1630383249896-424e482df921?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fFNvdXRoJTIwSW5kaWFuJTIwU291dGglMjBEZWxpZ2h0cyUyMGZvb2R8ZW58MHx8MHx8fDA%3D",
+        "https://cdn.pixabay.com/photo/2013/04/03/19/23/easter-100176_640.jpg",
+        "https://cdn.pixabay.com/photo/2017/08/01/11/13/cheese-2564544_640.jpg",
+        "https://cdn.pixabay.com/photo/2018/05/09/22/45/dessert-3386368_640.jpg",   
         "https://plus.unsplash.com/premium_photo-1717529138199-0644d58ce0cf?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8U3dlZXQlMjBEcmVhbXMlMjBEZXNzZXJ0cyUyMGZvb2R8ZW58MHx8MHx8fDA%3D"
     ];
 

@@ -24,20 +24,7 @@
 
 "use client";
 import React, { useState, createContext, useContext, ReactNode } from 'react';
-
-// Type Definitions
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  category: string;
-  discount: number;
-}
-
+import { Product } from '@/types/global';
 
 
 

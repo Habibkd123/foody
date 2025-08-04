@@ -3,6 +3,9 @@ import './globals.css'
 import { WishListProvider } from '@/context/WishListsContext'
 import { FilterProvider } from '@/context/FilterContext'
 import { CartProvider } from '@/context/CartContext'
+import { AddressProvider } from '@/context/AddressContext'
+import { OrderProvider } from '@/context/OrderContext'
+import { ProductsProvider } from '@/context/AllProductContext'
 export const metadata: Metadata = {
   title: 'Grocery Mart',
   description: 'Grocery for your services',
@@ -18,14 +21,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-
-        <WishListProvider >
-          <FilterProvider>
-            <CartProvider>
-              {children}
-            </CartProvider>
-          </FilterProvider>
-        </WishListProvider>
+        <ProductsProvider >
+          <WishListProvider >
+            <FilterProvider>
+              <CartProvider>
+                <AddressProvider>
+                  <OrderProvider>
+                    {children}
+                  </OrderProvider>
+                </AddressProvider>
+              </CartProvider>
+            </FilterProvider>
+          </WishListProvider>
+        </ProductsProvider>
       </body>
     </html>
   )

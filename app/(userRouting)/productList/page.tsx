@@ -1,12 +1,376 @@
 
+// "use client";
+
+// import NavbarFilter from "@/components/NavbarFilter";
+// import ProductCardGrid from "@/components/ProductGrid";
+// import SidebarFilters from "@/components/SidebarFilters";
+
+// import React, { useState, createContext, useContext, ReactNode, useEffect } from 'react';
+// import { Search, Heart, ShoppingCart, Menu, X, Filter, Star } from 'lucide-react';
+// import { useFilterContext } from "@/context/FilterContext";
+// import { useWishListContext } from "@/context/WishListsContext";
+// import AnnouncementBar from "@/components/AnnouncementBar";
+// import LocationSelector from "@/components/LocationSelector";
+// import Link from "next/link";
+// import AddCardList from "@/components/AddCards";
+// import { Button } from "@/components/ui/button";
+// import { useRouter } from "next/navigation";
+// import { useOrder } from "@/context/OrderContext";
+// import { ProductsContext, useProductsContext } from "@/context/AllProductContext";
+// import { Product } from "@/types/global";
+// import { AnyARecord } from "dns";
+// import { productData } from "@/lib/Data";
+// // Type Definitions
+
+
+// interface CartItem extends Product {
+//   quantity: number;
+// }
+
+// interface Category {
+//   key: string;
+//   label: string;
+//   icon: string;
+// }
+
+// interface PriceRange {
+//   key: string;
+//   label: string;
+//   min: number;
+//   max: number;
+// }
+
+// interface Filter {
+//   categories: Category[];
+//   priceRanges: PriceRange[];
+// }
+
+// // Main Product Grid Component
+// const ProductGrid: React.FC = () => {
+//   const router = useRouter();
+//   const { filters, updateFilter } = useFilterContext();
+//   const { wishListsData, setWistListsData } = useWishListContext();
+//   const { productsData, setProductsData } = useProductsContext();
+//   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+//   const [cartOpen, setCartOpen] = useState(false)
+//   const { dispatch } = useOrder();
+
+//   const [mobileMenuOpen,setMobileMenuOpen]=useState(false)
+
+
+// useEffect(() => {
+//   setProductsData(productData)
+// },[])
+
+// const filteredProducts: Product[] = productData.filter((product: Product) => {
+//     // Search filter
+//     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+//       return false;
+//     }
+
+//     // Category filter
+//     if (filters.category !== 'all' && product.category !== filters.category) {
+//       return false;
+//     }
+
+//     // Price range filter
+//     if (filters.priceRanges.length > 0) {
+//       const priceRangeMap: Record<string, { min: number; max: number }> = {
+//         'under-100': { min: 0, max: 100 },
+//         '100-300': { min: 100, max: 300 },
+//         '300-500': { min: 300, max: 500 },
+//         '500-1000': { min: 500, max: 1000 },
+//         'above-1000': { min: 1000, max: Infinity }
+//       };
+
+//       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
+//         const range = priceRangeMap[rangeKey];
+//         return product.price >= range.min && product.price <= range.max;
+//       });
+
+//       if (!matchesPrice) return false;
+//     }
+
+//     // Rating filter
+//     if (filters.ratings.length > 0) {
+//       const matchesRating = filters.ratings.some((rating: number) => product.rating >= rating);
+//       if (!matchesRating) return false;
+//     }
+
+//     return true;
+//   });
+
+//   const toggleWishlist = (item: any) => {
+//     const exists = wishListsData.find((fav: any) => fav.id === item.id);
+//     if (exists) {
+//       setWistListsData(wishListsData.filter((fav: any) => fav.id !== item.id));
+//     } else {
+//       setWistListsData([...wishListsData, item]);
+//     }
+//   };
+
+//   const addToCart = (item: any) => {
+//     const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
+//     if (existingItem) {
+//       setCartItems(
+//         cartItems.map((cartItem: CartItem) =>
+//           cartItem.id === item.id
+//             ? { ...cartItem, quantity: cartItem.quantity + 1 }
+//             : cartItem
+//         )
+//       );
+//       // let cartLine = { ...item, quantity: existingItem.quantity + 1 }
+       
+//       dispatch({ type: "QTY", id:item.id , qty:  existingItem.quantity + 1});
+//     } else {
+//       setCartItems([...cartItems, { ...item, quantity: 1 }]);
+//       let cartLine = { ...item, quantity: 1 }
+//       dispatch({ type: "ADD", item: cartLine });
+//     }
+//   };
+
+//   /**
+//    * Removes a product from the cart by its id
+//    * @param {any} itemId - The id of the product to remove
+//    */
+//   const removeFromCart = (itemId: any) => {
+//     setCartItems(cartItems.filter((item: any) => item.id !== itemId))
+//   }
+
+//   const updateQuantity = (itemId: any, newQuantity: any) => {
+//     if (newQuantity === 0) {
+//       removeFromCart(itemId)
+//       dispatch({ type: "REMOVE", id: itemId });
+
+//     } else {
+//       setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
+//       dispatch({ type: "QTY", id: itemId, qty: newQuantity });
+//     }
+//   }
+
+//   const getTotalPrice = () => {
+//     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
+//       {/* Header */}
+//       <div className='sticky top-0 z-40'>
+//         <AnnouncementBar />
+//       </div>
+      
+//       <div className="sticky top-0 z-50">
+//         <header className="bg-white shadow-sm border-b">
+//           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
+//             <div className="flex items-center justify-between">
+//               {/* Logo - Responsive sizing */}
+//               <div className="flex items-center gap-2 flex-shrink-0">
+//                 <img src="./logoGro.png" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md" alt="logo" />
+//                 <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+//                   Gro-Delivery
+//                 </h1>
+//               </div>
+
+//               {/* Search Bar - Hidden on mobile, visible on tablet+ */}
+//               <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0" style={{marginLeft:"140px"}}>
+//                 <div className="relative flex-1">
+//                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
+//                   <input
+//                     type="text"
+//                     placeholder="Search products..."
+//                     className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+//                     value={filters.searchTerm}
+//                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+//                       updateFilter('searchTerm', e.target.value)
+//                     }
+//                   />
+//                 </div>
+//                 <div className="z-50">
+//                   <LocationSelector />
+//                 </div>
+//               </div>
+
+//               {/* Right side icons */}
+//               <div className="flex items-center space-x-2 sm:space-x-4">
+//                 {/* Wishlist */}
+//                 <button className="relative p-2 hover:bg-gray-100 rounded-lg">
+//                   <Link href="/wishlist">
+//                     <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+//                     {wishListsData.length > 0 && (
+//                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">
+//                         {wishListsData.length}
+//                       </span>
+//                     )}
+//                   </Link>
+//                 </button>
+
+//                 {/* Cart */}
+//                 <div className="flex items-center space-x-2 relative z-[120px]">
+//                   <AddCardList 
+//                     cartItems={cartItems} 
+//                     removeFromCart={removeFromCart} 
+//                     updateQuantity={updateQuantity} 
+//                     getTotalPrice={getTotalPrice} 
+//                     setCartItems={setCartItems} 
+//                     cartOpen={cartOpen} 
+//                     setCartOpen={setCartOpen} 
+//                   />
+                  
+//                   {/* Mobile Menu Button */}
+//                   <Button
+//                     variant="ghost"
+//                     size="icon"
+//                     className="md:hidden text-gray-700"
+//                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+//                   >
+//                     {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+//                   </Button>
+//                 </div>
+
+//                 {/* Profile - Hidden on mobile */}
+//                 <div className='hidden sm:flex items-center cursor-pointer' onClick={() => router.push('/profile')}>
+//                   <img className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Mobile Search Bar */}
+//             <div className="md:hidden mt-3">
+//               <div className="relative">
+//                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
+//                 <input
+//                   type="text"
+//                   placeholder="Search products..."
+//                   className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+//                   value={filters.searchTerm}
+//                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+//                     updateFilter('searchTerm', e.target.value)
+//                   }
+//                 />
+//               </div>
+//               <div className="mt-2">
+//                 <LocationSelector />
+//               </div>
+//             </div>
+//           </div>
+//         </header>
+        
+//         {/* Navigation Filter */}
+//         <div className="hidden md:block">
+//           <NavbarFilter />
+//         </div>
+//       </div>
+
+//       {/* Mobile Menu Overlay */}
+//       {mobileMenuOpen && (
+//         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+//           <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
+//             <div className="p-4">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h2 className="text-lg font-semibold">Menu</h2>
+//                 <Button
+//                   variant="ghost"
+//                   size="icon"
+//                   onClick={() => setMobileMenuOpen(false)}
+//                 >
+//                   <X className="h-5 w-5" />
+//                 </Button>
+//               </div>
+              
+//               {/* Profile in mobile menu */}
+//               <div className="flex items-center space-x-3 mb-6 p-3 bg-gray-50 rounded-lg" onClick={() => router.push('/profile')}>
+//                 <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+//                 <div>
+//                   <p className="font-medium">Your Account</p>
+//                   <p className="text-sm text-gray-600">Manage your profile</p>
+//                 </div>
+//               </div>
+
+//               {/* Mobile Navigation */}
+//               {/* <NavbarFilter /> */}
+              
+//               {/* Mobile Filters */}
+//               <div className="mt-6">
+//                 <SidebarFilters />
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Main Content */}
+//       <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+//         <div className="flex gap-2 lg:gap-6">
+//           {/* Desktop Sidebar Filters */}
+//           <div className="hidden lg:block">
+//             <SidebarFilters />
+//           </div>
+
+//           {/* Products Grid */}
+//           <div className="flex-1">
+//             {/* Header with responsive text */}
+//             <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+//               <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+//                 Fresh Groceries ({filteredProducts.length} products)
+//               </h2>
+              
+//               {/* Filter tags - responsive */}
+//               <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+//                 {filters.category !== 'all' && (
+//                   <span className="bg-orange-100 text-orange-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+//                     Category: {filters.category}
+//                   </span>
+//                 )}
+//                 {filters.priceRanges.length > 0 && (
+//                   <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+//                     Price filters applied
+//                   </span>
+//                 )}
+//                 {filters.ratings.length > 0 && (
+//                   <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+//                     Rating filters applied
+//                   </span>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Mobile Filter Button */}
+//             <div className="lg:hidden mb-4">
+//               <Button
+//                 variant="outline"
+//                 className="w-full sm:w-auto"
+//                 onClick={() => setMobileMenuOpen(true)}
+//               >
+//                 <Filter className="w-4 h-4 mr-2" />
+//                 Filters & Categories
+//               </Button>
+//             </div>
+
+//             <ProductCardGrid
+//               productLists={filteredProducts}
+//               onAddToCart={addToCart}
+//               onToggleWishlist={toggleWishlist}
+//             />
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProductGrid;
+
+
+
+
 "use client";
 
+import React, { useState, createContext, useContext, ReactNode, useEffect,useCallback  } from 'react';
 import NavbarFilter from "@/components/NavbarFilter";
 import ProductCardGrid from "@/components/ProductGrid";
 import SidebarFilters from "@/components/SidebarFilters";
 
-import React, { useState, createContext, useContext, ReactNode } from 'react';
-import { Search, Heart, ShoppingCart, Menu, X, Filter, Star } from 'lucide-react';
+import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut } from 'lucide-react';
 import { useFilterContext } from "@/context/FilterContext";
 import { useWishListContext } from "@/context/WishListsContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -15,20 +379,13 @@ import Link from "next/link";
 import AddCardList from "@/components/AddCards";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useOrder } from "@/context/OrderContext";
+import { ProductsContext, useProductsContext } from "@/context/AllProductContext";
+import { Product } from "@/types/global";
+import { AnyARecord } from "dns";
+import { productData } from "@/lib/Data";
 
 // Type Definitions
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  category: string;
-  discount: number;
-}
-
 interface CartItem extends Product {
   quantity: number;
 }
@@ -51,159 +408,77 @@ interface Filter {
   priceRanges: PriceRange[];
 }
 
+// Animation variants for smooth transitions
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3 }
+};
+
+const slideIn = {
+  initial: { opacity: 0, x: -20 },
+  animate: { opacity: 1, x: 0 },
+  transition: { duration: 0.4 }
+};
+
 // Main Product Grid Component
 const ProductGrid: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
   const { wishListsData, setWistListsData } = useWishListContext();
+  const { productsData, setProductsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen] = useState(false)
-  const [mobileMenuOpen,setMobileMenuOpen]=useState(false)
-  // Sample products data with proper typing
-const products = [
-  // Masala & Spices
-  { id: 17, name: 'Maggi Masala-ae-Magic Sabzi Masala', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/18c2665c-3591-482c-a11a-e35662e756a4.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
-  { id: 18, name: 'Everest Tikhalal Red Chilli Powder', price: 54, originalPrice: 54, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/9dea2d22-108f-4021-aeec-e95b4e271e16.png', rating: 4.6, reviews: 187, category: 'masala', discount: 0 },
-  { id: 19, name: 'MCatch Turmeric Powder/Haldi', price: 39, originalPrice: 45, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c34b8c71-a7b3-4311-88de-80533ee0fc12.png', rating: 4.6, reviews: 187, category: 'masala', discount: 13 },
-  { id: 20, name: 'Catch Coriander Powder/Dhania', price: 65, originalPrice: 80, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/6df5cd41-6ace-47e9-952c-6a245a4994dc.png', rating: 4.6, reviews: 187, category: 'masala', discount: 19 },
-  { id: 21, name: 'Organic Tattva Red Organic Chilli Powder', price: 94, originalPrice: 110, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/4d2590f5-d68f-435a-af14-d9c09d2753b1.png', rating: 4.6, reviews: 187, category: 'masala', discount: 15 },
-  { id: 22, name: 'Tata Sampann Chilli Powder with Natural Oils', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c3f31b7f-0492-45b8-a14a-ad6dae3ca393.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
-  { id: 23, name: 'Everest Sambhar Masala', price: 80, originalPrice: 80, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/d70dc261-4adb-44e3-8dc2-22b5de6a8a73.png', rating: 4.6, reviews: 187, category: 'masala', discount: 0 },
-  { id: 24, name: 'Tata Sampann Coriander Powder with Natural Oils', price: 80, originalPrice: 100, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fa7526df-b0e8-418f-a5d2-752237b7b37e.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
-  { id: 25, name: 'Catch Cumin Seeds / Jeera Seeds - Pack of 2', price: 105, originalPrice: 136, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/1e339ae1-aed2-4849-ade1-8741e5a2d56b.png', rating: 4.6, reviews: 187, category: 'masala', discount: 23 },
-  { id: 26, name: 'Everest Hing Powder', price: 74, originalPrice: 78, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/30d4e721-92b4-45bc-ae70-678bb5905750.png', rating: 4.6, reviews: 187, category: 'masala', discount: 5 },
-  { id: 27, name: 'Catch Compounded Hing Powder', price: 65, originalPrice: 74, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=450/da/cms-assets/cms/product/d5a53808-7179-4645-a4e2-fdc94a83554e.png', rating: 4.6, reviews: 187, category: 'masala', discount: 12 },
-  { id: 41, name: 'MDH Deggi Mirch Powder', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/red-chilli-powder.jpg', rating: 4.5, reviews: 342, category: 'masala', discount: 11 },
-  { id: 42, name: 'Everest Garam Masala Powder', price: 125, originalPrice: 140, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/garam-masala.jpg', rating: 4.7, reviews: 256, category: 'masala', discount: 11 },
-  { id: 43, name: 'Catch Kitchen King Masala', price: 98, originalPrice: 115, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/kitchen-king.jpg', rating: 4.4, reviews: 189, category: 'masala', discount: 15 },
-  { id: 44, name: 'Tata Sampann Biryani Masala', price: 145, originalPrice: 160, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/biryani-masala.jpg', rating: 4.6, reviews: 203, category: 'masala', discount: 9 },
+  const [cartOpen, setCartOpen] = useState(false);
+  const { dispatch,state } = useOrder();
+  
+  // Enhanced UI states
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [filterAnimation, setFilterAnimation] = useState(false);
+  const [cartAnimation, setCartAnimation] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  // Cooking Oils
-  { id: 28, name: 'Natureland Organic Mustard Oil Cold Pressed', price: 238, originalPrice: 375, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ba77235a-8b79-4c60-b68f-ccb559878363.png', rating: 4.6, reviews: 187, category: 'oil', discount: 37 },
-  { id: 29, name: 'Chambal Refined Soyabean Oil', price: 129, originalPrice: 163, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/394ff2b1-52e1-430c-8e35-2eab0ad407df.png', rating: 4.6, reviews: 187, category: 'oil', discount: 21 },
-  { id: 30, name: 'Fortune Sunlite Refined Sunflower Oil (870 g)', price: 159, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/08e99bfb-e035-4320-85ac-dd81880237c9.png', rating: 4.6, reviews: 187, category: 'oil', discount: 12 },
-  { id: 31, name: 'Organic Tattva Organic Mustard Oil', price: 259, originalPrice: 349, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/22b11dd9-8ee9-437f-b5ec-53bb847fbceb.png', rating: 4.6, reviews: 187, category: 'oil', discount: 26 },
-  { id: 32, name: 'Parampara Soyabean Oil', price: 131, originalPrice: 170, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/b2c39933-f336-4859-9e25-f78a46894514.png', rating: 4.6, reviews: 187, category: 'oil', discount: 23 },
-  { id: 33, name: 'Dhara Filtered Groundnut Oil (0% Trans Fat)', price: 139, originalPrice: 249, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/a9a4662a-14e1-49df-8b89-21753f4f548e.png', rating: 4.6, reviews: 187, category: 'oil', discount: 44 },
-  { id: 34, name: 'Anveshan Wood Cold Pressed Groundnut Oil', price: 457, originalPrice: 440, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/d84dabb6-cf8a-438f-a647-b8b24181c8d2.png', rating: 4.6, reviews: 187, category: 'oil', discount: 0 },
-  { id: 35, name: 'Saffola Active Rice Bran & Soyabean Blended Cooking Oil', price: 187, originalPrice: 148, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=85,metadata=none,w=120,h=120/da/cms-assets/cms/product/b17c14ea-5daa-4354-807d-8516730ce6df.jpg?ts=1732017259', rating: 4.6, reviews: 187, category: 'oil', discount: 0 },
-  { id: 36, name: 'Pawan Refined Soyabean Oil', price: 190, originalPrice: 121, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=85,metadata=none,w=120,h=120/da/cms-assets/cms/product/69f0fb5d-f5ae-400f-a497-915c1f417922.jpg?ts=1746269850', rating: 4.6, reviews: 187, category: 'oil', discount: 0 },
-  { id: 37, name: 'Fortune Premium Kachi Ghani Pure Mustard Oil', price: 916, originalPrice: 1035, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=85,metadata=none,w=120,h=120/da/cms-assets/cms/product/8d4c1a72-3dc2-4288-8102-ba5e8bc2a923.jpg?ts=1753429118', rating: 4.6, reviews: 187, category: 'oil', discount: 11 },
-  { id: 38, name: 'Saffola Gold Blend of Rice Bran & Corn Blended Cooking Oil', price: 159, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=85,metadata=none,w=120,h=120/da/cms-assets/cms/product/cab97845-a7c6-41d6-9bbb-cc014bcb471f.jpg?ts=1732017264', rating: 4.6, reviews: 187, category: 'oil', discount: 12 },
-  { id: 39, name: 'Fortune Refined Soyabean Oil', price: 395, originalPrice: 293, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=85,metadata=none,w=120,h=120/app/assets/products/sliding_images/jpeg/33d6a284-d1a9-4a63-900e-5050155d2173.jpg?ts=1727072154', rating: 4.6, reviews: 187, category: 'oil', discount: 0 },
-  { id: 40, name: 'Chambal Refined Soyabean Oil', price: 832, originalPrice: 657, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=85,metadata=none,w=120,h=120/da/cms-assets/cms/product/c316617d-37de-4029-9c40-943b63af8faf.jpg?ts=1749549753', rating: 4.6, reviews: 187, category: 'oil', discount: 0 },
+  // Enhanced loading and data management
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setProductsData(productData);
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Rice & Grains
-  { id: 45, name: 'India Gate Basmati Rice Classic', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/basmati-rice-classic.jpg', rating: 4.5, reviews: 432, category: 'grains', discount: 7 },
-  { id: 46, name: 'Daawat Rozana Super Basmati Rice', price: 395, originalPrice: 420, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/daawat-rozana.jpg', rating: 4.4, reviews: 298, category: 'grains', discount: 6 },
-  { id: 47, name: 'Kohinoor Super Silver Basmati Rice', price: 750, originalPrice: 800, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/kohinoor-super.jpg', rating: 4.6, reviews: 356, category: 'grains', discount: 6 },
-  { id: 48, name: 'Tata Sampann Unpolished Arhar Dal', price: 185, originalPrice: 200, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/arhar-dal.jpg', rating: 4.3, reviews: 178, category: 'grains', discount: 8 },
-  { id: 49, name: 'Organic Tattva Organic Moong Dal', price: 165, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/moong-dal.jpg', rating: 4.5, reviews: 223, category: 'grains', discount: 8 },
-  { id: 50, name: 'Ashirvaad Whole Wheat Flour', price: 285, originalPrice: 300, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ashirvaad-atta.jpg', rating: 4.7, reviews: 567, category: 'grains', discount: 5 },
+  // Scroll to top functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  // Dairy Products
-  { id: 51, name: 'Amul Fresh Paneer', price: 85, originalPrice: 90, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-paneer.jpg', rating: 4.4, reviews: 189, category: 'dairy', discount: 6 },
-  { id: 52, name: 'Mother Dairy Classic Curd', price: 28, originalPrice: 30, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mother-dairy-curd.jpg', rating: 4.3, reviews: 245, category: 'dairy', discount: 7 },
-  { id: 53, name: 'Amul Butter - Salted', price: 56, originalPrice: 60, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-butter.jpg', rating: 4.6, reviews: 678, category: 'dairy', discount: 7 },
-  { id: 54, name: 'Britannia Cheese Slices', price: 125, originalPrice: 135, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/britannia-cheese.jpg', rating: 4.2, reviews: 156, category: 'dairy', discount: 7 },
-  { id: 55, name: 'Nestle Milkmaid Sweetened Condensed Milk', price: 145, originalPrice: 155, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/milkmaid.jpg', rating: 4.5, reviews: 234, category: 'dairy', discount: 6 },
+  // Search suggestions
+  useEffect(() => {
+    if (filters.searchTerm && filters.searchTerm.length > 1) {
+      const suggestions = productData
+        .filter(product => 
+          product.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+          product.category.toLowerCase().includes(filters.searchTerm.toLowerCase())
+        )
+        .slice(0, 5)
+        .map(product => product.name);
+      setSearchSuggestions(suggestions);
+    } else {
+      setSearchSuggestions([]);
+    }
+  }, [filters.searchTerm]);
 
-  // Vegetables & Fruits
-  { id: 56, name: 'Fresh Onions (1 kg)', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-onions.jpg', rating: 4.1, reviews: 89, category: 'vegetables', discount: 13 },
-  { id: 57, name: 'Fresh Tomatoes (500g)', price: 28, originalPrice: 32, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-tomatoes.jpg', rating: 4.0, reviews: 67, category: 'vegetables', discount: 13 },
-  { id: 58, name: 'Fresh Potatoes (1 kg)', price: 25, originalPrice: 28, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-potatoes.jpg', rating: 4.2, reviews: 123, category: 'vegetables', discount: 11 },
-  { id: 59, name: 'Fresh Bananas (1 dozen)', price: 48, originalPrice: 55, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-bananas.jpg', rating: 4.3, reviews: 145, category: 'fruits', discount: 13 },
-  { id: 60, name: 'Fresh Apples - Shimla (500g)', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/shimla-apples.jpg', rating: 4.4, reviews: 178, category: 'fruits', discount: 11 },
-
-  // Snacks & Beverages
-  { id: 61, name: 'Lays Classic Salted Chips', price: 20, originalPrice: 20, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/lays-classic.jpg', rating: 4.2, reviews: 289, category: 'snacks', discount: 0 },
-  { id: 62, name: 'Haldiram\'s Bhujia Sev', price: 45, originalPrice: 50, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/haldiram-bhujia.jpg', rating: 4.5, reviews: 367, category: 'snacks', discount: 10 },
-  { id: 63, name: 'Coca Cola Soft Drink (750ml)', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/coca-cola.jpg', rating: 4.1, reviews: 456, category: 'beverages', discount: 13 },
-  { id: 64, name: 'Tata Tea Premium', price: 185, originalPrice: 200, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/tata-tea.jpg', rating: 4.6, reviews: 523, category: 'beverages', discount: 8 },
-  { id: 65, name: 'Nescafe Classic Coffee', price: 165, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/nescafe-classic.jpg', rating: 4.4, reviews: 298, category: 'beverages', discount: 8 },
-
-  // Personal Care
-  { id: 66, name: 'Colgate Total Advanced Health Toothpaste', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/colgate-total.jpg', rating: 4.3, reviews: 234, category: 'personal-care', discount: 11 },
-  { id: 67, name: 'Head & Shoulders Anti-Dandruff Shampoo', price: 245, originalPrice: 270, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/head-shoulders.jpg', rating: 4.2, reviews: 189, category: 'personal-care', discount: 9 },
-  { id: 68, name: 'Dettol Original Soap', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/dettol-soap.jpg', rating: 4.5, reviews: 345, category: 'personal-care', discount: 13 },
-  { id: 69, name: 'Dove Beauty Bar', price: 55, originalPrice: 60, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/dove-beauty-bar.jpg', rating: 4.4, reviews: 278, category: 'personal-care', discount: 8 },
-  { id: 70, name: 'Gillette Mach3 Razor', price: 285, originalPrice: 320, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/gillette-mach3.jpg', rating: 4.3, reviews: 156, category: 'personal-care', discount: 11 },
-
-  // Household Items
-  { id: 71, name: 'Surf Excel Easy Wash Detergent Powder', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/surf-excel.jpg', rating: 4.5, reviews: 456, category: 'household', discount: 7 },
-  { id: 72, name: 'Vim Dishwash Liquid Gel', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/vim-liquid.jpg', rating: 4.2, reviews: 234, category: 'household', discount: 11 },
-  { id: 73, name: 'Harpic Toilet Cleaner', price: 125, originalPrice: 140, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/harpic-cleaner.jpg', rating: 4.3, reviews: 189, category: 'household', discount: 11 },
-  { id: 74, name: 'All Out Ultra Mosquito Repellent', price: 145, originalPrice: 160, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/all-out-ultra.jpg', rating: 4.1, reviews: 167, category: 'household', discount: 9 },
-  { id: 75, name: 'Lizol Disinfectant Floor Cleaner', price: 165, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/lizol-cleaner.jpg', rating: 4.4, reviews: 298, category: 'household', discount: 8 },
-
-  // Baby Care
-  { id: 76, name: 'Pampers Baby Dry Pants', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/pampers-baby-dry.jpg', rating: 4.5, reviews: 234, category: 'baby-care', discount: 7 },
-  { id: 77, name: 'Johnson\'s Baby Shampoo', price: 185, originalPrice: 200, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/johnsons-shampoo.jpg', rating: 4.6, reviews: 345, category: 'baby-care', discount: 8 },
-  { id: 78, name: 'Cerelac Baby Food - Rice', price: 285, originalPrice: 310, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/cerelac-rice.jpg', rating: 4.4, reviews: 178, category: 'baby-care', discount: 8 },
-
-  // Electronics & Accessories
-  { id: 79, name: 'Duracell AA Alkaline Batteries (4 pack)', price: 185, originalPrice: 200, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/duracell-batteries.jpg', rating: 4.3, reviews: 123, category: 'electronics', discount: 8 },
-  { id: 80, name: 'boAt Airdopes 131 Wireless Earbuds', price: 1299, originalPrice: 1499, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/boat-airdopes.jpg', rating: 4.2, reviews: 567, category: 'electronics', discount: 13 },
-  { id: 81, name: 'Ambrane 10000mAh Power Bank', price: 899, originalPrice: 1199, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ambrane-powerbank.jpg', rating: 4.1, reviews: 234, category: 'electronics', discount: 25 },
-  { id: 82, name: 'Mi 20W USB-C Fast Charger', price: 699, originalPrice: 799, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mi-charger.jpg', rating: 4.4, reviews: 345, category: 'electronics', discount: 13 },
-
-  // Frozen Foods
-  { id: 83, name: 'McCain French Fries', price: 145, originalPrice: 160, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mccain-fries.jpg', rating: 4.3, reviews: 189, category: 'frozen', discount: 9 },
-  { id: 84, name: 'Godrej Yummiez Chicken Nuggets', price: 285, originalPrice: 320, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/godrej-nuggets.jpg', rating: 4.2, reviews: 156, category: 'frozen', discount: 11 },
-  { id: 85, name: 'Amul Ice Cream - Vanilla', price: 185, originalPrice: 200, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-icecream.jpg', rating: 4.5, reviews: 278, category: 'frozen', discount: 8 },
-
-  // Bakery & Confectionery
-  { id: 86, name: 'Britannia Good Day Cookies', price: 45, originalPrice: 50, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/good-day-cookies.jpg', rating: 4.3, reviews: 234, category: 'bakery', discount: 10 },
-  { id: 87, name: 'Parle-G Glucose Biscuits', price: 28, originalPrice: 30, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/parle-g.jpg', rating: 4.6, reviews: 567, category: 'bakery', discount: 7 },
-  { id: 88, name: 'Cadbury Dairy Milk Chocolate', price: 85, originalPrice: 90, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/dairy-milk.jpg', rating: 4.7, reviews: 789, category: 'bakery', discount: 6 },
-  { id: 89, name: 'Ferrero Rocher Chocolates (16 pieces)', price: 485, originalPrice: 550, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ferrero-rocher.jpg', rating: 4.8, reviews: 345, category: 'bakery', discount: 12 },
-
-  // Health & Wellness
-  { id: 90, name: 'Dettol Antiseptic Liquid', price: 125, originalPrice: 140, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/dettol-antiseptic.jpg', rating: 4.5, reviews: 234, category: 'health', discount: 11 },
-  { id: 91, name: 'Vicks VapoRub', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/vicks-vaporub.jpg', rating: 4.4, reviews: 189, category: 'health', discount: 11 },
-  { id: 92, name: 'Band-Aid Adhesive Bandages', price: 65, originalPrice: 75, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/band-aid.jpg', rating: 4.2, reviews: 123, category: 'health', discount: 13 },
-  { id: 93, name: 'Himalaya Diabecon Tablets', price: 185, originalPrice: 210, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/himalaya-diabecon.jpg', rating: 4.3, reviews: 167, category: 'health', discount: 12 },
-
-  // Pet Care
-  { id: 94, name: 'Pedigree Adult Dog Food', price: 485, originalPrice: 550, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/pedigree-dog-food.jpg', rating: 4.4, reviews: 234, category: 'pet-care', discount: 12 },
-  { id: 95, name: 'Whiskas Cat Food - Tuna', price: 285, originalPrice: 320, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/whiskas-cat-food.jpg', rating: 4.3, reviews: 156, category: 'pet-care', discount: 11 },
-
-  // Stationery & Office Supplies
-  { id: 96, name: 'Classmate Spiral Notebook', price: 45, originalPrice: 50, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/classmate-notebook.jpg', rating: 4.2, reviews: 189, category: 'stationery', discount: 10 },
-  { id: 97, name: 'Reynolds Ball Pen (Pack of 10)', price: 85, originalPrice: 100, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/reynolds-pen.jpg', rating: 4.1, reviews: 123, category: 'stationery', discount: 15 },
-  { id: 98, name: 'Fevicol All Rounder Adhesive', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fevicol.jpg', rating: 4.5, reviews: 267, category: 'stationery', discount: 13 },
-
-  // Automotive
-  { id: 99, name: 'Shell Helix Engine Oil', price: 1285, originalPrice: 1450, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/shell-helix.jpg', rating: 4.3, reviews: 89, category: 'automotive', discount: 11 },
-  { id: 100, name: 'Bosch Car Battery', price: 4850, originalPrice: 5200, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/bosch-battery.jpg', rating: 4.5, reviews: 67, category: 'automotive', discount: 7 },
-
-  // Additional Masala & Spices
-  { id: 101, name: 'Catch Cumin Powder (Jeera Powder)', price: 75, originalPrice: 85, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/catch-jeera-powder.jpg', rating: 4.4, reviews: 156, category: 'masala', discount: 12 },
-  { id: 102, name: 'Everest Turmeric Powder (Haldi)', price: 68, originalPrice: 75, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/everest-haldi.jpg', rating: 4.6, reviews: 289, category: 'masala', discount: 9 },
-  { id: 103, name: 'MDH Pav Bhaji Masala', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mdh-pav-bhaji.jpg', rating: 4.5, reviews: 234, category: 'masala', discount: 11 },
-  { id: 104, name: 'Catch Chat Masala', price: 65, originalPrice: 70, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/catch-chat-masala.jpg', rating: 4.3, reviews: 178, category: 'masala', discount: 7 },
-  { id: 105, name: 'Tata Sampann Black Pepper Powder', price: 145, originalPrice: 160, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/tata-black-pepper.jpg', rating: 4.4, reviews: 123, category: 'masala', discount: 9 },
-
-  // Additional Oils
-  { id: 106, name: 'Patanjali Kachi Ghani Mustard Oil', price: 185, originalPrice: 210, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/patanjali-mustard.jpg', rating: 4.2, reviews: 167, category: 'oil', discount: 12 },
-  { id: 107, name: 'Sundrop Heart Sunflower Oil', price: 285, originalPrice: 320, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/sundrop-heart.jpg', rating: 4.3, reviews: 145, category: 'oil', discount: 11 },
-  { id: 108, name: 'Oleev Active Olive Oil', price: 485, originalPrice: 550, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/oleev-olive.jpg', rating: 4.1, reviews: 89, category: 'oil', discount: 12 },
-
-  // More Grains & Pulses
-  { id: 109, name: 'Tata Sampann Masoor Dal (Red Lentils)', price: 165, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/masoor-dal.jpg', rating: 4.4, reviews: 234, category: 'grains', discount: 8 },
-  { id: 110, name: 'Organic Tattva Chana Dal', price: 125, originalPrice: 140, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/chana-dal.jpg', rating: 4.3, reviews: 189, category: 'grains', discount: 11 },
-  { id: 111, name: 'Fortune Besan (Gram Flour)', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fortune-besan.jpg', rating: 4.5, reviews: 167, category: 'grains', discount: 11 },
-  { id: 112, name: 'Aashirvaad Superior MP Wheat Flour', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/aashirvaad-superior.jpg', rating: 4.6, reviews: 456, category: 'grains', discount: 7 },
-
-  // Ready-to-Cook Items
-  { id: 113, name: 'MTR Ready to Eat - Rava Idli', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mtr-rava-idli.jpg', rating: 4.2, reviews: 156, category: 'ready-to-cook', discount: 11 },
-  { id: 114, name: 'Maggi 2-Minute Noodles Masala', price: 48, originalPrice: 50, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/maggi-noodles.jpg', rating: 4.4, reviews: 678, category: 'ready-to-cook', discount: 4 },
-  { id: 115, name: 'Bambino Vermicelli', price: 65, originalPrice: 70, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/bambino-vermicelli.jpg', rating: 4.3, reviews: 123, category: 'ready-to-cook', discount: 7 }
-];
-
-
-
-const filteredProducts: Product[] = products.filter((product: Product) => {
+  // Enhanced filtering with animation trigger
+  const filteredProducts: Product[] = productData.filter((product: Product) => {
     // Search filter
     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
@@ -241,16 +516,27 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
     return true;
   });
 
+  // Enhanced wishlist toggle with animation
   const toggleWishlist = (item: any) => {
-    const exists = wishListsData.find((fav: Product) => fav.id === item.id);
+    const exists = wishListsData.find((fav: any) => fav.id === item.id);
     if (exists) {
-      setWistListsData(wishListsData.filter((fav: Product) => fav.id !== item.id));
+      setWistListsData(wishListsData.filter((fav: any) => fav.id !== item.id));
     } else {
       setWistListsData([...wishListsData, item]);
+      // Add pulse animation to wishlist icon
+      const wishlistIcon = document.querySelector(`[data-wishlist-${item.id}]`);
+      if (wishlistIcon) {
+        wishlistIcon.classList.add('animate-pulse');
+        setTimeout(() => wishlistIcon.classList.remove('animate-pulse'), 600);
+      }
     }
   };
 
+  // Enhanced add to cart with animation
   const addToCart = (item: any) => {
+    setCartAnimation(true);
+    setTimeout(() => setCartAnimation(false), 600);
+
     const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
     if (existingItem) {
       setCartItems(
@@ -260,121 +546,250 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
             : cartItem
         )
       );
+      dispatch({ type: "QTY", id: item.id, qty: existingItem.quantity + 1 });
     } else {
       setCartItems([...cartItems, { ...item, quantity: 1 }]);
+      let cartLine = { ...item, quantity: 1 };
+      dispatch({ type: "ADD", item: cartLine });
     }
   };
 
   const removeFromCart = (itemId: any) => {
-    setCartItems(cartItems.filter((item: any) => item.id !== itemId))
-  }
+    setCartItems(cartItems.filter((item: any) => item.id !== itemId));
+  };
 
   const updateQuantity = (itemId: any, newQuantity: any) => {
     if (newQuantity === 0) {
-      removeFromCart(itemId)
+      removeFromCart(itemId);
+      dispatch({ type: "REMOVE", id: itemId });
     } else {
-      setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
+      setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)));
+      dispatch({ type: "QTY", id: itemId, qty: newQuantity });
     }
-  }
+  };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
-  }
+    return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0);
+  };
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+    const isInCart = useCallback((id: number) => {
+      return state.items.some((item: CartLine) => item.id === id);
+    }, [state.items]);
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setFilterAnimation(true);
+    updateFilter('category', 'all');
+    updateFilter('priceRanges', []);
+    updateFilter('ratings', []);
+    updateFilter('searchTerm', '');
+    setTimeout(() => setFilterAnimation(false), 300);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
+      {/* Enhanced Header with animations */}
       <div className='sticky top-0 z-40'>
         <AnnouncementBar />
       </div>
       
-      <div className="sticky top-0 z-50">
-        <header className="bg-white shadow-sm border-b">
+      <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
+        <header className="transition-all duration-300">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
             <div className="flex items-center justify-between">
-              {/* Logo - Responsive sizing */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <img src="./logoGro.png" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md" alt="logo" />
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+              {/* Enhanced Logo with hover animation */}
+              <div className="flex items-center gap-2 flex-shrink-0 group">
+                <img 
+                  src="./logoGro.png" 
+                  className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" 
+                  alt="logo" 
+                />
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent hover:from-orange-500 hover:via-red-600 hover:to-pink-600 transition-all duration-300">
                   Gro-Delivery
                 </h1>
               </div>
 
-              {/* Search Bar - Hidden on mobile, visible on tablet+ */}
-              <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0" style={{marginLeft:"140px"}}>
+              {/* Enhanced Search Bar with suggestions */}
+              <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0 relative" style={{marginLeft:"140px"}}>
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
+                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${
+                    searchFocused ? 'text-orange-600' : 'text-orange-400'
+                  }`} />
                   <input
                     type="text"
                     placeholder="Search products..."
-                    className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+                    className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${
+                      searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
+                    }`}
                     value={filters.searchTerm}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       updateFilter('searchTerm', e.target.value)
                     }
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
                   />
+                  
+                  {/* Search Suggestions */}
+                  {searchFocused && searchSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-lg mt-1 border border-orange-200 z-50 max-h-60 overflow-y-auto">
+                      {searchSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-orange-50 cursor-pointer transition-colors duration-200"
+                          onClick={() => {
+                            updateFilter('searchTerm', suggestion);
+                            setSearchFocused(false);
+                          }}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="z-50">
                   <LocationSelector />
                 </div>
               </div>
 
-              {/* Right side icons */}
+              {/* Enhanced Right side icons */}
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Wishlist */}
-                <button className="relative p-2 hover:bg-gray-100 rounded-lg">
+                {/* Notifications */}
+                <div className="relative">
+                  <button 
+                    className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110"
+                    onClick={() => setShowNotifications(!showNotifications)}
+                  >
+                    <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-pulse">
+                      3
+                    </span>
+                  </button>
+                  
+                  {/* Notifications Dropdown */}
+                  {showNotifications && (
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
+                      <div className="p-4">
+                        <h3 className="font-semibold text-gray-800 mb-3">Notifications</h3>
+                        <div className="space-y-3">
+                          <div className="p-3 bg-orange-50 rounded-lg">
+                            <p className="text-sm font-medium">Order Delivered!</p>
+                            <p className="text-xs text-gray-600">Your order #1234 has been delivered</p>
+                          </div>
+                          <div className="p-3 bg-green-50 rounded-lg">
+                            <p className="text-sm font-medium">New Discount Available</p>
+                            <p className="text-xs text-gray-600">Get 20% off on fresh fruits</p>
+                          </div>
+                          <div className="p-3 bg-blue-50 rounded-lg">
+                            <p className="text-sm font-medium">Restock Alert</p>
+                            <p className="text-xs text-gray-600">Your favorite items are back in stock</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Enhanced Wishlist */}
+                <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
                   <Link href="/wishlist">
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
                     {wishListsData.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
                         {wishListsData.length}
                       </span>
                     )}
                   </Link>
                 </button>
 
-                {/* Cart */}
+                {/* Enhanced Cart */}
                 <div className="flex items-center space-x-2 relative z-[120px]">
-                  <AddCardList 
-                    cartItems={cartItems} 
-                    removeFromCart={removeFromCart} 
-                    updateQuantity={updateQuantity} 
-                    getTotalPrice={getTotalPrice} 
-                    setCartItems={setCartItems} 
-                    cartOpen={cartOpen} 
-                    setCartOpen={setCartOpen} 
-                  />
+                  <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
+                    <AddCardList 
+                      cartItems={cartItems} 
+                      removeFromCart={removeFromCart} 
+                      updateQuantity={updateQuantity} 
+                      getTotalPrice={getTotalPrice} 
+                      setCartItems={setCartItems} 
+                      cartOpen={cartOpen} 
+                      setCartOpen={setCartOpen} 
+                    />
+                  </div>
                   
-                  {/* Mobile Menu Button */}
+                  {/* Enhanced Mobile Menu Button */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden text-gray-700"
+                    className="md:hidden text-gray-700 hover:bg-orange-100 transition-all duration-300"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   >
-                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    <div className="relative">
+                      <Menu className={`h-5 w-5 transition-all duration-300 ${mobileMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`} />
+                      <X className={`h-5 w-5 absolute top-0 left-0 transition-all duration-300 ${mobileMenuOpen ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'}`} />
+                    </div>
                   </Button>
                 </div>
 
-                {/* Profile - Hidden on mobile */}
-                <div className='hidden sm:flex items-center cursor-pointer' onClick={() => router.push('/profile')}>
-                  <img className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+                {/* Enhanced Profile with dropdown */}
+                <div className="hidden sm:flex items-center relative">
+                  <div 
+                    className="cursor-pointer group" 
+                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                  >
+                    <img 
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-orange-300 group-hover:border-orange-500 transition-all duration-300 group-hover:scale-110" 
+                      src="https://picsum.photos/200" 
+                      alt="profile" 
+                    />
+                  </div>
+                  
+                  {/* Profile Dropdown */}
+                  {profileMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
+                      <div className="py-2">
+                        <button className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                          <User className="w-4 h-4" />
+                          <span>Profile</span>
+                        </button>
+                        <button className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                          <Settings className="w-4 h-4" />
+                          <span>Settings</span>
+                        </button>
+                        <hr className="my-2" />
+                        <button className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                          <LogOut className="w-4 h-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Mobile Search Bar */}
+            {/* Enhanced Mobile Search Bar */}
             <div className="md:hidden mt-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${
+                  searchFocused ? 'text-orange-600' : 'text-orange-400'
+                }`} />
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
+                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${
+                    searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
+                  }`}
                   value={filters.searchTerm}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFilter('searchTerm', e.target.value)
                   }
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
                 />
               </div>
               <div className="mt-2">
@@ -390,10 +805,10 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Enhanced Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
-          <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden animate-in fade-in duration-300">
+          <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto animate-in slide-in-from-right duration-400">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Menu</h2>
@@ -401,28 +816,36 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setMobileMenuOpen(false)}
+                  className="hover:bg-orange-100 transition-colors duration-300"
                 >
                   <X className="h-5 w-5" />
                 </Button>
               </div>
               
-              {/* Profile in mobile menu */}
-              <div className="flex items-center space-x-3 mb-6 p-3 bg-gray-50 rounded-lg" onClick={() => router.push('/profile')}>
-                <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
+              {/* Enhanced Profile in mobile menu */}
+              <div className="flex items-center space-x-3 mb-6 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg hover:shadow-md transition-shadow duration-300" onClick={() => router.push('/profile')}>
+                <img className="w-10 h-10 rounded-full border-2 border-orange-300" src="https://picsum.photos/200" alt="profile" />
                 <div>
                   <p className="font-medium">Your Account</p>
                   <p className="text-sm text-gray-600">Manage your profile</p>
                 </div>
               </div>
 
-              {/* Mobile Navigation */}
-              {/* <NavbarFilter /> */}
-              
               {/* Mobile Filters */}
               <div className="mt-6">
                 <SidebarFilters />
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading fresh products...</p>
           </div>
         </div>
       )}
@@ -437,37 +860,55 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
 
           {/* Products Grid */}
           <div className="flex-1">
-            {/* Header with responsive text */}
+            {/* Enhanced Header with animations */}
             <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                Fresh Groceries ({filteredProducts.length} products)
-              </h2>
+              <div className="space-y-2">
+                <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${
+                  filterAnimation ? 'scale-105' : 'scale-100'
+                }`}>
+                  Fresh Groceries ({filteredProducts.length} products)
+                </h2>
+                {filteredProducts.length === 0 && (
+                  <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
+                )}
+              </div>
               
-              {/* Filter tags - responsive */}
+              {/* Enhanced Filter tags */}
               <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                {(filters.category !== 'all' || filters.priceRanges.length > 0 || filters.ratings.length > 0) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="hover:bg-red-50 hover:border-red-300 transition-all duration-300"
+                  >
+                    Clear All
+                  </Button>
+                )}
+                
                 {filters.category !== 'all' && (
-                  <span className="bg-orange-100 text-orange-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                  <span className="bg-orange-100 text-orange-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300">
                     Category: {filters.category}
                   </span>
                 )}
                 {filters.priceRanges.length > 0 && (
-                  <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                  <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-100">
                     Price filters applied
                   </span>
                 )}
                 {filters.ratings.length > 0 && (
-                  <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                  <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-200">
                     Rating filters applied
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Mobile Filter Button */}
+            {/* Enhanced Mobile Filter Button */}
             <div className="lg:hidden mb-4">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto hover:bg-orange-50 hover:border-orange-300 transition-all duration-300 hover:shadow-md"
                 onClick={() => setMobileMenuOpen(true)}
               >
                 <Filter className="w-4 h-4 mr-2" />
@@ -475,14 +916,53 @@ const filteredProducts: Product[] = products.filter((product: Product) => {
               </Button>
             </div>
 
-            <ProductCardGrid
-              products={filteredProducts}
-              onAddToCart={addToCart}
-              onToggleWishlist={toggleWishlist}
-            />
+            {/* Product Grid with enhanced loading state */}
+            <div className={`transition-all duration-500 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+              <ProductCardGrid
+                isLoading={isLoading}
+                 isInCart = {isInCart}
+                productLists={filteredProducts}
+                onAddToCart={addToCart}
+                onToggleWishlist={toggleWishlist}
+              />
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-40 animate-in slide-in-from-bottom duration-300"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Quick Actions Floating Menu */}
+      <div className="fixed bottom-20 right-6 space-y-3 z-30">
+        {/* Quick Cart Access */}
+        {cartItems.length > 0 && (
+          <button
+            onClick={() => setCartOpen(true)}
+            className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-bounce"
+          >
+            <ShoppingCart className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Background click handler for dropdowns */}
+      {(profileMenuOpen || showNotifications) && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => {
+            setProfileMenuOpen(false);
+            setShowNotifications(false);
+          }}
+        />
+      )}
     </div>
   );
 };
