@@ -25,7 +25,7 @@ interface ProductCardGridProps {
   onToggleWishlist?: (product: Product) => void;
   onQuickView?: (product: Product) => void;
   onShare?: (product: Product) => void;
-  isInCart: (product: Product) => boolean;
+  isInCart: any;
   getCartQuantity?: (product: Product) => number;
   isLoading?: boolean;
   showQuickActions?: boolean;
