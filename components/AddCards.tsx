@@ -15,7 +15,7 @@ import { useOrder } from '@/context/OrderContext';
 import { useRouter } from 'next/navigation';
 const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen,type, updateQuantity, getTotalPrice, removeFromCart }: any) => {
   const [addressOpen, setAddressOpen] = React.useState(false);
-  const { state } = useOrder();
+  const { state ,dispatch} = useOrder();
   const { address, items, distance } = state
   const router= useRouter()
   // const {  distance } = useAddress();
@@ -68,7 +68,7 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen,type, upda
                         <div>
                           {address && (<>  <h4 className="font-semibold text-sm">Delivering to Home</h4>
                             <p className="text-xs text-gray-600">{`${address?.name&&address?.name}, ${address?.area}`}</p>
-                            <p className="text-xs text-gray-600">{`${distance?.toFixed(2)}`} km</p>
+                            <p className="text-xs text-gray-600">{`${distance&&distance?.toFixed(2)}`} km</p>
                           </>)}
                         </div>
                       </div>

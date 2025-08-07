@@ -1,64 +1,57 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose, { Schema, model, Types, Document, Model } from 'mongoose';
 
-interface IUser extends Document {
+export enum UserRole { USER = 'user', ADMIN = 'admin' }
+export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
+export enum OrderStatus { PENDING = 'pending', PAID = 'paid', SHIPPED = 'shipped', DELIVERED = 'delivered', CANCELED = 'canceled' }
+export enum PaymentStatus { PENDING = 'pending', SUCCESS = 'success', FAILED = 'failed' }
+export enum DeliveryStatus { PENDING = 'pending', DISPATCHED = 'dispatched', DELIVERED = 'delivered', RETURNED = 'returned' }
+
+export interface IUser extends Document {
+  username: string;
   firstName: string;
   lastName: string;
+
   email: string;
-  phone: string;
+  phone: number;
   password: string;
-  role: 'user' | 'admin';
+  role: UserRole;
+  addresses: Array<{
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserSchema: Schema<IUser> = new mongoose.Schema(
-  {
-    firstName: {
-      type: String,
-      required: [true, 'Name is required'],
-      trim: true,
-    },
-    lastName: {
-      type: String,
-      required: [true, 'Last name is required'],
-      trim: true,
-    },
-    email: {
-      type: String,
-      // required: [true, 'Email is required'],
-      unique: true,
-      lowercase: true,
-    },
-    phone:{
-      type: String,
-      // required: [true, 'Phone number is required'],
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      minlength: 6,
-    },
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
+const UserSchema = new Schema<IUser>({
+  username: { type: String },
+  firstName: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true,
   },
-  {
-    timestamps: true, // createdAt और updatedAt automatically add हो जाएंगे
-  }
-);
+  lastName: {
+    type: String,
+    required: [true, 'Last name is required'],
+    trim: true,
+  },
+  email: { type: String, unique: true },
+  phone: { type: Number, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: Object.values(UserRole), default: UserRole.USER },
+  addresses: [{
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String,
+  }]
+}, { timestamps: true });
 
-UserSchema.pre<IUser>('save', async function (next) {
-  if (!this.isModified('password')) return next();
-
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
+UserSchema.index({ email: 1 }, { unique: true });
 
 
-// Model export करते समय यह pattern use करें Next.js के लिए
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
-
-export default User;
-
+export default mongoose.models.User || model<IUser>('User', UserSchema); 

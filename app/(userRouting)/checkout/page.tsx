@@ -84,7 +84,7 @@ export default function PaymentPage() {
   const [selectedDigitalWallets, setSelectedDigitalWallets] = useState<DigitalWallet | null>(null);
 
   const toggle = (section: string) => setExpanded(expanded === section ? "" : section);
-  let totalAmount = state?.items?.reduce((t, i) => t + i.price, 0) + (state.tip || 0) + (state.deliveryCharge || 0) + (state.handlingCharge || 0) + (state.donation || 0);
+  let totalAmount = state?.items?.reduce((t, i) => t + i.price*i.quantity, 0) + (state.tip || 0) + (state.deliveryCharge || 0) + (state.handlingCharge || 0) + (state.donation || 0);
   const banks: Bank[] = [
     { name: "HDFC", color: "bg-red-500", logo: "🏦" },
     { name: "Kotak", color: "bg-blue-600", logo: "🏛️" },

@@ -1225,6 +1225,11 @@ const ProductGrid: React.FC = () => {
     updateFilter('searchTerm', '');
     setTimeout(() => setFilterAnimation(false), 300);
   };
+const handleLogout = () => {
+    localStorage.removeItem("G-user");
+    localStorage.removeItem("token");
+    window.location.reload();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
@@ -1398,12 +1403,12 @@ const ProductGrid: React.FC = () => {
                           <User className="w-4 h-4" />
                           <span>Profile</span>
                         </button>
-                        <button className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={()=>router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
                         </button>
                         <hr className="my-2" />
-                        <button className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
                         </button>

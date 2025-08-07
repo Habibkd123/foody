@@ -27,6 +27,7 @@ interface ProductCardGridProps {
   onShare?: (product: Product) => void;
   isInCart: any;
   getCartQuantity?: (product: Product) => number;
+  updateQuantity?: (productId: string, change: number) => void;
   isLoading?: boolean;
   showQuickActions?: boolean;
   showQuantityControls?: boolean;
@@ -37,6 +38,7 @@ interface ProductCardGridProps {
 const ProductCardGrid: React.FC<ProductCardGridProps> = ({
   productLists, 
   onAddToCart, 
+  updateQuantity = () => {},
   onToggleWishlist,
   onQuickView,
   onShare,
@@ -53,14 +55,8 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
     const [addingToCart, setAddingToCart] = useState<string | null>(null);
     const [justAdded, setJustAdded] = useState<string | null>(null);
     const imageRefs = useRef<{[key: string]: HTMLImageElement | null}>({});
-
-    // Handle quantity changes
-    const updateQuantity = (productId: string, change: number) => {
-        setQuantities(prev => ({
-            ...prev,
-            [productId]: Math.max(1, (prev[productId] || 1) + change)
-        }));
-    };
+console.log('productLists', productLists);
+  
 
     // Enhanced add to cart with animation
     const handleAddToCart = async (product: Product) => {
