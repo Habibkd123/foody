@@ -1,6 +1,6 @@
 "use client"
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 // Assume these icons are imported from an icon library
 import {
@@ -91,7 +91,7 @@ const othersItems: NavItem[] = [
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const location = useLocation();
+    const pathname = usePathname();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -102,10 +102,10 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => location.pathname === path;
+  // const isActive = (path: string) => pathname === path;
   const isActive = useCallback(
-    (path: string) => location.pathname === path,
-    [location.pathname]
+    (path: string) => pathname === path,
+    [pathname]
   );
 
   useEffect(() => {
@@ -130,7 +130,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location, isActive]);
+  }, [pathname, isActive]);
 
   useEffect(() => {
     if (openSubmenu !== null) {

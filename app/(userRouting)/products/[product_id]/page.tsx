@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useWishListContext } from '@/context/WishListsContext';
 import Link from 'next/link';
-import { Product } from '../types/global';
+import { Product } from '@/types/global';
 import "@/components/cards.css"
 
 interface ProductCardGridProps {

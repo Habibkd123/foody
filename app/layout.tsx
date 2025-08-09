@@ -6,7 +6,6 @@ import { CartProvider } from '@/context/CartContext'
 import { AddressProvider } from '@/context/AddressContext'
 import { OrderProvider } from '@/context/OrderContext'
 import { ProductsProvider } from '@/context/AllProductContext'
-import { SidebarProvider } from '@/context/SidebarContext'
 export const metadata: Metadata = {
   title: 'Grocery Mart',
   description: 'Grocery for your services',
@@ -22,7 +21,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SidebarProvider>
         <ProductsProvider >
           <WishListProvider >
             <FilterProvider>
@@ -36,7 +34,6 @@ export default function RootLayout({
             </FilterProvider>
           </WishListProvider>
         </ProductsProvider>
-        </SidebarProvider>
       </body>
     </html>
   )
