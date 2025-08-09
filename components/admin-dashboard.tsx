@@ -72,7 +72,7 @@ const ADMIN_ROLES = {
   },
 }
 
-export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
+export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)

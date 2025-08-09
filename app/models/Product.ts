@@ -1,18 +1,5 @@
+import { IProduct, ProductStatus } from '@/types/product';
 import mongoose, { Schema, model, Types, Document } from 'mongoose';
-
-export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
-
-export interface IProduct extends Document {
-  name: string;
-  description?: string;
-  images: string[];
-  price: number;
-  category: Types.ObjectId; // Reference to subcategory
-  stock: number;
-  status: ProductStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 const ProductSchema = new Schema<IProduct>({
   name: { type: String, required: true },

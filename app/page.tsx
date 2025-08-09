@@ -1005,7 +1005,7 @@ export function Grocery() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+              <a href="home" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 Home
               </a>
               <a href="#products" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
@@ -1076,7 +1076,7 @@ export function Grocery() {
           {mobileMenuOpen && (
             <nav className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-col space-y-3 pt-4">
-                <a href="#home" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+                <a href="home" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                   Home
                 </a>
                 <a href="#products" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
