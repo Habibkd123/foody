@@ -1,9 +1,20 @@
 import { z } from 'zod';
-
+const relativeOrAbsoluteUrl = z.string().refine((val) => {
+  try {
+    // Try parsing as a URL, if fails check if relative path
+    new URL(val);
+    return true; // valid full URL
+  } catch {
+    // Allow if it starts with '/' (relative path)
+    return val.startsWith('/');
+  }
+}, {
+  message: 'Invalid image URL or relative path',
+})
 export const createProductSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   description: z.string().optional(),
-  images: z.array(z.string().url('Invalid image URL')),
+  images: z.array(relativeOrAbsoluteUrl).min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),
   price: z.number().positive('Price must be positive'),
   category: z.string().min(1, 'Category is required'),
   stock: z.number().int().min(0, 'Stock must be non-negative'),

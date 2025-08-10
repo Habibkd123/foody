@@ -75,6 +75,9 @@ export function formatUserResponse(user: any, includePrivateInfo = false): UserR
     lastName: user.lastName,
     fullName: `${user.firstName} ${user.lastName}`,
     role: user.role,
+    email: user.email,
+    phone: user.phone,
+    status: user.status,
     createdAt: user.createdAt.toISOString(),
   };
 

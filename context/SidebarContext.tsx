@@ -1,46 +1,41 @@
 "use client";
-import { createContext, useContext, useState, useEffect } from "react";
-
-type SidebarContextType = {
+import React, { useState, useEffect } from 'react';
+const SidebarContext = React.createContext<{
   isExpanded: boolean;
+  isMobile: boolean;
   isMobileOpen: boolean;
-  isHovered: boolean;
-  activeItem: string | null;
-  openSubmenu: string | null;
   toggleSidebar: () => void;
   toggleMobileSidebar: () => void;
-  setIsHovered: (isHovered: boolean) => void;
-  setActiveItem: (item: string | null) => void;
-  toggleSubmenu: (item: string) => void;
-};
+  closeMobileSidebar: () => void;
+} | undefined>(undefined);
 
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
-
-export const useSidebar = () => {
-  const context = useContext(SidebarContext);
+const useSidebar = () => {
+  const context = React.useContext(SidebarContext);
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider");
   }
   return context;
 };
 
-export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+// Sidebar Provider
+const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [activeItem, setActiveItem] = useState<string | null>(null);
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
+
+    let resizeTimeout: NodeJS.Timeout;
+
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) {
-        setIsMobileOpen(false);
-      }
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const mobileView = window.innerWidth < 1024;
+        setIsMobile(mobileView);
+        if (!mobileView) setIsMobileOpen(false);
+      }, 100);
     };
 
     handleResize();
@@ -48,37 +43,47 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimeout);
     };
   }, []);
 
-  const toggleSidebar = () => {
-    setIsExpanded((prev) => !prev);
-  };
+  const toggleSidebar = React.useCallback(() => {
+    if (isMobile) {
+      setIsMobileOpen(prev => !prev);
+    } else {
+      setIsExpanded(prev => !prev);
+    }
+  }, [isMobile]);
 
-  const toggleMobileSidebar = () => {
-    setIsMobileOpen((prev) => !prev);
-  };
+  const toggleMobileSidebar = React.useCallback(() => {
+    if (isMobile) {
+      setIsMobileOpen(prev => !prev);
+    }
+  }, [isMobile]);
 
-  const toggleSubmenu = (item: string) => {
-    setOpenSubmenu((prev) => (prev === item ? null : item));
-  };
+  const closeMobileSidebar = React.useCallback(() => {
+    if (isMobile) {
+      setIsMobileOpen(false);
+    }
+  }, [isMobile]);
+
+  if (!hasMounted) return null;
 
   return (
     <SidebarContext.Provider
       value={{
-        isExpanded: isMobile ? false : isExpanded,
+        isExpanded,
+        isMobile,
         isMobileOpen,
-        isHovered,
-        activeItem,
-        openSubmenu,
         toggleSidebar,
         toggleMobileSidebar,
-        setIsHovered,
-        setActiveItem,
-        toggleSubmenu,
+        closeMobileSidebar
       }}
     >
       {children}
     </SidebarContext.Provider>
   );
 };
+
+
+export { SidebarProvider, useSidebar, SidebarContext };

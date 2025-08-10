@@ -135,14 +135,21 @@ async function handlePasswordChange(data: any): Promise<NextResponse> {
 // GET - Verify token / Get current user (for when implementing JWT)
 export async function GET(request: NextRequest) {
   try {
-    // This would be used to verify JWT tokens and return current user
-    // For now, we'll return a simple response
+    await connectDB();
 
-    return createUserErrorResponse(
-      'Not implemented',
-      'Token verification not implemented in this demo',
-      501
-    );
+    const getAllUser =await User.find()
+    if (!getAllUser || getAllUser.length === 0) {
+      return createUserErrorResponse(
+        'No users found', 
+        'No users found in the database', 
+        404 
+      );
+    }
+       
+return  NextResponse.json({
+      success: true,
+      users: getAllUser.map(user => formatUserResponse(user, false))
+    }, { status: 200 });
 
   } catch (error) {
     return handleUserError(error);

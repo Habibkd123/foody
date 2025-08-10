@@ -116,38 +116,42 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
+    console.log("Request body:", body);
     const validatedData = createCategorySchema.parse(body);
+console.log("Validated data:", validatedData);
+    // Check for existing category
+    // const existingCategory = await Category.findOne({
+    //   name: validatedData.name,
+    //   parent: validatedData.parent || null
+    // });
 
-    // Check if category with same name and parent already exists
-    const existingCategory = await Category.findOne({ 
-      name: validatedData.name,
-      parent: validatedData.parent || null
-    });
+    // if (existingCategory) {
+    //   return NextResponse.json({
+    //     success: false,
+    //     error: 'Category already exists',
+    //     message: 'A category with this name already exists at this level'
+    //   }, { status: 409 });
+    // }
 
-    if (existingCategory) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Category already exists',
-        message: 'A category with this name already exists at this level'
-      }, { status: 409 });
-    }
-
-    // If parent is specified, validate it exists and check for circular reference
+    // Validate parent
     if (validatedData.parent) {
       const parentCategory = await Category.findById(validatedData.parent);
       if (!parentCategory) {
-        return NextResponse.json<ApiResponse<null>>({
+        return NextResponse.json({
           success: false,
           error: 'Parent category not found',
           message: 'The specified parent category does not exist'
         }, { status: 400 });
       }
     }
-
+console.log("Parent category validated",validatedData);
     const category = await Category.create(validatedData);
-
-    // Populate parent information
-    await category.populate('parent', 'name');
+console.log("Category created:", category);
+    // Populate parent info (don't use execPopulate!)
+    await category.populate({
+      path: 'parent',
+      select: 'name _id image createdAt updatedAt status slug description '
+    });
 
     const formattedCategory = formatCategoryResponse(category);
 
@@ -161,3 +165,5 @@ export async function POST(request: NextRequest) {
     return handleCategoryError(error);
   }
 }
+
+

@@ -18,6 +18,8 @@ export interface CategoryResponse {
     _id: string;
     name: string;
   } | null;
+  description?: string;
+  status?: 'active' | 'inactive';
   image?: string;
   createdAt: string;
   updatedAt: string;

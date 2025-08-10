@@ -6,6 +6,8 @@ import { CartProvider } from '@/context/CartContext'
 import { AddressProvider } from '@/context/AddressContext'
 import { OrderProvider } from '@/context/OrderContext'
 import { ProductsProvider } from '@/context/AllProductContext'
+import { ThemeProvider } from '@/context/ThemeContext'
+import { SidebarProvider } from '@/context/SidebarContext'
 export const metadata: Metadata = {
   title: 'Grocery Mart',
   description: 'Grocery for your services',
@@ -22,17 +24,21 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ProductsProvider >
+          <ThemeProvider>
           <WishListProvider >
             <FilterProvider>
               <CartProvider>
                 <AddressProvider>
                   <OrderProvider>
+        <SidebarProvider>
                     {children}
+        </SidebarProvider>
                   </OrderProvider>
                 </AddressProvider>
               </CartProvider>
             </FilterProvider>
           </WishListProvider>
+          </ThemeProvider>
         </ProductsProvider>
       </body>
     </html>

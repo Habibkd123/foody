@@ -11,6 +11,7 @@ import {
   checkCircularReference
 } from '@/utils/category-utils';
 import { ApiResponse, CategoryResponse } from '@/types/category';
+import Product from '@/app/models/Product';
 
 // GET - Fetch category by ID with subcategories
 export async function GET(
@@ -83,111 +84,76 @@ export async function GET(
 }
 
 // PUT - Update category by ID
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await connectDB();
 
     const { id } = params;
 
     if (!validateCategoryObjectId(id)) {
-      return createCategoryErrorResponse(
-        'Invalid category ID format',
-        'The provided ID is not a valid MongoDB ObjectId',
-        400
-      );
+      return createCategoryErrorResponse('Invalid ID', 'Invalid MongoDB ObjectId', 400);
     }
 
     const body = await request.json();
-
     if (!body || Object.keys(body).length === 0) {
-      return createCategoryErrorResponse(
-        'No data provided',
-        'Request body cannot be empty for update operation',
-        400
-      );
+      return createCategoryErrorResponse('No data', 'Request body cannot be empty', 400);
     }
 
     const validatedData = updateCategorySchema.parse(body);
 
-    // Check if category exists
     const existingCategory = await Category.findById(id);
     if (!existingCategory) {
-      return createCategoryErrorResponse(
-        'Category not found',
-        'No category found with the provided ID',
-        404
-      );
+      return createCategoryErrorResponse('Not found', 'Category does not exist', 404);
     }
 
-    // If updating name, check for duplicates at same level
-    if (validatedData.name) {
-      const parentId = validatedData.parent !== undefined ? validatedData.parent : existingCategory.parent;
+    // --- Duplicate check (name) ---
+    // if (validatedData.name) {
+    //   const parentId = validatedData.parent !== undefined ? validatedData.parent : existingCategory.parent;
+    //   const duplicateCategory = await Category.findOne({
+    //     name: validatedData.name,
+    //     parent: parentId,
+    //     _id: { $ne: id }
+    //   });
+    //   if (duplicateCategory) {
+    //     return createCategoryErrorResponse('Duplicate name', 'Category with this name already exists', 409);
+    //   }
+    // }
 
-      const duplicateCategory = await Category.findOne({
-        name: validatedData.name,
-        parent: parentId,
-        _id: { $ne: id }
-      });
-
-      if (duplicateCategory) {
-        return createCategoryErrorResponse(
-          'Category name already exists',
-          'A category with this name already exists at this level',
-          409
-        );
+    // --- Parent validation & circular check ---
+    if (validatedData.parent !== undefined && validatedData.parent) {
+      const parentCategory = await Category.findById(validatedData.parent);
+      if (!parentCategory) {
+        return createCategoryErrorResponse('Parent not found', 'The specified parent does not exist', 400);
+      }
+      const circle = await checkCircularReference(Category, id, validatedData.parent);
+      if (circle) {
+        return createCategoryErrorResponse('Circular reference', 'Invalid parent assignment', 400);
       }
     }
 
-    // If updating parent, validate it and check for circular reference
-    if (validatedData.parent !== undefined) {
-      if (validatedData.parent) {
-        // Check if new parent exists
-        const parentCategory = await Category.findById(validatedData.parent);
-        if (!parentCategory) {
-          return createCategoryErrorResponse(
-            'Parent category not found',
-            'The specified parent category does not exist',
-            400
-          );
-        }
-
-        // Check for circular reference
-        const wouldCreateCircle = await checkCircularReference(
-          Category, 
-          id, 
-          validatedData.parent
-        );
-
-        if (wouldCreateCircle) {
-          return createCategoryErrorResponse(
-            'Circular reference detected',
-            'Cannot set this category as parent as it would create a circular reference',
-            400
-          );
-        }
+    // ✅ Filter only provided fields
+    const updateFields: Record<string, any> = {};
+    for (const key in validatedData) {
+      if (validatedData[key as keyof typeof validatedData] !== undefined) {
+        updateFields[key] = validatedData[key as keyof typeof validatedData];
       }
     }
 
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
-      validatedData,
+      { $set: updateFields },
       { new: true, runValidators: true }
     ).populate('parent', 'name');
 
     const formattedCategory = formatCategoryResponse(updatedCategory!);
 
-    return createCategorySuccessResponse(
-      formattedCategory,
-      'Category updated successfully'
-    );
+    return createCategorySuccessResponse(formattedCategory, 'Category updated successfully');
 
   } catch (error) {
     return handleCategoryError(error);
   }
 }
+
 
 // DELETE - Delete category by ID
 export async function DELETE(
@@ -230,14 +196,14 @@ export async function DELETE(
     }
 
     // Check for products using this category (you might want to add this)
-    // const productsCount = await Product.countDocuments({ category: id });
-    // if (productsCount > 0) {
-    //   return createCategoryErrorResponse(
-    //     'Category is in use',
-    //     `Cannot delete category that is used by ${productsCount} products`,
-    //     409
-    //   );
-    // }
+    const productsCount = await Product.countDocuments({ category: id });
+    if (productsCount > 0) {
+      return createCategoryErrorResponse(
+        'Category is in use',
+        `Cannot delete category that is used by ${productsCount} products`,
+        409
+      );
+    }
 
     if (force && subcategoriesCount > 0) {
       // Recursively delete all subcategories

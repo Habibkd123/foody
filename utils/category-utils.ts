@@ -76,6 +76,8 @@ export function formatCategoryResponse(category: any, includeSubcategories = fal
       name: category.parentCategory.name
     } : null,
     image: category.image,
+    description: category.description,
+    status: category.status,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
   };
