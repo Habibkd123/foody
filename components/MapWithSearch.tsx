@@ -16,7 +16,7 @@ const defaultCenter = {
 
 export default function LocationSearchMap() {
   const [selectedLocation, setSelectedLocation] = useState(null);
-let apiKey =process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY||""
+let apiKey =process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY||"AIzaSyAGC7JgkXXAMa8Omh2xrzNZh-ziOjYg4Hk"
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: apiKey, // 🔥 Replace with your key
     libraries: ["places"],
