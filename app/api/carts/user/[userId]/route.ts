@@ -295,74 +295,6 @@ async function handleSingleItemUpdate(userId: string, body: any) {
   );
 }
 
-async function handleBulkUpdate(userId: string, body: any) {
-  const validatedData = bulkUpdateCartSchema.parse(body);
-
-  // Find user's cart
-  const cart = await Cart.findOne({ user: userId });
-  if (!cart) {
-    return createCartErrorResponse(
-      'Cart not found',
-      'User does not have an active cart',
-      404
-    );
-  }
-
-  // Validate all products
-  const productIds = validatedData.items.map(item => item.productId);
-  const products = await Product.find({ _id: { $in: productIds } });
-
-  for (const item of validatedData.items) {
-    if (item.quantity > 0) {
-      const product = products.find(p => p._id.toString() === item.productId);
-      const validation = validateProductAvailability(product, item.quantity);
-
-      if (!validation.isValid) {
-        return createCartErrorResponse(
-          'Product unavailable',
-          `${product?.name}: ${validation.message}`,
-          400
-        );
-      }
-    }
-  }
-
-  // Update cart items
-  const updatedItems = [];
-
-  for (const updateItem of validatedData.items) {
-    if (updateItem.quantity > 0) {
-      updatedItems.push({
-        product: updateItem.productId,
-        quantity: updateItem.quantity
-      });
-    }
-    // If quantity is 0, item is effectively removed
-  }
-
-  cart.items = updatedItems;
-  await cart.save();
-
-  // Populate and return updated cart
-  await cart.populate([
-    {
-      path: 'user',
-      select: 'firstName lastName email'
-    },
-    {
-      path: 'items.product',
-      select: 'name price images stock status'
-    }
-  ]);
-
-  const formattedCart = formatCartResponse(cart, true);
-
-  return createCartSuccessResponse(
-    formattedCart,
-    'Cart updated successfully'
-  );
-}
-
 // DELETE - Clear user's cart or remove specific item
 export async function DELETE(
   request: NextRequest,
@@ -436,4 +368,74 @@ export async function DELETE(
   } catch (error) {
     return handleCartError(error);
   }
+}
+
+
+
+async function handleBulkUpdate(userId: string, body: any) {
+  const validatedData = bulkUpdateCartSchema.parse(body);
+
+  // Find user's cart
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    return createCartErrorResponse(
+      'Cart not found',
+      'User does not have an active cart',
+      404
+    );
+  }
+
+  // Validate all products
+  const productIds = validatedData.items.map(item => item.productId);
+  const products = await Product.find({ _id: { $in: productIds } });
+
+  for (const item of validatedData.items) {
+    if (item.quantity > 0) {
+      const product = products.find(p => p._id.toString() === item.productId);
+      const validation = validateProductAvailability(product, item.quantity);
+
+      if (!validation.isValid) {
+        return createCartErrorResponse(
+          'Product unavailable',
+          `${product?.name}: ${validation.message}`,
+          400
+        );
+      }
+    }
+  }
+
+  // Update cart items
+  const updatedItems = [];
+
+  for (const updateItem of validatedData.items) {
+    if (updateItem.quantity > 0) {
+      updatedItems.push({
+        product: updateItem.productId,
+        quantity: updateItem.quantity
+      });
+    }
+    // If quantity is 0, item is effectively removed
+  }
+
+  cart.items = updatedItems;
+  await cart.save();
+
+  // Populate and return updated cart
+  await cart.populate([
+    {
+      path: 'user',
+      select: 'firstName lastName email'
+    },
+    {
+      path: 'items.product',
+      select: 'name price images stock status'
+    }
+  ]);
+
+  const formattedCart = formatCartResponse(cart, true);
+
+  return createCartSuccessResponse(
+    formattedCart,
+    'Cart updated successfully'
+  );
 }

@@ -65,18 +65,45 @@ export function validateObjectId(id: string): boolean {
   return /^[0-9a-fA-F]{24}$/.test(id);
 }
 
+
 export function formatProductResponse(product: any) {
   return {
     _id: product._id.toString(),
     name: product.name,
-    description: product.description,
-    images: product.images,
+    description: product.description || '',
+    images: product.images || [],
     price: product.price,
-    category: typeof product.category === 'object' ? product.category._id.toString() : product.category.toString(),
-    stock: product.stock,
-    status: product.status,
-    createdAt: product.createdAt.toISOString(),
-    updatedAt: product.updatedAt.toISOString(),
+    originalPrice: product.originalPrice || null,
+    category: product.category ? {
+      _id: product.category._id.toString(),
+      name: product.category.name
+    } : null,
+    stock: product.stock || 0,
+    inStock: product.inStock || false,
+    brand: product.brand || '',
+    sku: product.sku || '',
+    weight: product.weight || '',
+    dimensions: product.dimensions || '',
+    tags: product.tags || [],
+    features: product.features || [],
+    specifications: product.specifications ? Object.fromEntries(product.specifications) : {},
+    nutritionalInfo: product.nutritionalInfo ? Object.fromEntries(product.nutritionalInfo) : {},
+    deliveryInfo: {
+      freeDelivery: product.deliveryInfo?.freeDelivery || false,
+      estimatedDays: product.deliveryInfo?.estimatedDays || '2-3 days',
+      expressAvailable: product.deliveryInfo?.expressAvailable || false,
+      expressDays: product.deliveryInfo?.expressDays || ''
+    },
+    warranty: product.warranty || '',
+    warrantyPeriod: product.warrantyPeriod || '',
+    rating: product.rating || 0,
+    totalReviews: product.totalReviews || 0,
+    status: product.status || 'active',
+    createdAt: product.createdAt ? product.createdAt.toISOString() : new Date().toISOString(),
+    updatedAt: product.updatedAt ? product.updatedAt.toISOString() : new Date().toISOString(),
+
+
+    
   };
 }
 

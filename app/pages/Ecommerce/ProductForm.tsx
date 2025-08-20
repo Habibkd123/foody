@@ -362,7 +362,7 @@ const ProductForm: React.FC = () => {
               {/* SKU */}
               <div className='md:col-span-2'>
                 <label htmlFor="sku" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  SKU *
+                  SKU * (optional)
                 </label>
                 <div className="flex space-x-2">
                   <input
@@ -428,7 +428,7 @@ const ProductForm: React.FC = () => {
                   Price *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-2 text-gray-500">₹</span>
                   <input
                     type="number"
                     id="price"

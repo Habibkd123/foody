@@ -15,7 +15,8 @@ const CartSchema = new Schema<ICart>({
   items: [{
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, default: 1 },
-  }]
+  }],
+  
 }, { timestamps: true });
 
 export default mongoose.models.Cart || model<ICart>('Cart', CartSchema);

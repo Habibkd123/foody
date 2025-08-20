@@ -1,19 +1,54 @@
 import mongoose, { Schema, model, Types, Document } from 'mongoose';
 export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
-
-export interface IProduct extends Document {
+export interface Category {
+  _id: string;
   name: string;
-  description?: string;
-  images: string[];
+}
+export interface Product {
+  _id: string;
+  name: string;
+  description: string;
   price: number;
-  category: Types.ObjectId; // Reference to subcategory
+  originalPrice?: number;
   stock: number;
-  status: ProductStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  quantity?: number; // if you use quantity instead of stock
+  category: Category;
+  views?: number;
+  inStock?: boolean;
+  relatedProducts?: Product[];
+  images: string[];
+  brand?: string;
+  sku?: string;
+  weight?: string;
+  dimensions?: string;
+  tags?: string[];
+  features?: string[];
+  specifications?: Record<string, string>;
+  nutritionalInfo?: Record<string, string>;
+  deliveryInfo?: {
+    freeDelivery?: boolean;
+    estimatedDays?: string;
+    expressAvailable?: boolean;
+    expressDays?: string;
+  };
+  warranty?: string;
+  warrantyPeriod?: string;
+  rating?: number;
+  totalReviews?: number;
+  status?: ProductStatus;
+  createdAt?: string;
+  updatedAt?: string;
+  reviews?: Review[];
 }
 
-
+export interface Review {
+  _id: string;
+  product: string;
+  user: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
 export interface ProductCreateRequest {
   name: string;
   description?: string;

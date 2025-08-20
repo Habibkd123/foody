@@ -988,7 +988,6 @@ export function Grocery() {
       alert(error?.message)
     }
   }
-  console.log("data", userData)
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
       {/* Sticky Header */}

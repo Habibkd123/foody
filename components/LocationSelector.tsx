@@ -30,6 +30,7 @@ const LocationSelector: React.FC = () => {
   const [closestShop, setClosestShop] = useState<{ name: string, distance: number } | null>(null);
   const [currentLocationAddress, setCurrentLocationAddress] = useState<string>('');
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+const [geoError, setGeoError] = useState<string | null>(null);
 
   const { dispatch, state } = useOrder();
   const autocompleteRef = useRef<any>(null);
