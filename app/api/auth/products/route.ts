@@ -31,17 +31,17 @@ export async function GET(request: NextRequest) {
     // Execute queries in parallel
     const [products, total] = await Promise.all([
       Product.find(filter)
-        .populate({ path: "category", select: "name  _id" })
+        // .populate({ path: "Category", select: "name  _id" })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      Product.countDocuments(filter)
+      Product.countDocuments(filter),
     ]);
 
     const formattedProducts = products.map((product) => ({
       ...product,
-      _id: product._id.toString(),
+      _id: product?._id?.toString(),
       category: product.category,
       specifications: product.specifications || {},
       nutritionalInfo: product.nutritionalInfo || {},

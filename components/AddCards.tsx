@@ -1,5 +1,5 @@
 'use client';
-import React, { use, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Search, ShoppingCart, Heart, Star, Filter, Grid, List, Trash2, Plus, Minus, X, Menu, MapPin } from 'lucide-react';
 import { Input } from "@/components/ui/input"
@@ -11,15 +11,25 @@ import AddAddressModal from './AddAddressModal';
 import CartSummary from './CartSummary';
 import Link from 'next/link';
 import { useAddress } from '@/context/AddressContext';
-import { useOrder } from '@/context/OrderContext';
+import { useCartOrder, useOrder } from '@/context/OrderContext';
 import { useRouter } from 'next/navigation';
+import { useAuthStorage } from '@/hooks/useAuth';
 const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen,type, updateQuantity, getTotalPrice, removeFromCart }: any) => {
   const [addressOpen, setAddressOpen] = React.useState(false);
   const { state ,dispatch} = useOrder();
+  const { loadCart} = useCartOrder();
   const { address, items, distance } = state
-  const router= useRouter()
-  // const {  distance } = useAddress();
-  console.log('state', state);
+  const router = useRouter()
+   const {user}=useAuthStorage()  // const {  distance } = useAddress();
+    //  console.log('state',loadCart);
+  useEffect(() => {
+    const fun = async () => {
+   let data= await loadCart(user?._id)
+      console.log('state',data);
+
+    }
+    fun()
+  },[])
   const handleCheckout =() => {
     if(!address){
       alert("Please enter Address")

@@ -26,7 +26,7 @@ export async function GET(
   try {
     await connectDB();
 
-    const { userId } = params;
+    const { userId } = await Promise.resolve(params);
 
     if (!validateCartObjectId(userId)) {
       return createCartErrorResponse(
@@ -91,7 +91,7 @@ export async function POST(
   try {
     await connectDB();
 
-    const { userId } = params;
+    const { userId } = await Promise.resolve(params);
 
     if (!validateCartObjectId(userId)) {
       return createCartErrorResponse(
@@ -140,7 +140,7 @@ export async function POST(
     } else {
       // Check if product already exists in cart
       const existingItemIndex = cart.items.findIndex(
-        item => item.product.toString() === validatedData.productId
+        (item: any) => item.product.toString() === validatedData.productId
       );
 
       if (existingItemIndex >= 0) {
@@ -202,7 +202,7 @@ export async function PUT(
   try {
     await connectDB();
 
-    const { userId } = params;
+    const { userId } = await Promise.resolve(params);
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || 'updateItem';
 
@@ -242,7 +242,7 @@ async function handleSingleItemUpdate(userId: string, body: any) {
 
   // Find the item in cart
   const itemIndex = cart.items.findIndex(
-    item => item.product.toString() === validatedData.productId
+    (item: any) => item.product.toString() === validatedData.productId
   );
 
   if (itemIndex === -1) {
@@ -303,7 +303,7 @@ export async function DELETE(
   try {
     await connectDB();
 
-    const { userId } = params;
+    const { userId } = await Promise.resolve(params);
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
 
@@ -337,7 +337,7 @@ export async function DELETE(
 
       const initialItemCount = cart.items.length;
       cart.items = cart.items.filter(
-        item => item.product.toString() !== productId
+        (item: any) => item.product.toString() !== productId
       );
 
       if (cart.items.length === initialItemCount) {

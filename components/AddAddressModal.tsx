@@ -1,13 +1,430 @@
+// "use client";
+// import React, { useState, useEffect, useCallback, useRef } from 'react';
+// import { GoogleMap, Marker, useLoadScript, Autocomplete } from "@react-google-maps/api";
+// import { Input } from "@/components/ui/input";
+// import { Button } from "@/components/ui/button";
+// import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+// import { Home, Briefcase, Hotel, MapPin, Navigation } from 'lucide-react';
+// import { shops } from './Shops';
+// import { useCartOrder } from '@/context/OrderContext';
+// import { useAuthStorage } from '@/hooks/useAuth';
+// import { Address } from '@/types/global';
+
+// const libraries: any = ["places"];
+
+// const mapContainerStyle = {
+//     width: '100%',
+//     height: '100%',
+// };
+
+// const defaultCenter = {
+//     lat: 26.926,
+//     lng: 75.823,
+// };
+
+// const addressTypes = [
+//     { id: 'Home', label: 'Home', icon: Home },
+//     { id: 'Work', label: 'Work', icon: Briefcase },
+//     { id: 'Hotel', label: 'Hotel', icon: Hotel },
+//     { id: 'Other', label: 'Other', icon: MapPin },
+// ];
+
+// const DeliveryAddressPage = ({ handleAddAddress, onClose, open, setShowAddModal, userId }: any) => {
+//     const { address, addAddress, distance, setDistance } = useCartOrder();
+//     const { user } = useAuthStorage()
+//     const [searchText, setSearchText] = useState("");
+
+//     const [selectedAddressType, setSelectedAddressType] = useState('Home');
+//     const [marker, setMarker] = useState(defaultCenter);
+//     const [closestShop, setClosestShop] = useState<{ name: string, distance: number } | null>(null);
+//     const autocompleteRef = useRef<any>(null);
+
+//     const { isLoaded } = useLoadScript({
+//         googleMapsApiKey: "AIzaSyAQODjSc_eWcBWoIdk7trMzl98oRHF9HFs",
+//         libraries,
+//     });
+
+//     const getAddressFromLatLng = useCallback((lat: number, lng: number) => {
+//         const geocoder = new window.google.maps.Geocoder();
+//         geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+//             if (status === "OK" && results?.length) {
+//                 const addressComponents = results[0].address_components;
+
+//                 const parsedAddress: Partial<Address> = {
+//                     street: "",
+//                     area: "",
+//                     city: "",
+//                     state: "",
+//                     zipCode: ""
+//                 };
+
+//                 addressComponents.forEach((component: any) => {
+//                     if (component.types.includes("street_number")) {
+//                         parsedAddress.street = `${component.long_name} ${parsedAddress.street || ""}`;
+//                     }
+//                     if (component.types.includes("route")) {
+//                         parsedAddress.street = `${parsedAddress.street || ""} ${component.long_name}`;
+//                     }
+//                     if (component.types.includes("sublocality") || component.types.includes("locality")) {
+//                         parsedAddress.area = component.long_name;
+//                     }
+//                     if (component.types.includes("administrative_area_level_2")) {
+//                         parsedAddress.city = component.long_name;
+//                     }
+//                     if (component.types.includes("administrative_area_level_1")) {
+//                         parsedAddress.state = component.long_name;
+//                     }
+//                     if (component.types.includes("postal_code")) {
+//                         parsedAddress.zipCode = component.long_name;
+//                     }
+//                 });
+
+//                 dispatchAddressUpdate({
+//                     ...parsedAddress,
+//                     lat,
+//                     lng,
+//                 });
+//             }
+//         });
+//     }, [address]);
+
+
+//     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+//         const R = 6371;
+//         const dLat = (lat2 - lat1) * (Math.PI / 180);
+//         const dLon = (lon2 - lon1) * (Math.PI / 180);
+//         const a =
+//             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//             Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+//             Math.sin(dLon / 2) * Math.sin(dLon / 2);
+//         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//         return R * c;
+//     };
+
+//     const handleMapClick = (e: google.maps.MapMouseEvent) => {
+//         if (!e.latLng) return;
+//         const lat = e.latLng.lat();
+//         const lng = e.latLng.lng();
+//         setMarker({ lat, lng });
+//         getAddressFromLatLng(lat, lng);
+//     };
+
+//     const getUserLocation = () => {
+//         navigator.geolocation.getCurrentPosition((position) => {
+//             const userLat = position.coords.latitude;
+//             const userLng = position.coords.longitude;
+//             setMarker({ lat: userLat, lng: userLng });
+//             getAddressFromLatLng(userLat, userLng);
+//             const d = calculateDistance(userLat, userLng, defaultCenter.lat, defaultCenter.lng);
+//             setDistance(Number(d.toFixed(2)));
+//         }, (err) => {
+//             console.error("Geolocation error:", err.message);
+//         });
+//     };
+
+//     useEffect(() => {
+//         getUserLocation();
+//     }, []);
+
+//     // Updated function to only update provided fields, preserving existing ones
+//     const dispatchAddressUpdate = async (updates: Partial<Address>) => {
+//         const currentAddress = address || {};
+//         console.log("currentAddress", currentAddress)
+//         const updatedAddress = {
+//             ...currentAddress,
+//             label: selectedAddressType,
+//             address: currentAddress.address || '',
+//             area: currentAddress.area || '',
+//             city: currentAddress.city || '',
+//             state: currentAddress.state || '',
+//             zipCode: currentAddress.zipCode || '',
+//             landmark: currentAddress.landmark || '',
+//             name: currentAddress.name || '',
+//             phone: currentAddress.phone || Number(user?.phone) || 0,
+//             isDefault: currentAddress.isDefault || false,
+//             ...updates // Spread the updates to override only the provided fields
+//         };
+
+//         // Use the userId from props if available, otherwise fall back to the one from auth context
+//         const effectiveUserId = user?._id;
+//         console.log("effectiveUserId", user)
+//         if (!effectiveUserId) {
+//             console.error('User ID is required to add an address');
+//             return;
+//         }
+
+//         try {
+//             await addAddress(effectiveUserId, updatedAddress);
+//             // If we're in the modal context, call the handleAddAddress callback
+//             // if (handleAddAddress) {
+//             //     handleAddAddress(updatedAddress);
+//             // }
+//         } catch (error) {
+//             console.error('Error saving address:', error);
+//         }
+//     };
+
+//     const handlePlaceChanged = () => {
+//         if (autocompleteRef.current) {
+//             const place = autocompleteRef.current.getPlace();
+//             if (!place.geometry) return;
+            
+//             const lat = place.geometry.location.lat();
+//             const lng = place.geometry.location.lng();
+//             setMarker({ lat, lng });
+//             setSearchText(place.formatted_address || place.name || ""); 
+
+//             // Extract address components from the place result
+//             let streetNumber = '';
+//             let route = '';
+//             let locality = '';
+//             let administrativeAreaLevel1 = '';
+//             let postalCode = '';
+//             let sublocalityLevel1 = '';
+//             let sublocalityLevel2 = '';
+
+//             place.address_components.forEach((component: google.maps.GeocoderAddressComponent) => {
+//                 const types = component.types;
+//                 if (types.includes('street_number')) {
+//                     streetNumber = component.long_name;
+//                 }
+//                 if (types.includes('route')) {
+//                     route = component.long_name;
+//                 }
+//                 if (types.includes('locality')) {
+//                     locality = component.long_name;
+//                 } else if (types.includes('administrative_area_level_1')) {
+//                     administrativeAreaLevel1 = component.long_name;
+//                 } else if (types.includes('postal_code')) {
+//                     postalCode = component.long_name;
+//                 } else if (types.includes('sublocality_level_1')) {
+//                     sublocalityLevel1 = component.long_name;
+//                 } else if (types.includes('sublocality_level_2')) {
+//                     sublocalityLevel2 = component.long_name;
+//                 }
+//             });
+
+//             const area = sublocalityLevel2 || sublocalityLevel1 || locality;
+//             const street = streetNumber && route ? `${streetNumber} ${route}` : route;
+//             setSearchText(place.formatted_address || place.name || ""); 
+//             // Update the address with the extracted components
+//             dispatchAddressUpdate({
+//                 street: street || '',
+//                 area: area || '',
+//                 landmark: place.name || '',
+//                 flatNumber: streetNumber || '',
+//                 floor: '', // Google Places API doesn't provide floor information
+//                 name: user?.name || '',
+//                 phone: Number(user?.phone) || 0,
+//                 lat,
+//                 lng,
+//             });
+//         }
+//     };
+
+//     useEffect(() => {
+//         if (marker.lat && marker.lng) {
+//             const distances = shops.map(shop => {
+//                 const d = calculateDistance(
+//                     marker.lat,
+//                     marker.lng,
+//                     shop.location.latitude,
+//                     shop.location.longitude
+//                 );
+//                 return { ...shop, distance: d };
+//             });
+
+//             const nearest = distances.reduce((prev, curr) =>
+//                 curr.distance < prev.distance ? curr : prev
+//             );
+
+//             setClosestShop({
+//                 name: nearest.name,
+//                 distance: Number(nearest.distance.toFixed(2))
+//             });
+//         }
+//     }, [marker]);
+
+//     const handleSaveAddress = () => {
+//         if (address) {
+//             // Final save with all current values including selected address type
+//             dispatchAddressUpdate({
+//                 label: selectedAddressType
+//             });
+//         }
+//         onClose();
+//     };
+
+//     if (!isLoaded) return (
+//         <div className="flex items-center justify-center h-screen w-full">
+//             <div className="text-lg">Loading map...</div>
+//         </div>
+//     );
+
+//     return (
+//         <div className="relative h-screen w-full overflow-auto">
+//             <Sheet open={open} onOpenChange={setShowAddModal}>
+//                 <SheetContent
+//                     side="top"
+//                     className="h-[95vh] mt-2 sm:mt-5 w-[95%] sm:w-[90%] lg:w-[80%] xl:w-[74%] mx-auto p-0 rounded-t-2xl max-w-7xl"
+//                 >
+//                     <div className="flex flex-col lg:grid lg:grid-cols-2 gap-0 lg:gap-4 h-full">
+//                         {/* Map Section */}
+//                         <div className="relative h-[40vh] sm:h-[45vh] lg:h-[95vh] order-1">
+//                             <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10">
+//                                 <Autocomplete
+//                                     onLoad={(autocomplete) => {
+//                                         autocompleteRef.current = autocomplete;
+//                                     }}
+//                                     onPlaceChanged={handlePlaceChanged}
+//                                     fields={['address_components', 'geometry', 'formatted_address', 'name']}
+//                                     types={['address']}
+//                                 >
+//                                     <Input
+//                                         type="text"
+//                                         value={searchText}
+//                                         onChange={(e) => setSearchText(e.target.value)}
+//                                         placeholder="Search for a location"
+//                                         className="w-full p-2 border rounded"
+//                                         id="search-location"
+//                                     />
+//                                 </Autocomplete>
+//                             </div>
+
+//                             <GoogleMap
+// // ...
+//                                 center={marker}
+//                                 zoom={16}
+//                                 onClick={handleMapClick}
+//                                 options={{
+//                                     disableDefaultUI: true,
+//                                     zoomControl: true,
+//                                     gestureHandling: 'greedy',
+//                                 }}
+//                             >
+//                                 <Marker position={marker} />
+//                             </GoogleMap>
+
+//                             <button
+//                                 onClick={getUserLocation}
+//                                 className="absolute bottom-16 sm:bottom-20 lg:bottom-24 right-3 sm:right-6 z-10 bg-white p-2 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+//                             >
+//                                 <Navigation className="text-gray-600 w-4 h-4 sm:w-5 sm:h-5" />
+//                             </button>
+
+//                             <div className="absolute bottom-12 sm:bottom-2 left-2 sm:left-4 right-2 sm:right-4 lg:left-4 lg:right-4 lg:w-[calc(100%-2rem)]">
+//                                 <div className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg bg-red-50 shadow-lg">
+//                                     <h3 className="font-semibold text-sm sm:text-base mb-2">Delivering your order to:</h3>
+//                                     <div className="flex items-center space-x-2 sm:space-x-3">
+//                                         <img
+//                                             src="https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=225/layout-engine/2024-01/image.png"
+//                                             alt="Map location"
+//                                             className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 object-cover rounded flex-shrink-0"
+//                                         />
+//                                         <div className="min-w-0 flex-1">
+//                                             <div className="font-medium text-sm sm:text-base lg:text-lg truncate">
+//                                                 {address?.area || 'Select location'}
+//                                             </div>
+//                                             {closestShop && (
+//                                                 <div className="text-xs sm:text-sm text-green-700 font-medium">
+//                                                     Closest Shop: {closestShop.name} ({closestShop.distance} km)
+//                                                 </div>
+//                                             )}
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             </div>
+//                         </div>
+
+//                         {/* Form Section */}
+//                         <div className="flex-1 lg:order-2 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+//                             <div className="space-y-4 sm:space-y-5">
+//                                 {/* Address Type Selection */}
+//                                 <div>
+//                                     <label className="text-sm font-medium text-gray-700 mb-3 block">
+//                                         Save as *
+//                                     </label>
+//                                     <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+//                                         {addressTypes.map(({ id, label, icon: Icon }) => (
+//                                             <button
+//                                                 key={id}
+//                                                 onClick={() => setSelectedAddressType(id)}
+//                                                 className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2.5 sm:py-2 rounded-lg text-sm border transition-colors ${selectedAddressType === id
+//                                                     ? 'bg-orange-50 text-orange-600 border-orange-200'
+//                                                     : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+//                                                     }`}
+//                                             >
+//                                                 <Icon className="w-4 h-4 flex-shrink-0" />
+//                                                 <span className="truncate">{label}</span>
+//                                             </button>
+//                                         ))}
+//                                     </div>
+//                                 </div>
+
+//                                 {/* Form Inputs */}
+//                                 <div className="space-y-3 sm:space-y-4">
+//                                     <Input
+//                                         placeholder="Flat / House no / Building name *"
+//                                         value={address?.street || ""}
+//                                         onChange={(e) => dispatchAddressUpdate({ street: e.target.value })}
+//                                     />
+
+//                                     <Input
+//                                         placeholder="Area *"
+//                                         value={address?.area || ""}
+//                                         onChange={(e) => dispatchAddressUpdate({ area: e.target.value })}
+//                                     />
+
+//                                     <Input
+//                                         placeholder="City *"
+//                                         value={address?.city || ""}
+//                                         onChange={(e) => dispatchAddressUpdate({ city: e.target.value })}
+//                                     />
+
+//                                     <Input
+//                                         placeholder="State *"
+//                                         value={address?.state || ""}
+//                                         onChange={(e) => dispatchAddressUpdate({ state: e.target.value })}
+//                                     />
+
+//                                     <Input
+//                                         placeholder="Zip Code *"
+//                                         value={address?.zipCode || ""}
+//                                         onChange={(e) => dispatchAddressUpdate({ zipCode: e.target.value })}
+//                                     />
+
+//                                 </div>
+
+//                                 {/* Save Button */}
+//                                 <Button
+//                                     onClick={handleSaveAddress}
+//                                     className="w-full bg-green-600 hover:bg-green-700 text-white h-12 sm:h-14 text-base sm:text-lg rounded-lg"
+//                                 >
+//                                     Save & Continue
+//                                 </Button>
+//                             </div>
+//                         </div>
+//                     </div>
+//                 </SheetContent>
+//             </Sheet>
+//         </div>
+//     );
+// };
+
+// export default DeliveryAddressPage;
+
+
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GoogleMap, Marker, useLoadScript, Autocomplete } from "@react-google-maps/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Home, Briefcase, Hotel, MapPin, Navigation, X } from 'lucide-react';
+import { Home, Briefcase, Hotel, MapPin, Navigation } from 'lucide-react';
 import { shops } from './Shops';
-import { useAddress } from '@/context/AddressContext';
-import { useOrder } from '@/context/OrderContext';
+import { useCartOrder } from '@/context/OrderContext';
+import { useAuthStorage } from '@/hooks/useAuth';
+import { Address } from '@/types/global';
 
 const libraries: any = ["places"];
 
@@ -17,21 +434,56 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-    lat: 26.926, // Jaipur
+    lat: 26.926,
     lng: 75.823,
 };
 
-const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any) => {
-    // const [isSheetOpen, setIsSheetOpen] = useState(true);
-     const { dispatch, state } = useOrder();
-    const { address, setAddress,distance,setDistance } = useAddress();
-    console.log('address', address);
+const addressTypes = [
+    { id: 'Home', label: 'Home', icon: Home },
+    { id: 'Work', label: 'Work', icon: Briefcase },
+    { id: 'Hotel', label: 'Hotel', icon: Hotel },
+    { id: 'Other', label: 'Other', icon: MapPin },
+];
+
+interface DeliveryAddressPageProps {
+    handleAddAddress: (address: Address) => Promise<void>;
+    onClose: () => void;
+    open: boolean;
+    setShowAddModal: (show: boolean) => void;
+    userId?: string;
+    editingAddress?: Address;
+}
+
+const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({ 
+    handleAddAddress, 
+    onClose, 
+    open, 
+    setShowAddModal, 
+    userId,
+    editingAddress 
+}) => {
+    const { setDistance } = useCartOrder();
+    const { user } = useAuthStorage();
+    
+    // Local state for the address being edited/created
+    const [localAddress, setLocalAddress] = useState<Partial<Address>>({
+        street: '',
+        area: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        landmark: '',
+        name: user?.firstName || '',
+        phone: Number(user?.phone) || 0,
+        isDefault: false,
+        lat: undefined,
+        lng: undefined,
+    });
+
+    const [searchText, setSearchText] = useState("");
     const [selectedAddressType, setSelectedAddressType] = useState('Home');
-
     const [marker, setMarker] = useState(defaultCenter);
-    // const [distance, setDistance] = useState<number | null>(null);
     const [closestShop, setClosestShop] = useState<{ name: string, distance: number } | null>(null);
-
     const autocompleteRef = useRef<any>(null);
 
     const { isLoaded } = useLoadScript({
@@ -39,22 +491,98 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
         libraries,
     });
 
-    const addressTypes = [
-        { id: 'Home', label: 'Home', icon: Home },
-        { id: 'Work', label: 'Work', icon: Briefcase },
-        { id: 'Hotel', label: 'Hotel', icon: Hotel },
-        { id: 'Other', label: 'Other', icon: MapPin },
-    ];
+    // Initialize form when editing an address
+    useEffect(() => {
+        if (editingAddress) {
+            setLocalAddress({
+                
+                street: editingAddress.street || '',
+                area: editingAddress.area || '',
+                city: editingAddress.city || '',
+                state: editingAddress.state || '',
+                zipCode: editingAddress.zipCode || '',
+                landmark: editingAddress.landmark || '',
+                name: editingAddress.name || user?.firstName || '',
+                phone: editingAddress.phone || Number(user?.phone) || 0,
+                isDefault: editingAddress?.isDefault || false,
+                lat: editingAddress?.lat,
+                lng: editingAddress?.lng,
+            });
+            
+            setSelectedAddressType(editingAddress.label || 'Home');
+            
+            if (editingAddress?.lat && editingAddress?.lng) {
+                setMarker({ lat: editingAddress?.lat, lng: editingAddress?.lng });
+            }
+            
+            // Set search text to formatted address
+            const formattedAddress = `${editingAddress?.street || ''} ${editingAddress?.area || ''} ${editingAddress?.city || ''}`.trim();
+            setSearchText(formattedAddress);
+        } else {
+            // Reset form for new address
+            setLocalAddress({
+                street: '',
+                area: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                landmark: '',
+                name: user?.firstName || '',
+                phone: Number(user?.phone) || 0,
+                isDefault: false,
+                lat: undefined,
+                lng: undefined,
+            });
+            setSelectedAddressType('Home');
+            setSearchText('');
+            getUserLocation(); // Get current location for new addresses
+        }
+    }, [editingAddress, user, open]);
 
     const getAddressFromLatLng = useCallback((lat: number, lng: number) => {
         const geocoder = new window.google.maps.Geocoder();
         geocoder.geocode({ location: { lat, lng } }, (results, status) => {
             if (status === "OK" && results?.length) {
-                const formatted = results[0].formatted_address;
-                setAddress({ area: formatted });
+                const addressComponents = results[0].address_components;
+
+                const parsedAddress: Partial<Address> = {
+                    street: "",
+                    area: "",
+                    city: "",
+                    state: "",
+                    zipCode: "",
+                    
+                };
+
+                addressComponents.forEach((component: any) => {
+                    if (component.types.includes("street_number")) {
+                        parsedAddress.street = `${component.long_name} ${parsedAddress.street || ""}`;
+                    }
+                    if (component.types.includes("route")) {
+                        parsedAddress.street = `${parsedAddress.street || ""} ${component.long_name}`;
+                    }
+                    if (component.types.includes("sublocality") || component.types.includes("locality")) {
+                        parsedAddress.area = component.long_name;
+                    }
+                    if (component.types.includes("administrative_area_level_2")) {
+                        parsedAddress.city = component.long_name;
+                    }
+                    if (component.types.includes("administrative_area_level_1")) {
+                        parsedAddress.state = component.long_name;
+                    }
+                    if (component.types.includes("postal_code")) {
+                        parsedAddress.zipCode = component.long_name;
+                    }
+                });
+
+                updateLocalAddress({
+                    ...parsedAddress,
+                    lat,
+                    lng,
+                });
             }
         });
-    }, [setAddress]);
+    }, []);
 
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
         const R = 6371;
@@ -77,37 +605,85 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
     };
 
     const getUserLocation = () => {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
-            setMarker({ lat: userLat, lng: userLng });
-            getAddressFromLatLng(userLat, userLng);
-            const d = calculateDistance(userLat, userLng, defaultCenter.lat, defaultCenter.lng);
-            setDistance(Number(d.toFixed(2)));
-
-        }, (err) => {
-            console.error("Geolocation error:", err.message);
-        });
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                setMarker({ lat: userLat, lng: userLng });
+                getAddressFromLatLng(userLat, userLng);
+                const d = calculateDistance(userLat, userLng, defaultCenter.lat, defaultCenter.lng);
+                setDistance(Number(d.toFixed(2)));
+            }, (err) => {
+                console.error("Geolocation error:", err.message);
+                // Fallback to default center if geolocation fails
+                setMarker(defaultCenter);
+            });
+        }
     };
 
-    useEffect(() => {
-        getUserLocation();
-    }, []);
-
-    const handleSaveAddress = () => {
-        console.log("Saved address:", { ...address, marker });
-        handleAddAddress({ ...address, marker ,distance});
-        onClose();
+    // Update local address state
+    const updateLocalAddress = (updates: Partial<Address>) => {
+        setLocalAddress(prev => ({
+            ...prev,
+            ...updates
+        }));
     };
 
     const handlePlaceChanged = () => {
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
             if (!place.geometry) return;
+            
             const lat = place.geometry.location.lat();
             const lng = place.geometry.location.lng();
             setMarker({ lat, lng });
-            getAddressFromLatLng(lat, lng);
+            setSearchText(place.formatted_address || place.name || ""); 
+
+            // Extract address components from the place result
+            let streetNumber = '';
+            let route = '';
+            let locality = '';
+            let administrativeAreaLevel1 = '';
+            let postalCode = '';
+            let sublocalityLevel1 = '';
+            let sublocalityLevel2 = '';
+
+            place.address_components.forEach((component: google.maps.GeocoderAddressComponent) => {
+                const types = component.types;
+                if (types.includes('street_number')) {
+                    streetNumber = component.long_name;
+                }
+                if (types.includes('route')) {
+                    route = component.long_name;
+                }
+                if (types.includes('locality')) {
+                    locality = component.long_name;
+                } else if (types.includes('administrative_area_level_1')) {
+                    administrativeAreaLevel1 = component.long_name;
+                } else if (types.includes('postal_code')) {
+                    postalCode = component.long_name;
+                } else if (types.includes('sublocality_level_1')) {
+                    sublocalityLevel1 = component.long_name;
+                } else if (types.includes('sublocality_level_2')) {
+                    sublocalityLevel2 = component.long_name;
+                }
+            });
+
+            const area = sublocalityLevel2 || sublocalityLevel1 || locality;
+            const street = streetNumber && route ? `${streetNumber} ${route}` : route;
+
+            // Update local address with the extracted components
+            updateLocalAddress({
+                address : place.formatted_address || place.name || "", 
+                street: street || '',
+                area: area || '',
+                city: locality || '',
+                state: administrativeAreaLevel1 || '',
+                zipCode: postalCode || '',
+                landmark: place.name || '',
+                lat,
+                lng,
+            });
         }
     };
 
@@ -134,6 +710,46 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
         }
     }, [marker]);
 
+    const validateAddress = (): boolean => {
+        if (!localAddress.area?.trim()) {
+            alert('Area is required');
+            return false;
+        }
+        if (!localAddress.city?.trim()) {
+            alert('City is required');
+            return false;
+        }
+        if (!localAddress.state?.trim()) {
+            alert('State is required');
+            return false;
+        }
+        if (!localAddress.name?.trim()) {
+            alert('Name is required');
+            return false;
+        }
+        if (!localAddress.phone) {
+            alert('Phone number is required');
+            return false;
+        }
+        return true;
+    };
+
+    const handleSaveAddress = async () => {
+        if (!validateAddress()) return;
+
+        try {
+            const addressToSave: Address = {
+                ...localAddress as Address,
+                label: selectedAddressType,
+            };
+
+            await handleAddAddress(addressToSave);
+        } catch (error) {
+            console.error('Error saving address:', error);
+            alert('Failed to save address. Please try again.');
+        }
+    };
+
     if (!isLoaded) return (
         <div className="flex items-center justify-center h-screen w-full">
             <div className="text-lg">Loading map...</div>
@@ -147,30 +763,29 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
                     side="top"
                     className="h-[95vh] mt-2 sm:mt-5 w-[95%] sm:w-[90%] lg:w-[80%] xl:w-[74%] mx-auto p-0 rounded-t-2xl max-w-7xl"
                 >
-                    {/* Mobile Header */}
-                    <div className="lg:hidden flex items-center justify-between p-4 border-b">
-                        <h2 className="text-lg font-semibold">Enter Delivery Address</h2>
-                    </div>
-
-                    {/* Main Content */}
                     <div className="flex flex-col lg:grid lg:grid-cols-2 gap-0 lg:gap-4 h-full">
                         {/* Map Section */}
                         <div className="relative h-[40vh] sm:h-[45vh] lg:h-[95vh] order-1">
-                            {/* Search Input */}
                             <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-10">
                                 <Autocomplete
-                                    onLoad={(ref) => (autocompleteRef.current = ref)}
+                                    onLoad={(autocomplete) => {
+                                        autocompleteRef.current = autocomplete;
+                                    }}
                                     onPlaceChanged={handlePlaceChanged}
+                                    fields={['address_components', 'geometry', 'formatted_address', 'name']}
+                                    types={['address']}
                                 >
-                                    <input
+                                    <Input
                                         type="text"
-                                        placeholder="Search for location"
-                                        className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-md border bg-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                        placeholder="Search for a location"
+                                        className="w-full p-2 border rounded"
+                                        id="search-location"
                                     />
                                 </Autocomplete>
                             </div>
 
-                            {/* Google Map */}
                             <GoogleMap
                                 mapContainerStyle={mapContainerStyle}
                                 center={marker}
@@ -185,7 +800,6 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
                                 <Marker position={marker} />
                             </GoogleMap>
 
-                            {/* Current Location Button */}
                             <button
                                 onClick={getUserLocation}
                                 className="absolute bottom-16 sm:bottom-20 lg:bottom-24 right-3 sm:right-6 z-10 bg-white p-2 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
@@ -193,7 +807,6 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
                                 <Navigation className="text-gray-600 w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
 
-                            {/* Address Display Box - Fixed positioning */}
                             <div className="absolute bottom-12 sm:bottom-2 left-2 sm:left-4 right-2 sm:right-4 lg:left-4 lg:right-4 lg:w-[calc(100%-2rem)]">
                                 <div className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg bg-red-50 shadow-lg">
                                     <h3 className="font-semibold text-sm sm:text-base mb-2">Delivering your order to:</h3>
@@ -205,7 +818,7 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
                                         />
                                         <div className="min-w-0 flex-1">
                                             <div className="font-medium text-sm sm:text-base lg:text-lg truncate">
-                                                {address.area || 'Select location'}
+                                                {localAddress?.area || 'Select location'}
                                             </div>
                                             {closestShop && (
                                                 <div className="text-xs sm:text-sm text-green-700 font-medium">
@@ -220,19 +833,11 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
 
                         {/* Form Section */}
                         <div className="flex-1 lg:order-2 p-3 sm:p-4 lg:p-6 overflow-y-auto">
-                            {/* Desktop Header */}
-                            <div className="hidden lg:block">
-                                <SheetHeader className="text-left pb-4 border-b mb-6">
-                                    <SheetTitle className="text-xl xl:text-2xl font-semibold">
-                                        Enter complete address
-                                    </SheetTitle>
-                                </SheetHeader>
-                            </div>
-
-                            {/* Mobile Header */}
-                            <div className="lg:hidden mb-4">
-                                <h3 className="text-lg font-semibold">Complete Address</h3>
-                            </div>
+                            <SheetHeader className="mb-4">
+                                <SheetTitle>
+                                    {editingAddress ? 'Edit Address' : 'Add New Address'}
+                                </SheetTitle>
+                            </SheetHeader>
 
                             <div className="space-y-4 sm:space-y-5">
                                 {/* Address Type Selection */}
@@ -261,43 +866,74 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
                                 <div className="space-y-3 sm:space-y-4">
                                     <Input
                                         placeholder="Flat / House no / Building name *"
-                                        value={address.flatNumber}
-                                        onChange={(e) => setAddress({  flatNumber: e.target.value })}
-                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                        value={localAddress?.street || ""}
+                                        onChange={(e) => updateLocalAddress({ street: e.target.value })}
                                     />
+
                                     <Input
-                                        placeholder="Floor (optional)"
-                                        value={address.floor}
-                                        onChange={(e) => setAddress({  floor: e.target.value })}
-                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                        placeholder="Area *"
+                                        value={localAddress?.area || ""}
+                                        onChange={(e) => updateLocalAddress({ area: e.target.value })}
                                     />
+
                                     <Input
-                                        placeholder="Nearby landmark (optional)"
-                                        value={address.landmark}
-                                        onChange={(e) => setAddress({  landmark: e.target.value })}
-                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                        placeholder="City *"
+                                        value={localAddress?.city || ""}
+                                        onChange={(e) => updateLocalAddress({ city: e.target.value })}
                                     />
+
                                     <Input
-                                        placeholder="Your name *"
-                                        value={address.name}
-                                        onChange={(e) => setAddress({  name: e.target.value })}
-                                        className="h-11 sm:h-12 text-sm sm:text-base"
+                                        placeholder="State *"
+                                        value={localAddress?.state || ""}
+                                        onChange={(e) => updateLocalAddress({ state: e.target.value })}
                                     />
+
                                     <Input
-                                        placeholder="Your phone number *"
-                                        value={address.phone}
-                                        onChange={(e) => setAddress({  phone: e.target.value })}
-                                        className="h-11 sm:h-12 text-sm sm:text-base"
-                                        type="tel"
+                                        placeholder="Zip Code *"
+                                        value={localAddress?.zipCode || ""}
+                                        onChange={(e) => updateLocalAddress({ zipCode: e.target.value })}
                                     />
+
+                                    <Input
+                                        placeholder="Landmark (Optional)"
+                                        value={localAddress?.landmark || ""}
+                                        onChange={(e) => updateLocalAddress({ landmark: e.target.value })}
+                                    />
+
+                                    <Input
+                                        placeholder="Name *"
+                                        value={localAddress?.name || ""}
+                                        onChange={(e) => updateLocalAddress({ name: e.target.value })}
+                                    />
+
+                                    <Input
+                                        placeholder="Phone Number *"
+                                        type="number"
+                                        value={localAddress?.phone || ""}
+                                        onChange={(e) => updateLocalAddress({ phone: Number(e.target.value) })}
+                                    />
+
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="isDefault"
+                                            checked={localAddress?.isDefault || false}
+                                            onChange={(e) => updateLocalAddress({ isDefault: e.target.checked })}
+                                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                        />
+                                        <label htmlFor="isDefault" className="text-sm text-gray-700">
+                                            Set as default address
+                                        </label>
+                                    </div>
                                 </div>
 
                                 {/* Save Button */}
                                 <Button
                                     onClick={handleSaveAddress}
-                                    className="w-full bg-green-600 hover:bg-green-700 text-white h-12 sm:h-14 text-base sm:text-lg font-medium mt-6 sm:mt-8 transition-colors"
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white h-12 sm:h-14 text-base sm:text-lg rounded-lg"
+                                    disabled={!localAddress?.area || !localAddress?.city || !localAddress?.state || !localAddress?.name}
                                 >
-                                    Save Address
+                                    {editingAddress ? 'Update Address' : 'Save & Continue'}
                                 </Button>
                             </div>
                         </div>
@@ -309,212 +945,3 @@ const DeliveryAddressPage = ({handleAddAddress,onClose,open,setShowAddModal}:any
 };
 
 export default DeliveryAddressPage;
-
-// "use client";
-// import React, { useState, useEffect, useCallback, useRef } from "react";
-// import { GoogleMap, Marker, useLoadScript, Autocomplete } from "@react-google-maps/api";
-// import { shops } from "./Shops";
-
-// const libraries: ("places" | "geometry")[] = ["places", "geometry"];
-// const mapContainerStyle = {
-//     width: "100%",
-//     height: "100%",
-// };
-
-// const defaultCenter = {
-//     lat: 28.6139,
-//     lng: 77.2090,
-// }; // Delhi (you can adjust)
-
-// function calculateDistance(lat1: any, lon1: any, lat2: any, lon2: any) {
-//     const R = 6371;
-//     const dLat = (lat2 - lat1) * (Math.PI / 180);
-//     const dLon = (lon2 - lon1) * (Math.PI / 180);
-//     const a =
-//         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-//         Math.cos(lat1 * (Math.PI / 180)) *
-//         Math.cos(lat2 * (Math.PI / 180)) *
-//         Math.sin(dLon / 2) *
-//         Math.sin(dLon / 2);
-//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-//     return R * c;
-// }
-
-// const DeliveryAddressPage = () => {
-//     const [marker, setMarker] = useState(defaultCenter);
-//     const [address, setAddress] = useState("");
-//     const [distance, setDistance] = useState(0);
-//     const [shopsWithDistance, setShopsWithDistance]: any = useState([]);
-//     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-
-//     const { isLoaded } = useLoadScript({
-//         googleMapsApiKey: "AIzaSyAQODjSc_eWcBWoIdk7trMzl98oRHF9HFs",
-//         libraries,
-//     });
-
-//     const getAddressFromLatLng = useCallback((lat: any, lng: any) => {
-//         if (!window.google?.maps) return;
-//         const geocoder = new window.google.maps.Geocoder();
-//         geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-//             if (status === "OK" && results?.length) {
-//                 const formatted = results[0].formatted_address;
-//                 setAddress(formatted);
-//             }
-//         });
-//     }, []);
-
-//     // Get user's current location and mark it
-//     const getUserLocation = () => {
-//         navigator.geolocation.getCurrentPosition(
-//             (position) => {
-//                 const userLat = position.coords.latitude;
-//                 const userLng = position.coords.longitude;
-//                 setMarker({ lat: userLat, lng: userLng });
-//                 getAddressFromLatLng(userLat, userLng);
-//                 const d = calculateDistance(
-//                     userLat,
-//                     userLng,
-//                     defaultCenter.lat,
-//                     defaultCenter.lng
-//                 );
-//                 setDistance(Number(d.toFixed(2)));
-//             },
-//             (err) => {
-//                 console.error("Geolocation error:", err.message);
-//             }
-//         );
-//     };
-
-//     useEffect(() => {
-//         getUserLocation();
-//     }, []);
-
-//     // Update shops' distance from user's marker
-//     useEffect(() => {
-//         if (marker?.lat && marker?.lng) {
-//             const userLat = marker.lat;
-//             const userLng = marker.lng;
-//             const distanceList = shops.map((shop) => {
-//                 const d = calculateDistance(
-//                     userLat,
-//                     userLng,
-//                     shop.location.latitude,
-//                     shop.location.longitude
-//                 );
-//                 return {
-//                     ...shop,
-//                     distance: Number(d.toFixed(2)),
-//                 };
-//             });
-//             setShopsWithDistance(distanceList);
-//         }
-//     }, [marker]);
-
-//     // When user clicks the map, update marker and address
-//     const handleMapClick = (e: any) => {
-//         if (!e.latLng) return;
-//         const lat = e.latLng.lat();
-//         const lng = e.latLng.lng();
-//         setMarker({ lat, lng });
-//         getAddressFromLatLng(lat, lng);
-//     };
-
-//     // Place changed from autocomplete
-//     const handlePlaceChanged = () => {
-//         if (autocompleteRef.current) {
-//             const place = autocompleteRef?.current?.getPlace();
-//             if (!place.geometry) return;
-//             const lat = place?.geometry?.location?.lat() ?? 0;
-//             const lng = place?.geometry?.location?.lng() ?? 0;
-//             setMarker({ lat, lng });
-//             getAddressFromLatLng(lat, lng);
-//         }
-//     };
-
-//     if (!isLoaded) {
-//         return <div>Loading Map...</div>;
-//     }
-
-//     return (
-//         <div style={{ width: "100vw", height: "100vh" }}>
-//             {/* Autocomplete Search */}
-//             <div style={{ position: "absolute", top: 20, left: 30, zIndex: 2, width: "50%" }}>
-//                 <Autocomplete
-//                     onLoad={(ref) => {
-//                         if (autocompleteRef) {
-//                             autocompleteRef.current = ref;
-//                         }
-//                     }}
-//                     onPlaceChanged={handlePlaceChanged}
-//                 >
-//                     <input
-//                         type="text"
-//                         placeholder="Search for a location"
-//                         style={{
-//                             width: "100%",
-//                             padding: "10px",
-//                             borderRadius: "8px",
-//                             border: "1px solid #ddd",
-//                             fontSize: "16px",
-//                         }}
-//                     />
-//                 </Autocomplete>
-//             </div>
-
-//             {/* Google Map */}
-//             <GoogleMap
-//                 mapContainerStyle={mapContainerStyle}
-//                 center={marker}
-//                 zoom={13}
-//                 onClick={handleMapClick}
-//                 options={{
-//                     disableDefaultUI: true,
-//                     zoomControl: true,
-//                     gestureHandling: "greedy",
-//                 }}
-//             >
-//                 <Marker position={marker} />
-//             </GoogleMap>
-
-//             {/* Info & Shops List */}
-//             <div
-//                 style={{
-//                     position: "absolute",
-//                     bottom: 0,
-//                     width: "100%",
-//                     background: "#fff",
-//                     padding: "20px",
-//                     boxShadow: "0px -1px 8px rgba(0,0,0,0.09)",
-//                 }}
-//             >
-//                 <h4>Selected Address:</h4>
-//                 <div>{address || "Select a place on the map"}</div>
-//                 {distance !== null && (
-//                     <div>Distance from default center: {distance} km</div>
-//                 )}
-
-//                 <h4 style={{ marginTop: "20px" }}>Shops & their distance from you:</h4>
-//                 <ul>
-//                     {shopsWithDistance.map((shop: any) => (
-//                         <li key={shop.shopId}>
-//                             <b>{shop.name}</b> — {shop.distance} km
-//                         </li>
-//                     ))}
-//                 </ul>
-
-//                 <button onClick={getUserLocation} style={{
-//                     marginTop: "10px",
-//                     padding: "8px 18px",
-//                     borderRadius: "6px",
-//                     border: "none",
-//                     background: "#009578",
-//                     color: "#fff"
-//                 }}>
-//                     Use My Current Location
-//                 </button>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default DeliveryAddressPage;

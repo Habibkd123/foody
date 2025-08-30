@@ -1,13 +1,15 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useLayoutEffect } from 'react'
 import AuthSystem from '@/components/auth-system'
 import UserDashboard from '@/components/user-dashboard'
 import AdminAuthSystem from '@/components/admin-auth-system'
 import AdminDashboard from '@/components/admin-dashboard'
 import { useRouter } from 'next/navigation'
-
+import { useAuthStorage } from '@/hooks/useAuth'
+import { usePathname } from 'next/navigation';
 const page = () => {
   const router = useRouter()
+    const pathname = usePathname();
   const [showDashboard, setShowDashboard] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showAdminAuth, setShowAdminAuth] = useState(false)
@@ -26,14 +28,16 @@ const page = () => {
     setShowAdminAuth(false)
     setShowAdminDashboard(true)
   }
-
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    // console.log("dataa",token)
-    if (token) {
-      router.push('/productList')
-    } 
-  }, [])
+ const { user } = useAuthStorage()
+ console.log("user", user)
+ 
+//  useEffect(() => {
+//    if (!user && pathname !== "/login") {
+//      router.push('/login')
+//    } else if (user && pathname !== "/productList") {
+//      router.push('/productList')
+//    }
+//  }, [user, pathname])
 
 
   return (

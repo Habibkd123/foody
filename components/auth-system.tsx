@@ -1820,7 +1820,7 @@ const loginUser = async () => {
     if (result.success && result.data?.token) {
       // Store token & user info in localStorage if you want quick client access
       localStorage.setItem('token', result.data.token);
-      localStorage.setItem('G-user', JSON.stringify(result.user));
+      localStorage.setItem('G-user', JSON.stringify(result.data.user));
 
       console.log('Login successful, token:', result.data.token);
 

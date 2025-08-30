@@ -213,9 +213,31 @@ const products: Product[] = [
 // Products Provider
 const ProductsProvider: React.FC<ProviderProps> = ({ children }) => {
   const [productsData, setProductsData] = useState<Product[]>([]);
-  
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(`/api/auth/products`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+      console.log("Products response:", data.data.products);
+
+      if (data?.success && data.data.products) {
+        // ✅ If API returns multiple products
+        setProductsData(data.data.products);
+      } else if (data?.success && data.data.products) {
+        // ✅ If API returns single product
+        setProductsData([data.data.products]);
+      } 
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
   useEffect(() => {
-    setProductsData(products);
+    fetchProducts();
   }, []);
   
   return (

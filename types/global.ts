@@ -1,5 +1,6 @@
 export interface Product {
   id: number;
+  _id: string;
   name: string;
   price: number;
   originalPrice: number;
@@ -38,16 +39,23 @@ export interface CartItem extends Product {
 export type CartLine = CartItem;
 
 export interface Address {
+  address?: string;
+  userId: string;
   label: string;
   street: string;
   lat: number;
   lng: number;
-   flatNumber: string,
+  flatNumber: string,
   floor: string,
   area: string,
   landmark: string,
   name: string,
-  phone: number
+  phone: number,
+  city: string,
+  state: string,
+  zipCode: string,
+  isDefault?: boolean;
+  _id?: string;
 }
 
 export interface OrderPayload {

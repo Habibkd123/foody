@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, createContext, useContext, ReactNode, useEffect,useCallback  } from 'react';
+import React, { useState, createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
 import NavbarFilter from "@/components/NavbarFilter";
 import ProductCardGrid from "@/components/ProductGrid";
 import SidebarFilters from "@/components/SidebarFilters";
@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { useCartOrder, useOrder } from "@/context/OrderContext";
 import { ProductsContext, useProductsContext } from "@/context/AllProductContext";
 import { Product } from "@/types/global";
-import { productData } from "@/lib/Data";
+// import { productData } from "@/lib/Data";
 import { useAuthStorage } from '@/hooks/useAuth';
 
 // Type Definitions
@@ -27,7 +27,7 @@ interface CartItem extends Product {
 }
 
 interface CartLine {
-  id: number;
+  id: string;
   quantity: number;
   [key: string]: any;
 }
@@ -63,86 +63,16 @@ const slideIn = {
   transition: { duration: 0.4 }
 };
 
-   // static fallback product
-        const fallbackProduct = {
-            id: 16,
-            name: 'Better Nutrition Biofortified Rice (Medium Grain)',
-            price: 213,
-            originalPrice: 400,
-            images: [
-                'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/1c01d181-b2dd-4633-95a2-746fa3f78117.png',
-                'https://picsum.photos/600/600?random=17a',
-                'https://picsum.photos/600/600?random=17b',
-                'https://picsum.photos/600/600?random=17c'
-            ],
-            rating: 4.6,
-            totalReviews: 187,
-            category: 'rice',
-            discount: 20,
-            description:
-                'Better Nutrition Biofortified Rice (Medium Grain) is a perfect blend of aromatic spices...',
-            features: [
-                'Biofortified with essential nutrients',
-                'Medium grain rice',
-                'Perfect for daily use',
-                'Rich in aroma',
-                'Easy to cook'
-            ],
-            specifications: {
-                Weight: '1kg',
-                Brand: 'Better Nutrition',
-                Type: 'Biofortified Rice',
-                'Shelf Life': '12 months',
-                Storage: 'Cool & Dry Place',
-                'Nutritional Benefits': 'Enriched with vitamins and minerals'
-            },
-            inStock: true,
-            stockCount: 75,
-            brand: 'Maggi',
-            sku: 'MGI-SMM-001',
-            weight: '80g',
-            dimensions: '12cm x 8cm x 3cm',
-            reviews: [
-                {
-                    id: 1,
-                    userName: 'Sunita Devi',
-                    rating: 5,
-                    comment: 'Excellent masala! Makes vegetables taste amazing.',
-                    date: '3 days ago',
-                    verified: true,
-                    helpful: 15,
-                },
-                {
-                    id: 2,
-                    userName: 'Amit Singh',
-                    rating: 4,
-                    comment: 'Good quality spice mix. Value for money.',
-                    date: '1 week ago',
-                    verified: true,
-                    helpful: 8,
-                },
-                {
-                    id: 3,
-                    userName: 'Ramesh Gupta',
-                    rating: 5,
-                    comment: 'Excellent rice! The perfect blend of taste and nutrition.',
-                    date: '2 days ago',
-                    verified: true,
-                    helpful: 20,
-                },
-            ],
-        };
-// Main Product Grid Component
 const ProductGrid: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
   const { wishListsData, setWistListsData } = useWishListContext();
-  const { productsData, setProductsData } = useProductsContext();
+  const { productsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const { dispatch, state } = useOrder();
- const { addToCart, loading, error } = useCartOrder();
-   const {user}=useAuthStorage()
+  const { addToCart, loading, error, removeFromCart,updateQuantity } = useCartOrder();
+  const { user } = useAuthStorage()
   // Enhanced UI states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -153,16 +83,6 @@ const ProductGrid: React.FC = () => {
   const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-const [products,setProducts]=useState<Product[]>([]);
-  // Enhanced loading and data management
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setProductsData(productData);
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Scroll to top functionality
   useEffect(() => {
@@ -176,8 +96,8 @@ const [products,setProducts]=useState<Product[]>([]);
   // Search suggestions
   useEffect(() => {
     if (filters.searchTerm && filters.searchTerm.length > 1) {
-      const suggestions = productData
-        .filter(product => 
+      const suggestions = productsData
+        .filter(product =>
           product.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
           product.category.toLowerCase().includes(filters.searchTerm.toLowerCase())
         )
@@ -190,7 +110,7 @@ const [products,setProducts]=useState<Product[]>([]);
   }, [filters.searchTerm]);
 
   // Enhanced filtering with animation trigger
-  const filteredProducts: Product[] = productData.filter((product: Product) => {
+  const filteredProducts: Product[] = productsData.filter((product: Product) => {
     // Search filter
     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
@@ -245,74 +165,74 @@ const [products,setProducts]=useState<Product[]>([]);
   };
 
   // Enhanced add to cart with animation and better state management
-  const handleAddToCart  = useCallback(async(item: Product, quantity: number = 1) => {
-    // setCartAnimation(true);
-    // setTimeout(() => setCartAnimation(false), 600);
+  const handleAddToCart = useCallback(async (item: Product) => {
+    if (!user?._id) return;
 
-    // const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
-    // if (existingItem) {
-    //   const newQuantity = existingItem.quantity + quantity;
-    //   setCartItems(
-    //     cartItems.map((cartItem: CartItem) =>
-    //       cartItem.id === item.id
-    //         ? { ...cartItem, quantity: newQuantity }
-    //         : cartItem
-    //     )
-    //   );
-    //   dispatch({ type: "QTY", id: item.id, qty: newQuantity });
-    // } else {
-    //   const newItem = { ...item, quantity };
-    //   setCartItems([...cartItems, newItem]);
-    //   dispatch({ type: "ADD", item: newItem });
-    // }
-   if (!user?.id) return;
-    
-    const cartItem:any = {
-      id: item.id,
+    const cartItem: any = {
+      id: item._id,
       name: item.name,
       price: item.price,
       quantity: 1,
       image: item.images[0],
     };
 
-    await addToCart(user.id, cartItem);
+    let response = await addToCart(user._id, cartItem);
+    console.log("response", response)
+    if (response.success) {
+      alert("Product added to cart successfully");
+    } else {
+      alert(response);
+    }
   }, [cartItems, dispatch]);
 
-  const removeFromCart = useCallback((itemId: any) => {
-    setCartItems(cartItems.filter((item: any) => item.id !== itemId));
-    dispatch({ type: "REMOVE", id: itemId });
+  const removeFromCart1 = useCallback((itemId: any) => {
+    try {
+      let response = removeFromCart(user._id, itemId);
+      console.log("response", response)
+      if (response.success) {
+        alert("Product removed from cart successfully");
+      } else {
+        alert(response.message);
+      }
+    } catch (error) {
+      console.log(error)
+      alert(error)
+    }
   }, [cartItems, dispatch]);
 
   // Enhanced quantity update that syncs with all states
-  const updateQuantity = useCallback((itemId: string, change: number) => {
+  const updateQuantity1 = useCallback((itemId: string, change: number) => {
     const productId = parseInt(itemId);
-    const currentItem = state.items.find((item: CartLine) => item.id === productId);
-    
+    const currentItem = state.items.find((item: any) => item._id === productId);
+
     if (currentItem) {
       const newQuantity = Math.max(0, currentItem.quantity + change);
-      
+
       if (newQuantity === 0) {
         // Remove item if quantity becomes 0
-        setCartItems(cartItems.filter((item: any) => item.id !== productId));
-        dispatch({ type: "REMOVE", id: productId });
+        setCartItems(cartItems.filter((item: any) => item._id !== productId));
+        // dispatch({ type: "REMOVE_ITEM", id: productId });
+        updateQuantity(user._id, productId, newQuantity);
       } else {
         // Update quantity in both local state and global state
-        setCartItems(cartItems.map((item: any) => 
+        setCartItems(cartItems.map((item: any) =>
           item.id === productId ? { ...item, quantity: newQuantity } : item
         ));
-        dispatch({ type: "QTY", id: productId, qty: newQuantity });
+        dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
+        updateQuantity(user._id, productId, newQuantity);
       }
     }
   }, [cartItems, dispatch, state.items]);
 
   // Check if product is in cart
   const isInCart = useCallback((product: Product) => {
-    return state.items.some((item: CartLine) => item.id === product.id);
+    console.log("productisInCart", state.items)
+    return state.items.some((item: any) => item.id === product._id);
   }, [state.items]);
 
   // Get cart quantity for a product
   const getCartQuantity = useCallback((product: Product) => {
-    const cartItem = state.items.find((item: CartLine) => item.id === product.id);
+    const cartItem = state.items.find((item: any) => item.id === product._id);
     return cartItem ? cartItem.quantity : 0;
   }, [state.items]);
 
@@ -334,44 +254,27 @@ const [products,setProducts]=useState<Product[]>([]);
     updateFilter('searchTerm', '');
     setTimeout(() => setFilterAnimation(false), 300);
   };
-const handleLogout = () => {
-    localStorage.removeItem("G-user");
-    localStorage.removeItem("token");
-    window.location.reload();
+  const handleLogout = () => {
+    try {
+      // Clear user data
+      localStorage.removeItem("G-user");
+      localStorage.removeItem("token");
+
+      // Redirect to login page
+      router.push("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // Fallback in case of any error
+      window.location.href = "/login";
+    }
   };
 
-  const fetchProducts = async () => {
-    try {
-        const response = await fetch(`/api/auth/products`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        const data = await response.json();
-        console.log('Categories response:', data);
-
-     
-
-        if (data?.success && data?.product) {
-            // agar API se product mila toh use karo
-            setProducts((prev: any) => [...prev, data.product]);
-        } else {
-            // warna static fallback product
-            setProducts((prev: any) => [...prev, fallbackProduct]);
-        }
-    } catch (error) {
-        console.error('Error fetching categories:', error);
-
-        // agar fetch hi fail ho gaya toh bhi fallback dikhana
-        setProducts((prev: any) => [...prev, fallbackProduct]);
-    }
-};
+  // Check authentication status
   useEffect(() => {
-    fetchProducts();
-  }, []);
-        console.log('products response:', products);
+    if (!user) {
+      handleLogout();
+    }
+  }, [user]); // Add user to dependency array
 
 
   return (
@@ -380,17 +283,17 @@ const handleLogout = () => {
       <div className='sticky top-0 z-40'>
         <AnnouncementBar />
       </div>
-      
+
       <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
         <header className="transition-all duration-300">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
             <div className="flex items-center justify-between">
               {/* Enhanced Logo with hover animation */}
               <div className="flex items-center gap-2 flex-shrink-0 group">
-                <img 
-                  src="./logoGro.png" 
-                  className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" 
-                  alt="logo" 
+                <img
+                  src="./logoGro.png"
+                  className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                  alt="logo"
                 />
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent hover:from-orange-500 hover:via-red-600 hover:to-pink-600 transition-all duration-300">
                   Gro-Delivery
@@ -398,17 +301,15 @@ const handleLogout = () => {
               </div>
 
               {/* Enhanced Search Bar with suggestions */}
-              <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0 relative" style={{marginLeft:"140px"}}>
+              <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0 relative" style={{ marginLeft: "140px" }}>
                 <div className="relative flex-1">
-                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${
-                    searchFocused ? 'text-orange-600' : 'text-orange-400'
-                  }`} />
+                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
+                    }`} />
                   <input
                     type="text"
                     placeholder="Search products..."
-                    className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${
-                      searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
-                    }`}
+                    className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
+                      }`}
                     value={filters.searchTerm}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       updateFilter('searchTerm', e.target.value)
@@ -416,7 +317,7 @@ const handleLogout = () => {
                     onFocus={() => setSearchFocused(true)}
                     onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
                   />
-                  
+
                   {/* Search Suggestions */}
                   {searchFocused && searchSuggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-lg mt-1 border border-orange-200 z-50 max-h-60 overflow-y-auto">
@@ -444,7 +345,7 @@ const handleLogout = () => {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 {/* Notifications */}
                 <div className="relative">
-                  <button 
+                  <button
                     className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110"
                     onClick={() => setShowNotifications(!showNotifications)}
                   >
@@ -453,7 +354,7 @@ const handleLogout = () => {
                       3
                     </span>
                   </button>
-                  
+
                   {/* Notifications Dropdown */}
                   {showNotifications && (
                     <div className="absolute right-0 top-full mt-2 w-80 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
@@ -493,24 +394,24 @@ const handleLogout = () => {
                 {/* Enhanced Cart */}
                 <div className="flex items-center space-x-2 relative z-[120px]">
                   <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
-                    <AddCardList 
-                      cartItems={cartItems} 
-                      removeFromCart={removeFromCart} 
+                    <AddCardList
+                      cartItems={cartItems}
+                      removeFromCart={removeFromCart1}
                       updateQuantity={(itemId: any, newQuantity: any) => {
                         if (newQuantity === 0) {
-                          removeFromCart(itemId);
+                          removeFromCart1(itemId);
                         } else {
                           const change = newQuantity - getCartQuantity({ id: itemId } as Product);
-                          updateQuantity(itemId.toString(), change);
+                          updateQuantity1(itemId?.toString(), change);
                         }
                       }}
-                      getTotalPrice={getTotalPrice} 
-                      setCartItems={setCartItems} 
-                      cartOpen={cartOpen} 
-                      setCartOpen={setCartOpen} 
+                      getTotalPrice={getTotalPrice}
+                      setCartItems={setCartItems}
+                      cartOpen={cartOpen}
+                      setCartOpen={setCartOpen}
                     />
                   </div>
-                  
+
                   {/* Enhanced Mobile Menu Button */}
                   <Button
                     variant="ghost"
@@ -527,17 +428,17 @@ const handleLogout = () => {
 
                 {/* Enhanced Profile with dropdown */}
                 <div className="hidden sm:flex items-center relative">
-                  <div 
-                    className="cursor-pointer group" 
+                  <div
+                    className="cursor-pointer group"
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   >
-                    <img 
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-orange-300 group-hover:border-orange-500 transition-all duration-300 group-hover:scale-110" 
-                      src="https://picsum.photos/200" 
-                      alt="profile" 
+                    <img
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-orange-300 group-hover:border-orange-500 transition-all duration-300 group-hover:scale-110"
+                      src="https://picsum.photos/200"
+                      alt="profile"
                     />
                   </div>
-                  
+
                   {/* Profile Dropdown */}
                   {profileMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
@@ -546,7 +447,7 @@ const handleLogout = () => {
                           <User className="w-4 h-4" />
                           <span>Profile</span>
                         </button>
-                        <button onClick={()=>router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={() => router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
                         </button>
@@ -565,15 +466,13 @@ const handleLogout = () => {
             {/* Enhanced Mobile Search Bar */}
             <div className="md:hidden mt-3">
               <div className="relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${
-                  searchFocused ? 'text-orange-600' : 'text-orange-400'
-                }`} />
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
+                  }`} />
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${
-                    searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
-                  }`}
+                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
+                    }`}
                   value={filters.searchTerm}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFilter('searchTerm', e.target.value)
@@ -588,7 +487,7 @@ const handleLogout = () => {
             </div>
           </div>
         </header>
-        
+
         {/* Navigation Filter */}
         <div className="hidden md:block">
           <NavbarFilter />
@@ -611,7 +510,7 @@ const handleLogout = () => {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              
+
               {/* Enhanced Profile in mobile menu */}
               <div className="flex items-center space-x-3 mb-6 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg hover:shadow-md transition-shadow duration-300" onClick={() => router.push('/profile')}>
                 <img className="w-10 h-10 rounded-full border-2 border-orange-300" src="https://picsum.photos/200" alt="profile" />
@@ -653,16 +552,15 @@ const handleLogout = () => {
             {/* Enhanced Header with animations */}
             <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-2">
-                <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${
-                  filterAnimation ? 'scale-105' : 'scale-100'
-                }`}>
+                <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'
+                  }`}>
                   Fresh Groceries ({filteredProducts.length} products)
                 </h2>
                 {filteredProducts.length === 0 && (
                   <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
                 )}
               </div>
-              
+
               {/* Enhanced Filter tags */}
               <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                 {(filters.category !== 'all' || filters.priceRanges.length > 0 || filters.ratings.length > 0) && (
@@ -675,7 +573,7 @@ const handleLogout = () => {
                     Clear All
                   </Button>
                 )}
-                
+
                 {filters.category !== 'all' && (
                   <span className="bg-orange-100 text-orange-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300">
                     Category: {filters.category}
@@ -747,8 +645,8 @@ const handleLogout = () => {
 
       {/* Background click handler for dropdowns */}
       {(profileMenuOpen || showNotifications) && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => {
             setProfileMenuOpen(false);
             setShowNotifications(false);

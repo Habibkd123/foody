@@ -60,15 +60,15 @@ console.log('productLists', productLists);
 
     // Enhanced add to cart with animation
     const handleAddToCart = async (product: Product) => {
-        const quantity = quantities[product.id] || 1;
-        setAddingToCart(product.id.toString());
+        const quantity = quantities[product._id] || 1;
+        setAddingToCart(product._id?.toString());
         
         try {
             await onAddToCart?.(product, quantity);
-            setJustAdded(product.id.toString());
+            setJustAdded(product._id?.toString());
             
             // Reset quantity after adding
-            setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+            setQuantities(prev => ({ ...prev, [product._id]: 1 }));
             
             // Clear success state
             setTimeout(() => setJustAdded(null), 2000);
@@ -86,14 +86,14 @@ console.log('productLists', productLists);
                 await navigator.share({
                     title: product.name,
                     text: `Check out this amazing product: ${product.name}`,
-                    url: `/products/${product.id}`
+                    url: `/products/${product._id}`
                 });
             } catch (error) {
                 console.log('Share cancelled or failed');
             }
         } else {
             // Fallback: copy to clipboard
-            navigator.clipboard.writeText(`${window.location.origin}/products/${product.id}`);
+            navigator.clipboard.writeText(`${window.location.origin}/products/${product._id}`);
             onShare?.(product);
         }
     };
@@ -135,14 +135,14 @@ console.log('productLists', productLists);
     return (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
             {productLists?.map((product, index) => {
-                const isWishlisted = wishListsData.some((item: any) => item.id === product.id);
+                const isWishlisted = wishListsData.some((item: any) => item._id === product._id);
                 const inCart = isInCart(product);
                 const cartQuantity = getCartQuantity?.(product) || 0;
-                const currentQuantity = quantities[product.id] || 1;
+                const currentQuantity = quantities[product._id] || 1;
                 const savings = calculateSavings(product);
-                const isHovered = hoveredCard === product.id.toString();
-                const isAdding = addingToCart === product.id.toString();
-                const wasJustAdded = justAdded === product.id.toString();
+                const isHovered = hoveredCard === product._id?.toString();
+                const isAdding = addingToCart === product._id?.toString();
+                const wasJustAdded = justAdded === product._id?.toString();
 
                 return (
                     <div
@@ -153,7 +153,7 @@ console.log('productLists', productLists);
                         style={{
                             animationDelay: animationDelay ? `${index * 100}ms` : '0ms'
                         }}
-                        onMouseEnter={() => setHoveredCard(product.id.toString())}
+                        onMouseEnter={() => setHoveredCard(product._id?.toString())}
                         onMouseLeave={() => setHoveredCard(null)}
                     >
                         {/* Image Container with Enhanced Hover Effects */}
@@ -161,7 +161,7 @@ console.log('productLists', productLists);
                             <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-2 sm:p-3 rounded-t-xl relative overflow-hidden">
                                 <img
                                     ref={(el: HTMLImageElement | null) => {
-                                        if (el) imageRefs.current[product.id] = el;
+                                        if (el) imageRefs.current[product._id] = el;
                                     }}
                                     src={product.images[0]}
                                     alt={product.name}
@@ -280,10 +280,10 @@ console.log('productLists', productLists);
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
                                         <span className="text-lg sm:text-xl font-bold text-gray-900">
-                                            ₹{product.price.toLocaleString()}
+                                            ₹{product?.price?.toLocaleString()}
                                         </span>
                                         <span className="text-sm text-gray-500 line-through">
-                                            ₹{product.originalPrice.toLocaleString()}
+                                            ₹{product?.originalPrice?.toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
@@ -298,7 +298,7 @@ console.log('productLists', productLists);
                                     <span className="text-sm font-medium text-gray-700">Quantity:</span>
                                     <div className="flex items-center border border-gray-300 rounded-lg">
                                         <button
-                                            onClick={() => updateQuantity(product.id.toString(), -1)}
+                                            onClick={() => updateQuantity(product._id?.toString(), -1)}
                                             className="p-1 hover:bg-gray-100 transition-colors duration-200"
                                             disabled={currentQuantity <= 1}
                                         >
@@ -308,7 +308,7 @@ console.log('productLists', productLists);
                                             {currentQuantity}
                                         </span>
                                         <button
-                                            onClick={() => updateQuantity(product.id.toString(), 1)}
+                                            onClick={() => updateQuantity(product._id?.toString(), 1)}
                                             className="p-1 hover:bg-gray-100 transition-colors duration-200"
                                         >
                                             <Plus className="w-3 h-3" />

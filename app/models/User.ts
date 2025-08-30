@@ -16,11 +16,23 @@ export interface IUser extends Document {
   password: string;
   role: UserRole;
   addresses: Array<{
-    street: string;
+    address?: string;
+    area?: string;
     city: string;
+    flatNumber?: string;
+    floor?: string;
+    isDefault?: boolean;
+    label: string;
+    landmark?: string;
+    lat?: number;
+    lng?: number;
+    name?: string;
+    phone?: number;
     state: string;
-    postalCode: string;
-    country: string;
+    street?: string;
+    zipCode?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
   }>;
   createdAt: Date;
   updatedAt: Date;
@@ -43,11 +55,21 @@ const UserSchema = new Schema<IUser>({
   password: { type: String, required: true },
   role: { type: String, enum: Object.values(UserRole), default: UserRole.USER },
   addresses: [{
-    street: String,
-    city: String,
-    state: String,
-    postalCode: String,
-    country: String,
+    address: { type: String, default: '' },
+    area: { type: String ,default: '' },
+    city: { type: String, required: false ,default: '' },
+    flatNumber: { type: String, default: '' },
+    floor: { type: String, default: '' },
+    isDefault: { type: Boolean, default: false },
+    label: { type: String, required: false ,default: '' },
+    landmark: { type: String ,default: '' },
+    lat: { type: Number ,default: 0},
+    lng: { type: Number ,default: 0},
+    name: { type: String, default: '' },
+    phone: { type: Number, default: 0 },
+    state: { type: String, required: false ,default: '' },
+    street: { type: String ,default: ''},
+    zipCode: { type: String ,default: ''}
   }]
 }, { timestamps: true });
 

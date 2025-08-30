@@ -817,6 +817,7 @@ import SupportChat from "@/components/SupportChat"
 import { useRouter } from "next/navigation"
 import AddCardList from "@/components/AddCards"
 import MyMap from "@/components/ui/mapsData"
+import { useAuthStorage } from "@/hooks/useAuth"
 
 // Grocery Products Data
 const products = [
@@ -1022,7 +1023,7 @@ export function Grocery() {
                 <Button onClick={() => logout()} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" >
                   Logout
                 </Button>
-                 }
+              }
             </nav>
 
             {/* Right Side Icons */}
@@ -1472,6 +1473,7 @@ export function Grocery() {
 }
 
 export default function Page() {
+  
   return (
     <main>
       <Grocery />

@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { useOrder } from "@/context/OrderContext";
-
+import { useCartOrder, useOrder } from "@/context/OrderContext";
+import { useAuthStorage } from "@/hooks/useAuth";
+import { useProductsContext } from "@/context/AllProductContext";
 const coupons = [
   {
     id: 3,
@@ -22,15 +23,18 @@ const donations = [
   { id: 4, title: "Hero", amount: 80, emoji: "✨" },
 ];
 
-const CartSummary = ({ updateQuantity, cartItems, removeFromCart }: any) => {
+const CartSummary = ({ cartItems }: any) => {
   const { dispatch } = useOrder();
+  const { addToCart, loading, error, removeFromCart, updateQuantity,loadCart } = useCartOrder();
+  const { user } = useAuthStorage()
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [customCoupon, setCustomCoupon] = useState("");
   const [includeDonation, setIncludeDonation] = useState(false);
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [selectedTip, setSelectedTip] = useState<number>(0);
+  const { productsData } = useProductsContext();
+  const [checkStock, setCheckStock] = useState(false);
   const [customTipValue, setCustomTipValue] = useState<string>("");
-
   const getTotalPrice = () =>
     cartItems.reduce((total: number, item: any) => total + item.price * item.quantity, 0);
 
@@ -68,6 +72,7 @@ const CartSummary = ({ updateQuantity, cartItems, removeFromCart }: any) => {
     }
   };
 
+
   return (
     <div className="max-w-md mx-auto px-2 border rounded-lg shadow-md bg-white">
       {cartItems.map((item: any) => (
@@ -76,7 +81,7 @@ const CartSummary = ({ updateQuantity, cartItems, removeFromCart }: any) => {
           className="flex items-center space-x-3 p-3 bg-orange-100 rounded-lg mt-2"
         >
           <img
-            src={item.images[0] || "/placeholder.svg"}
+            src={item?.image || "/placeholder.svg"}
             alt={item.name}
             className="w-12 h-12 rounded-lg object-cover"
           />
@@ -89,7 +94,7 @@ const CartSummary = ({ updateQuantity, cartItems, removeFromCart }: any) => {
               size="icon"
               variant="outline"
               className="h-8 w-8"
-              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+              onClick={() => updateQuantity(user?._id, item.id, item.quantity - 1)}
             >
               <Minus className="h-3 w-3" />
             </Button>
@@ -98,7 +103,7 @@ const CartSummary = ({ updateQuantity, cartItems, removeFromCart }: any) => {
               size="icon"
               variant="outline"
               className="h-8 w-8"
-              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+              onClick={() => updateQuantity(user?._id, item.id, item.quantity + 1)}
             >
               <Plus className="h-3 w-3" />
             </Button>
@@ -106,7 +111,7 @@ const CartSummary = ({ updateQuantity, cartItems, removeFromCart }: any) => {
               size="icon"
               variant="ghost"
               className="h-8 w-8 text-red-500"
-              onClick={() => removeFromCart(item.id)}
+              onClick={() => removeFromCart(user?._id, item.id)}
             >
               <Trash2 className="h-3 w-3" />
             </Button>

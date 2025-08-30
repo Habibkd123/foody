@@ -77,7 +77,7 @@ export class UserController {
       // JWT token generate करना
       const token = jwt.sign(
         { userId: user._id, email: user.email },
-        process.env.JWT_SECRET,
+        "habibkd02",
         { expiresIn: '7d' }
       );
 
