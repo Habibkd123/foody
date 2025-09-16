@@ -1,429 +1,3 @@
-// 'use client';
-
-// import React, { useState } from 'react';
-// import { Trash2, ShoppingCart, CheckCircle, Heart, Star, Minus, Plus, Search, X, Menu } from 'lucide-react';
-// import { WishListContext } from '@/context/WishListsContext';
-// import { useOrder } from '@/context/OrderContext';
-// import type { CartLine } from '@/types/global';
-// import AddressModal from '@/components/AddressModal';
-// import AddCardList from '@/components/AddCards';
-// import Link from 'next/link';
-// import { useFilterContext } from '@/context/FilterContext';
-// import { Button } from '@/components/ui/button';
-// import { useRouter } from 'next/navigation';
-// import LocationSelector from '@/components/LocationSelector';
-
-// type WishlistItem = {
-//   id: number;
-//   title: string;
-//   image: string;
-//   price: number;
-// };
-// interface Product {
-//   id: number;
-//   name: string;
-//   price: number;
-//   originalPrice: number;
-//   image: string;
-//   rating: number;
-//   reviews: number;
-//   category: string;
-//   discount: number;
-// }
-
-// interface CartItem extends Product {
-//   quantity: number;
-// }
-// const Wishlist: React.FC = () => {
-//   const { wishListsData, setWistListsData } = React.useContext<any>(WishListContext);
-//   const { state, dispatch } = useOrder();
-//   const router = useRouter()
-//   const { filters, updateFilter } = useFilterContext();
-//   const [cartOpen, setCartOpen] = useState(false)
-//   const [addressOpen, setAddressOpen] = React.useState(false);
-//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-//   const [cartItems, setCartItems] = useState<CartItem[]>(
-//     state.items.map((item) => ({
-//       ...item,
-//       name: item.name ?? '',
-//       originalPrice: item?.originalPrice ?? item.price,
-//       discount: item.discount ?? 0,
-//       image: item.image ?? '',
-//       rating: item.rating ?? 0,
-//       reviews: item.reviews ?? 0,
-//       category: item.category ?? '',
-//     }))
-//   );
-
-
-//   const handleRemove = (id: number) => {
-//     setWistListsData(wishListsData.filter((item: WishlistItem) => item.id !== id));
-//   };
-
-//   const isInCart = (id: number) => {
-//     return state.items.some((item: CartLine) => item.id === id);
-//   };
-
-
-//   const addToCart = (item: any) => {
-//     const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
-//     if (existingItem) {
-//       setCartItems(
-//         cartItems.map((cartItem: CartItem) =>
-//           cartItem.id === item.id
-//             ? { ...cartItem, quantity: cartItem.quantity + 1 }
-//             : cartItem
-//         )
-//       );
-//       // let cartLine = { ...item, quantity: existingItem.quantity + 1 }
-
-//       dispatch({ type: "QTY", id: item.id, qty: existingItem.quantity + 1 });
-//     } else {
-//       setCartItems([...cartItems, { ...item, quantity: 1 }]);
-//       let cartLine = { ...item, quantity: 1 }
-//       dispatch({ type: "ADD", item: cartLine });
-//     }
-//   };
-
-//   const removeFromCart = (itemId: any) => {
-//     setCartItems(cartItems.filter((item: any) => item.id !== itemId))
-//   }
-//   const removeFromWishList = (itemId: any) => {
-//     setWistListsData(wishListsData.filter((item: any) => item.id !== itemId))
-//     // dispatch({ type: "REMOVE", id: itemId });
-//   }
-
-//   const updateQuantity = (itemId: any, newQuantity: any) => {
-//     if (newQuantity === 0) {
-//       removeFromCart(itemId)
-//       dispatch({ type: "REMOVE", id: itemId });
-
-//     } else {
-//       setCartItems(cartItems.map((item: any) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)))
-//       dispatch({ type: "QTY", id: itemId, qty: newQuantity });
-//     }
-//   }
-
-//   const getTotalPrice = () => {
-//     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0)
-//   }
-//   const filteredProducts: Product[] = cartItems.filter((product: Product) => {
-//     // Search filter
-//     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
-//       return false;
-//     }
-
-//     // Category filter
-//     if (filters.category !== 'all' && product.category !== filters.category) {
-//       return false;
-//     }
-
-//     // Price range filter
-//     if (filters.priceRanges.length > 0) {
-//       const priceRangeMap: Record<string, { min: number; max: number }> = {
-//         'under-100': { min: 0, max: 100 },
-//         '100-300': { min: 100, max: 300 },
-//         '300-500': { min: 300, max: 500 },
-//         '500-1000': { min: 500, max: 1000 },
-//         'above-1000': { min: 1000, max: Infinity }
-//       };
-
-//       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
-//         const range = priceRangeMap[rangeKey];
-//         return product.price >= range.min && product.price <= range.max;
-//       });
-
-//       if (!matchesPrice) return false;
-//     }
-
-//     // Rating filter
-//     if (filters.ratings.length > 0) {
-//       const matchesRating = filters.ratings.some((rating: number) => product.rating >= rating);
-//       if (!matchesRating) return false;
-//     }
-
-//     return true;
-//   });
-
-
-
-//   return (
-//     <div className="p-0">
-//       <div className="sticky top-0 z-50">
-//         <header className="bg-white shadow-sm border-b">
-//           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
-//             <div className="flex items-center justify-between">
-//               <div className="flex items-center gap-2 flex-shrink-0">
-//                 <img src="./logoGro.png" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md" alt="logo" />
-
-//               </div>
-
-//               {/* Search Bar - Hidden on mobile, visible on tablet+ */}
-//               <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0" style={{ marginLeft: "140px" }}>
-//                 <div className="relative flex-1">
-//                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
-//                   <input
-//                     type="text"
-//                     placeholder="Search products..."
-//                     className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
-//                     value={filters.searchTerm}
-//                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                       updateFilter('searchTerm', e.target.value)
-//                     }
-//                   />
-//                 </div>
-
-//               </div>
-
-//               {/* Right side icons */}
-//               <div className="flex items-center space-x-2 sm:space-x-4">
-
-
-//                 {/* Cart */}
-//                 <div className="flex items-center space-x-2 relative z-[120px]">
-//                   <AddCardList
-//                     cartItems={cartItems}
-//                     removeFromCart={removeFromCart}
-//                     updateQuantity={updateQuantity}
-//                     getTotalPrice={getTotalPrice}
-//                     setCartItems={setCartItems}
-//                     cartOpen={cartOpen}
-//                     setCartOpen={setCartOpen}
-//                   />
-
-//                   {/* Mobile Menu Button */}
-//                   <Button
-//                     variant="ghost"
-//                     size="icon"
-//                     className="md:hidden text-gray-700"
-//                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-//                   >
-//                     {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-//                   </Button>
-//                 </div>
-
-//                 {/* Profile - Hidden on mobile */}
-//                 <div className='hidden sm:flex items-center cursor-pointer' onClick={() => router.push('/profile')}>
-//                   <img className="w-8 h-8 sm:w-10 sm:h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Mobile Search Bar */}
-//             <div className="md:hidden mt-3">
-//               <div className="relative">
-//                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5 pointer-events-none" />
-//                 <input
-//                   type="text"
-//                   placeholder="Search products..."
-//                   className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-0 focus:ring-orange-400 focus:outline-none"
-//                   value={filters.searchTerm}
-//                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                     updateFilter('searchTerm', e.target.value)
-//                   }
-//                 />
-//               </div>
-//               <div className="mt-2">
-//                 kkkkkkkkkkk
-//                 <LocationSelector />
-//               </div>
-//             </div>
-//           </div>
-//         </header>
-
-//         {/* Navigation Filter */}
-//         {/* <div className="hidden md:block">
-//           <NavbarFilter />
-//         </div> */}
-//       </div>
-
-//       {/* Mobile Menu Overlay */}
-//       {mobileMenuOpen && (
-//         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
-//           <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
-//             <div className="p-4">
-//               <div className="flex justify-between items-center mb-4">
-//                 <h2 className="text-lg font-semibold">Menu</h2>
-//                 <Button
-//                   variant="ghost"
-//                   size="icon"
-//                   onClick={() => setMobileMenuOpen(false)}
-//                 >
-//                   <X className="h-5 w-5" />
-//                 </Button>
-//               </div>
-
-//               {/* Profile in mobile menu */}
-//               <div className="flex items-center space-x-3 mb-6 p-3 bg-gray-50 rounded-lg" onClick={() => router.push('/profile')}>
-//                 <img className="w-10 h-10 rounded-full" src="https://picsum.photos/200" alt="profile" />
-//                 <div>
-//                   <p className="font-medium">Your Account</p>
-//                   <p className="text-sm text-gray-600">Manage your profile</p>
-//                 </div>
-//               </div>
-
-//               {/* Mobile Navigation */}
-//               {/* <NavbarFilter /> */}
-
-//               {/* Mobile Filters */}
-//               {/* <div className="mt-6">
-//                 <SidebarFilters />
-//               </div> */}
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//       {filteredProducts.length === 0 ? (
-//         <p className="text-gray-600 text-center">Your wishlist is empty 😢</p>
-//       ) : (
-//         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-
-//           {filteredProducts.map((product: Product) => {
-//             const added = isInCart(product.id);
-
-//             return (
-//               <div
-//                 key={product.id}
-//                 className="bg-white relative border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
-//               >
-//                 {/* Image Container + Discount + Wishlist */}
-//                 <Link href={`/products/${product.id}`} className="block relative">
-//                   <div className="aspect-square bg-gray-100 flex items-center justify-center p-2 sm:p-3 rounded-t-lg">
-//                     <img
-//                       src={product.image}
-//                       alt={product.name}
-//                       className="w-full h-full object-cover rounded"
-//                     />
-//                   </div>
-
-//                   {/* Discount badge - Responsive */}
-//                   <div className="absolute top-0 left-0">
-//                     <div className="bg-[#6e5503] text-white text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-br-lg custom-corner">
-//                       {product.discount}% OFF
-//                     </div>
-//                   </div>
-//                 </Link>
-
-//                 {/* Wishlist Button - Responsive */}
-//                 <button
-//                   onClick={(e: React.MouseEvent) => {
-//                     e.stopPropagation();
-//                     removeFromWishList?.(product);
-//                   }}
-//                   className="absolute top-1 right-1 sm:top-2 sm:right-2 p-1.5 sm:p-2 bg-white z-30 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
-//                 >
-//                   <Heart
-//                     className={`w-4 h-4 sm:w-5 sm:h-5 ${wishListsData.some((item: any) => item.id === product.id)
-//                       ? 'text-red-500 fill-current'
-//                       : 'text-gray-400'
-//                       } hover:text-red-500`}
-//                   />
-//                 </button>
-
-//                 {/* Content - Responsive padding */}
-//                 <div className="p-2 sm:p-3 md:p-4">
-//                   <Link href={`/products/${product.id}`}>
-//                     <h3 className="font-medium text-gray-900 mb-1 sm:mb-2 line-clamp-2 hover:underline text-xs sm:text-sm md:text-base leading-tight">
-//                       {product.name}
-//                     </h3>
-//                   </Link>
-
-//                   {/* Rating - Responsive */}
-//                   <div className="flex items-center mb-1 sm:mb-2">
-//                     <div className="flex items-center">
-//                       {[...Array(5)].map((_, i) => (
-//                         <Star
-//                           key={i}
-//                           className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(product.rating)
-//                             ? 'text-yellow-400 fill-current'
-//                             : 'text-gray-300'
-//                             }`}
-//                         />
-//                       ))}
-//                     </div>
-//                     <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-gray-600">
-//                       ({product.reviews})
-//                     </span>
-//                   </div>
-
-//                   {/* Price - Responsive */}
-//                   <div className='flex items-center justify-between'>
-//                     <div className="flex items-center justify-between mb-2 sm:mb-3">
-//                       <div>
-//                         <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900">
-//                           ₹{product.price}
-//                         </span>
-//                         <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-gray-500 line-through">
-//                           ₹{product.originalPrice}
-//                         </span>
-//                       </div>
-//                     </div>
-//                     <div>
-//                       {isInCart(product.id) && (
-//                         <div className="flex items-center justify-between mt-0">
-//                           <div className="flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-500 text-white p-2 rounded-md">
-//                             {/* Minus Button */}
-//                             <button
-//                               onClick={() => updateQuantity(product.id, (cartItems.find(item => item.id === product.id)?.quantity || 1) - 1)}
-//                               className="px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-//                               disabled={(cartItems.find(item => item.id === product.id)?.quantity || 1) <= 1}
-//                             >
-//                               <Minus color='black' className="h-3 w-3 text-black" />
-//                             </button>
-
-//                             {/* Quantity */}
-//                             <span className="min-w-[24px] text-center text-sm">
-//                               {cartItems.find(item => item.id === product.id)?.quantity || 1}
-//                             </span>
-
-//                             {/* Plus Button */}
-//                             <button
-//                               onClick={() => updateQuantity(product.id, (cartItems.find(item => item.id === product.id)?.quantity || 1) + 1)}
-//                               className="px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-//                             >
-//                               <Plus className="h-3 w-3" />
-//                             </button>
-//                           </div>
-//                         </div>
-//                       )}
-//                     </div>
-//                   </div>
-
-//                   {/* Add to Cart Button -  Responsive */}
-//                   {!isInCart(product.id) && (
-//                     <button
-//                       onClick={() => addToCart?.(product)}
-//                       className="w-full mt-2 bg-gradient-to-r from-orange-400 to-red-500 text-white py-1.5 sm:py-2 px-2 sm:px-4 rounded-lg font-medium hover:from-orange-500 hover:to-red-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center text-xs sm:text-sm"
-//                     >
-//                       <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-//                       <span className="hidden sm:inline">Add to Cart</span>
-//                       <span className="sm:hidden">Add</span>
-//                     </button>
-//                   )}
-//                 </div>
-//               </div>
-//             );
-//           })}
-//         </div>
-//       )}
-
-//       {/* <AddCardList
-//         cartItems={cartItems}
-//         type="wishlist"
-//         removeFromCart={removeFromCart}
-//         updateQuantity={updateQuantity}
-//         getTotalPrice={getTotalPrice}
-//         setCartItems={setCartItems}
-//         cartOpen={cartOpen}
-//         setCartOpen={setCartOpen}
-//       /> */}
-
-//     </div>
-//   );
-// };
-
-// export default Wishlist;
-
 
 'use client';
 
@@ -449,9 +23,9 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
-import { WishListContext } from '@/context/WishListsContext';
-import { useOrder } from '@/context/OrderContext';
-import type { CartItem, CartLine } from '@/types/global';
+import { useWishListContext, WishListContext } from '@/context/WishListsContext';
+import { useCartOrder, useOrder } from '@/context/OrderContext';
+import type { CartItem, CartLine, UserWishList } from '@/types/global';
 import AddressModal from '@/components/AddressModal';
 import AddCardList from '@/components/AddCards';
 import Link from 'next/link';
@@ -460,6 +34,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import LocationSelector from '@/components/LocationSelector';
 import { Product, } from '@/types/global';
+import { useAuthStorage } from '@/hooks/useAuth';
 // Enhanced type definitions
 interface WishlistItem {
   id: number;
@@ -483,12 +58,17 @@ type SortOption = 'name' | 'price' | 'rating' | 'dateAdded' | 'discount';
 type SortDirection = 'asc' | 'desc';
 
 const Wishlist: React.FC = () => {
-  // Context and hooks
-  const { wishListsData, setWistListsData } = React.useContext<any>(WishListContext);
+  const { wishListsData, removeWishList,getUserWishList } = useWishListContext();
+  const { user } = useAuthStorage()
+  const { addToCart, loading, error, removeFromCart,updateQuantity } = useCartOrder();
   const { state, dispatch } = useOrder();
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
-
+useEffect(() => {
+  if(user._id){
+    getUserWishList(user._id);
+  }
+}, [user._id]);
   // State management
   const [cartOpen, setCartOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
@@ -524,54 +104,51 @@ const Wishlist: React.FC = () => {
   );
 
   // Enhanced wishlist operations
-  const handleRemove = useCallback((id: number) => {
-    setWistListsData((prev: WishlistItem[]) => prev.filter((item) => item.id !== id));
-    setSelectedItems((prev) => prev.filter((itemId) => itemId !== id));
-  }, [setWistListsData]);
+  const handleRemove = useCallback((id: any) => {
+    removeWishList(user._id, id);
+  }, [removeWishList]);
 
   const handleBulkRemove = useCallback(() => {
-    setWistListsData((prev: WishlistItem[]) =>
-      prev.filter((item) => !selectedItems.includes(item.id))
-    );
+    selectedItems.forEach((itemId) => {
+      removeWishList(user._id, itemId.toString());
+    });
     setSelectedItems([]);
-  }, [selectedItems, setWistListsData]);
+  }, [selectedItems, removeWishList]);
 
   const handleSelectAll = useCallback(() => {
-    if (selectedItems.length === wishListsData.length) {
+    console.log("wishListsData", wishListsData)
+    if (selectedItems.length === wishListsData.products.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(wishListsData.map((item: WishlistItem) => item.id));
+      setSelectedItems(wishListsData.products.map((item: Product) => parseInt(item._id, 10) as number));
     }
-  }, [selectedItems.length, wishListsData]);
+  }, [selectedItems.length, wishListsData.products]);
 
   const isInCart = useCallback((id: number) => {
     return state.items.some((item: CartLine) => item.id === id);
   }, [state.items]);
 
-  const addToCart = useCallback((item: Product) => {
-    const existingItem = cartItems.find((cartItem: CartItem) => cartItem.id === item.id);
-    if (existingItem) {
-      setCartItems((prev) =>
-        prev.map((cartItem: CartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        )
-      );
-      dispatch({ type: "QTY", id: item.id, qty: existingItem.quantity + 1 });
-    } else {
-      const newCartItem = { ...item, quantity: 1 };
-      setCartItems((prev) => [...prev, newCartItem]);
-      dispatch({ type: "ADD", item: newCartItem });
-    }
-  }, [cartItems, dispatch]);
+  const addToCart1 = useCallback(async(item: Product) => {
+    if (!user?._id) return;
+
+    const cartItem: any = {
+      id: item._id,
+      name: item.name,
+      price: item.price,
+      quantity: 1,
+      image: item.images[0],
+    };
+
+    let response = await addToCart(user._id, cartItem);
+    console.log("response", response)
+  }, [cartItems, addToCart]);
 
   const addAllToCart = useCallback(() => {
     setIsLoading(true);
     selectedItems.forEach((itemId) => {
-      const item = wishListsData.find((w: WishlistItem) => w.id === itemId);
+      const item = wishListsData.products.find((w: Product) => parseInt(w._id, 10) === itemId);
       if (item && !isInCart(itemId)) {
-        addToCart(item as Product);
+        addToCart1(item as Product);
       }
     });
     setTimeout(() => {
@@ -580,21 +157,28 @@ const Wishlist: React.FC = () => {
     }, 1000);
   }, [selectedItems, wishListsData, isInCart, addToCart]);
 
-  const removeFromCart = useCallback((itemId: number) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-    dispatch({ type: "REMOVE", id: itemId });
-  }, [dispatch]);
-
-  const updateQuantity = useCallback((itemId: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      removeFromCart(itemId);
-    } else {
-      setCartItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
-      );
-      dispatch({ type: "QTY", id: itemId, qty: newQuantity });
-    }
-  }, [removeFromCart, dispatch]);
+  const updateQuantity1 = useCallback((itemId: string, change: number) => {
+     const productId = parseInt(itemId);
+     const currentItem = state.items.find((item: any) => item._id === productId);
+ 
+     if (currentItem) {
+       const newQuantity = Math.max(0, currentItem.quantity + change);
+ 
+       if (newQuantity === 0) {
+         // Remove item if quantity becomes 0
+         setCartItems(cartItems.filter((item: any) => item._id !== productId));
+         // dispatch({ type: "REMOVE_ITEM", id: productId });
+         updateQuantity(user._id, productId, newQuantity);
+       } else {
+         // Update quantity in both local state and global state
+         setCartItems(cartItems.map((item: any) =>
+           item.id === productId ? { ...item, quantity: newQuantity } : item
+         ));
+         dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
+         updateQuantity(user._id, productId, newQuantity);
+       }
+     }
+   }, [cartItems, dispatch, state.items]);
 
   const getTotalPrice = useCallback(() => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -602,56 +186,60 @@ const Wishlist: React.FC = () => {
 
   // Enhanced sorting and filtering
   const sortedAndFilteredProducts = useMemo(() => {
+    if (!wishListsData || !Array.isArray(wishListsData) || wishListsData.length === 0) {
+      return [];
+    }
+    console.log("wishListsData", wishListsData)
     let filtered = [...wishListsData];
 
     // Apply search filter
     if (filters.searchTerm) {
-      filtered = filtered.filter((product: WishlistItem) =>
-        product.title.toLowerCase().includes(filters.searchTerm.toLowerCase())
+      filtered = filtered.filter((product: Product[]) =>
+        product?.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
       );
     }
 
     // Apply category filter
     if (filters.category !== 'all') {
-      filtered = filtered.filter((product: WishlistItem) => product.category === filters.category);
+      filtered = filtered.filter((product: Product[]) => product?.category === filters.category);
     }
 
     // Apply price range filter
-    filtered = filtered.filter((product: WishlistItem) =>
-      product.price >= priceRange.min && product.price <= priceRange.max
+    filtered = filtered.filter((product: Product[]) =>
+      product?.price >= priceRange.min && product?.price <= priceRange.max
     );
 
     // Apply rating filter
     if (filters.ratings?.length > 0) {
-      filtered = filtered.filter((product: WishlistItem) =>
-        filters.ratings.some((rating: number) => (product.rating || 0) >= rating)
+      filtered = filtered.filter((product: Product[]) =>
+        filters.ratings.some((rating: number) => (product?.rating || 0) >= rating)
       );
     }
 
     // Apply sorting
-    filtered.sort((a: WishlistItem, b: WishlistItem) => {
+    filtered.sort((a: Product[], b: Product[]) => {
       let aValue: any, bValue: any;
 
       switch (sortBy) {
         case 'name':
-          aValue = a.title.toLowerCase();
-          bValue = b.title.toLowerCase();
+          aValue = a?.name.toLowerCase();
+          bValue = b?.name.toLowerCase();
           break;
         case 'price':
-          aValue = a.price;
-          bValue = b.price;
+          aValue = a?.price;
+          bValue = b?.price;
           break;
         case 'rating':
-          aValue = a.rating || 0;
-          bValue = b.rating || 0;
+          aValue = a?.rating || 0;
+          bValue = b?.rating || 0;
           break;
         case 'discount':
-          aValue = a.discount || 0;
-          bValue = b.discount || 0;
+          aValue = a?.discount || 0;
+          bValue = b?.discount || 0;
           break;
         case 'dateAdded':
-          aValue = new Date(a.dateAdded || 0).getTime();
-          bValue = new Date(b.dateAdded || 0).getTime();
+          aValue = new Date(a?.createdAt || 0).getTime();
+          bValue = new Date(b?.createdAt || 0).getTime();
           break;
         default:
           return 0;
@@ -751,7 +339,7 @@ const Wishlist: React.FC = () => {
                 <AddCardList
                   cartItems={cartItems}
                   removeFromCart={removeFromCart}
-                  updateQuantity={updateQuantity}
+                  updateQuantity={updateQuantity1}
                   getTotalPrice={getTotalPrice}
                   setCartItems={setCartItems}
                   cartOpen={cartOpen}
@@ -970,7 +558,7 @@ const Wishlist: React.FC = () => {
               return viewMode === 'grid' ? (
                 // Grid View
                 <div
-                  key={product.id}
+                  key={product._id}
                   className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group relative ${isSelected ? 'ring-2 ring-orange-400' : ''
                     }`}
                 >
@@ -991,7 +579,7 @@ const Wishlist: React.FC = () => {
                   </div>
 
                   {/* Product Image */}
-                  <Link href={`/products/${product.id}`} className="block relative">
+                  <Link href={`/products/${product._id}`} className="block relative">
                     <div className="aspect-square bg-gray-100 flex items-center justify-center p-3">
                       <img
                         src={product.images[0]}
@@ -1003,12 +591,12 @@ const Wishlist: React.FC = () => {
                       <div className="bg-[#6e5503] text-white text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-bl-lg custom-corner">
                         {product.discount}% OFF
                       </div>
-                    </div>):null}
+                    </div>) : null}
                   </Link>
 
                   {/* Remove from Wishlist */}
                   <button
-                    onClick={() => handleRemove(product.id)}
+                    onClick={() => handleRemove(product._id)}
                     className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                   >
                     <Heart className="w-4 h-4 text-red-500 fill-current" />
@@ -1016,7 +604,7 @@ const Wishlist: React.FC = () => {
 
                   {/* Product Info */}
                   <div className="p-3">
-                    <Link href={`/products/${product.id}`}>
+                    <Link href={`/products/${product._id}`}>
                       <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-orange-600 text-sm">
                         {product.name}
                       </h3>
@@ -1067,7 +655,7 @@ const Wishlist: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-md">
                           <button
-                            onClick={() => updateQuantity(product.id, (cartItem?.quantity || 1) - 1)}
+                            onClick={() => updateQuantity1(product._id, (cartItem?.quantity || 1) - 1)}
                             className="p-1 rounded bg-white/20 hover:bg-white/30"
                             disabled={(cartItem?.quantity || 1) <= 1}
                           >
@@ -1077,7 +665,7 @@ const Wishlist: React.FC = () => {
                             {cartItem?.quantity || 1}
                           </span>
                           <button
-                            onClick={() => updateQuantity(product.id, (cartItem?.quantity || 1) + 1)}
+                            onClick={() => updateQuantity1(product._id, (cartItem?.quantity || 1) + 1)}
                             className="p-1 rounded bg-white/20 hover:bg-white/30"
                           >
                             <Plus className="h-3 w-3" />
@@ -1086,7 +674,7 @@ const Wishlist: React.FC = () => {
                       </div>
                     ) : (
                       <button
-                        onClick={() => addToCart(product as Product)}
+                        onClick={() => addToCart1(product as Product)}
                         disabled={product.inStock === false}
                         className="w-full bg-gradient-to-r from-orange-400 to-red-500 text-white py-2 px-4 rounded-lg font-medium hover:from-orange-500 hover:to-red-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -1099,7 +687,7 @@ const Wishlist: React.FC = () => {
               ) : (
                 // List View
                 <div
-                  key={product.id}
+                  key={product._id}
                   className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 ${isSelected ? 'ring-2 ring-orange-400' : ''
                     }`}
                 >
@@ -1119,7 +707,7 @@ const Wishlist: React.FC = () => {
                     />
 
                     {/* Product Image */}
-                    <Link href={`/products/${product.id}`} className="flex-shrink-0">
+                    <Link href={`/products/${product._id}`} className="flex-shrink-0">
                       <img
                         src={product.images[0]}
                         alt={product.name}
@@ -1129,7 +717,7 @@ const Wishlist: React.FC = () => {
 
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <Link href={`/products/${product.id}`}>
+                      <Link href={`/products/${product._id}`}>
                         <h3 className="font-medium text-gray-900 hover:text-orange-600 mb-1">
                           {product.name}
                         </h3>
@@ -1185,7 +773,7 @@ const Wishlist: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.push(`/products/${product.id}`)}
+                        onClick={() => router.push(`/products/${product._id}`)}
                         className="text-gray-600 hover:text-orange-600"
                       >
                         <Eye className="h-4 w-4" />
@@ -1195,7 +783,7 @@ const Wishlist: React.FC = () => {
                       {inCart ? (
                         <div className="flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-md">
                           <button
-                            onClick={() => updateQuantity(product.id, (cartItem?.quantity || 1) - 1)}
+                            onClick={() => updateQuantity1(product._id, (cartItem?.quantity || 1) - 1)}
                             className="p-1 rounded bg-white/20 hover:bg-white/30"
                             disabled={(cartItem?.quantity || 1) <= 1}
                           >
@@ -1205,7 +793,7 @@ const Wishlist: React.FC = () => {
                             {cartItem?.quantity || 1}
                           </span>
                           <button
-                            onClick={() => updateQuantity(product.id, (cartItem?.quantity || 1) + 1)}
+                            onClick={() => updateQuantity1(product._id, (cartItem?.quantity || 1) + 1)}
                             className="p-1 rounded bg-white/20 hover:bg-white/30"
                           >
                             <Plus className="h-3 w-3" />
@@ -1213,7 +801,7 @@ const Wishlist: React.FC = () => {
                         </div>
                       ) : (
                         <Button
-                          onClick={() => addToCart(product as Product)}
+                          onClick={() => addToCart1(product as Product)}
                           disabled={product.inStock === false}
                           className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 disabled:opacity-50"
                         >
@@ -1226,7 +814,7 @@ const Wishlist: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleRemove(product.id)}
+                        onClick={() => handleRemove(product._id)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1400,8 +988,9 @@ const Wishlist: React.FC = () => {
       {/* Address Modal */}
       {addressOpen && (
         <AddressModal
-          isOpen={addressOpen}
-          onClose={() => setAddressOpen(false)}
+          addressOpen={addressOpen}
+          setAddressOpen={setAddressOpen}
+          // type={type}
         />
       )}
 

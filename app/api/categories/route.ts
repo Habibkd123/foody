@@ -167,3 +167,7 @@ console.log("Category created:", category);
 }
 
 
+// get api by type
+
+
+

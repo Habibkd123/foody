@@ -1817,12 +1817,12 @@ const loginUser = async () => {
       throw new Error(result.message || 'Login failed');
     }
 
-    if (result.success && result.data?.token) {
+    if (result.success && result) {
       // Store token & user info in localStorage if you want quick client access
-      localStorage.setItem('token', result.data.token);
-      localStorage.setItem('G-user', JSON.stringify(result.data.user));
+      // localStorage.setItem('token', result.token);
+      // localStorage.setItem('G-user', JSON.stringify(result.user));
 
-      console.log('Login successful, token:', result.data.token);
+      console.log('Login successful, token:', result.token);
 
       // Important: Perform a full reload to ensure middleware sees the cookie
       window.location.href = '/productList';

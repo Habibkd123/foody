@@ -19,6 +19,7 @@ export interface Product {
   weight?: string;
   dimensions?: string;
   reviews?: Review[];
+  createdAt?: string;
 }
 
 interface Review {
@@ -30,7 +31,13 @@ interface Review {
   verified: boolean;
   helpful: number;
 }
-
+export interface UserWishList {
+  products: Product[];
+  _id: string;
+  user_id: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface CartItem extends Product {
   quantity: number;

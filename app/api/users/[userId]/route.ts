@@ -21,7 +21,8 @@ export async function GET(
   try {
     await connectDB();
 
-    const { userId } = params;
+    const { userId } = await Promise.resolve(params);
+    console.log("userId",userId);
     const { searchParams } = new URL(request.url);
     const includePrivate = searchParams.get('includePrivate') === 'true';
 
@@ -62,7 +63,7 @@ export async function PUT(
 ) {
   try {
     await connectDB();
-    const { userId } = params;
+    const { userId } = await Promise.resolve(params);
     const data = await request.json();
 
     // Validate user ID

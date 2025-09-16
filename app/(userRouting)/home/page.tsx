@@ -11,83 +11,6 @@ import Link from "next/link";
 import NavbarFilter from "@/components/NavbarFilter";
 import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut, ChevronDown, MapPin, ArrowRight, Plus, Minus, Eye, TrendingUp, Clock, Truck } from 'lucide-react';
 
-// Mock data and types
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviews: number;
-  image: string;
-  category: string;
-  discount?: number;
-  inStock: boolean;
-  isOrganic?: boolean;
-  deliveryTime: string;
-  unit: string;
-}
-
-
-// Mock product data
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "Organic Basmati Rice",
-    price: 299,
-    originalPrice: 349,
-    rating: 4.5,
-    reviews: 1250,
-    image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&h=200&fit=crop",
-    category: "Atta, Rice & Dal",
-    discount: 14,
-    inStock: true,
-    isOrganic: true,
-    deliveryTime: "30 mins",
-    unit: "1 kg"
-  },
-  {
-    id: "2",
-    name: "Cold Pressed Mustard Oil",
-    price: 450,
-    originalPrice: 520,
-    rating: 4.3,
-    reviews: 890,
-    image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=200&h=200&fit=crop",
-    category: "Cooking Oil",
-    discount: 13,
-    inStock: true,
-    deliveryTime: "45 mins",
-    unit: "1 litre"
-  },
-  {
-    id: "3",
-    name: "Pure Desi Ghee",
-    price: 650,
-    originalPrice: 750,
-    rating: 4.7,
-    reviews: 2100,
-    image: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=200&h=200&fit=crop",
-    category: "Ghee & Vanaspati",
-    discount: 13,
-    inStock: true,
-    deliveryTime: "30 mins",
-    unit: "500g"
-  },
-  {
-    id: "4",
-    name: "Fresh Red Apples",
-    price: 180,
-    rating: 4.2,
-    reviews: 567,
-    image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=200&h=200&fit=crop",
-    category: "Fruits & Vegetables",
-    inStock: true,
-    deliveryTime: "25 mins",
-    unit: "1 kg"
-  }
-];
-
 
 // types.ts
 export interface CategoryItem {
@@ -100,131 +23,13 @@ export interface CategorySectionType {
 }
 
 
-const ProductCard = ({ product }: { product: Product }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [quantity, setQuantity] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
-  return (
-    <div
-      className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden group ${isHovered ? 'scale-105 shadow-2xl' : ''
-        }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Link href={`products/${product?.id}`}>
-        <div className="relative overflow-hidden">
-          <img
-            src={product.image}
-            alt={product.name}
-            className={`w-full h-48 object-cover transition-transform duration-700 ${isHovered ? 'scale-110' : 'scale-100'
-              }`}
-          />
-
-          {/* Discount Badge */}
-          {product.discount && (
-            <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-bounce">
-              {product.discount}% OFF
-            </div>
-          )}
-
-          {/* Organic Badge */}
-          {product.isOrganic && (
-            <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-              ORGANIC
-            </div>
-          )}
-
-          {/* Wishlist Button */}
-          <button
-            onClick={() => setIsWishlisted(!isWishlisted)}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-300 ${product.isOrganic ? 'top-12' : ''
-              } ${isWishlisted
-                ? 'bg-red-500 text-white scale-110'
-                : 'bg-white/80 text-gray-600 hover:bg-red-50 hover:text-red-500'
-              }`}
-          >
-            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-          </button>
-
-          {/* Quick View */}
-          <div className={`absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'
-            }`}>
-            <button className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center space-x-2">
-              <Eye className="w-4 h-4" />
-              <span>Quick View</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
-              {product.category}
-            </span>
-            <div className="flex items-center space-x-1">
-              <Truck className="w-3 h-3 text-green-600" />
-              <span className="text-xs text-green-600 font-medium">{product.deliveryTime}</span>
-            </div>
-          </div>
-
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
-            {product.name}
-          </h3>
-
-          <div className="flex items-center space-x-1 mb-2">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium">{product.rating}</span>
-            <span className="text-xs text-gray-500">({product.reviews})</span>
-          </div>
-
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
-              {product.originalPrice && (
-                <span className="text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
-              )}
-            </div>
-            <span className="text-xs text-gray-500">{product.unit}</span>
-          </div>
-
-          {quantity === 0 ? (
-            <button
-              onClick={() => setQuantity(1)}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 px-4 rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all duration-300 flex items-center justify-center space-x-2 group"
-            >
-              <ShoppingCart className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              <span>Add to Cart</span>
-            </button>
-          ) : (
-            <div className="flex items-center justify-between bg-orange-100 rounded-lg p-2">
-              <button
-                onClick={() => setQuantity(Math.max(0, quantity - 1))}
-                className="bg-white text-orange-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="font-medium text-orange-800">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="bg-white text-orange-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-      </Link>
-    </div>
-  );
-};
 
 const CategorySection = ({ section }: { section: CategorySectionType }) => {
-  console.log("dataddd", section)
   return (
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{section.name}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{section?.title}</h2>
         <Link href={`/productList`} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
           <span>View All</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -232,24 +37,25 @@ const CategorySection = ({ section }: { section: CategorySectionType }) => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        {Array.isArray(section.products) && section.products.length > 0 ? (
-          section.products.map((item, idx) => (
+        {Array.isArray(section.items) && section.items.length > 0 ? (
+          section.items.map((item, idx) => (
             <div
               key={idx}
               className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200"
             >
+              {/* @ts-ignore */}
               <Link href={`/products/${item._id}`}>
                 <div className="relative overflow-hidden rounded-lg mb-3">
                   <img
-                    src={item.images && item.images[0] ? item.images[0] : "https://via.placeholder.com/100x100?text=No+Image"}
-                    alt={item.name}
+                    src={item.img}
+                    alt={item.label}
                     className="w-full h-20 sm:h-24 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="text-center">
                   <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2">
-                    {item.name}
+                    {item.label}
                   </h3>
                 </div>
               </Link>
@@ -274,9 +80,7 @@ const HomePage: React.FC = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [categories, setCategories] = useState<CategorySectionType[]>([]);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -294,11 +98,13 @@ const HomePage: React.FC = () => {
 
   // Close notification menu when clicking outside
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+    function handleClickOutside(event: any) {
+      // @ts-ignore
+      if (notificationRef.current && !notificationRef.current?.contains(event.target)) {
         setIsNotificationOpen(false);
       }
-      if (mobileFiltersRef.current && !mobileFiltersRef.current.contains(event.target)) {
+      // @ts-ignore
+      if (mobileFiltersRef.current && !mobileFiltersRef.current?.contains(event.target)) {
         setIsMobileFiltersOpen(false);
       }
     }
@@ -311,7 +117,8 @@ const HomePage: React.FC = () => {
 
   // Close menus when pressing Escape
   useEffect(() => {
-    function handleEscape(event) {
+    function handleEscape(event: any) {
+      // @ts-ignore
       if (event.key === 'Escape') {
         setIsNotificationOpen(false);
         setIsMobileFiltersOpen(false);
@@ -588,6 +395,7 @@ const HomePage: React.FC = () => {
             <div className="text-center text-gray-400 py-12">Loading categories...</div>
           ) : (
             categories.map((section, idx) => (
+              // @ts-ignore
               <CategorySection section={section} key={section?._id || idx} />
             ))
           )}

@@ -7,13 +7,23 @@ export interface ICategory extends Document {
   description?: string;
   status?: 'active' | 'inactive';
   slug?: string;
+  type?: CategoryType;
   createdAt: Date;
   updatedAt: Date;
 
   // Virtual fields
   subcategories?: ICategory[];
 }
-
+type CategoryType =
+  | "New Arrivals"
+  | "Best Sellers"
+  | "Sweets"
+  | "Snacks"
+  | "Drinks"
+  | "Pantry"
+  | "Groceries"
+  | "Value Packs"
+  | "See All";
 const CategorySchema = new Schema<ICategory>(
   {
     name: { type: String, required: true, trim: true, maxlength: 50 },
@@ -22,6 +32,7 @@ const CategorySchema = new Schema<ICategory>(
     description: { type: String },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     slug: { type: String, unique: true, sparse: true }, // SEO friendly URL
+    type: { type: String, enum: ["New Arrivals","Best Sellers","Sweets","Snacks","Drinks","Pantry","Groceries","Value Packs","See All"] },
   },
   {
     toJSON: { virtuals: true },

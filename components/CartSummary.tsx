@@ -4,7 +4,6 @@ import { Button } from "./ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCartOrder, useOrder } from "@/context/OrderContext";
 import { useAuthStorage } from "@/hooks/useAuth";
-import { useProductsContext } from "@/context/AllProductContext";
 const coupons = [
   {
     id: 3,
@@ -25,15 +24,13 @@ const donations = [
 
 const CartSummary = ({ cartItems }: any) => {
   const { dispatch } = useOrder();
-  const { addToCart, loading, error, removeFromCart, updateQuantity,loadCart } = useCartOrder();
+  const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
   const { user } = useAuthStorage()
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [customCoupon, setCustomCoupon] = useState("");
   const [includeDonation, setIncludeDonation] = useState(false);
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [selectedTip, setSelectedTip] = useState<number>(0);
-  const { productsData } = useProductsContext();
-  const [checkStock, setCheckStock] = useState(false);
   const [customTipValue, setCustomTipValue] = useState<string>("");
   const getTotalPrice = () =>
     cartItems.reduce((total: number, item: any) => total + item.price * item.quantity, 0);

@@ -576,10 +576,11 @@ const AddressModal: React.FC<AddressModalProps> = ({ addressOpen, setAddressOpen
                 // Update existing address
                 const addressId = editingAddress._id 
                 if (!addressId) throw new Error("Address ID not found");
-                
+                // @ts-ignore
                 savedAddress = await updateAddress(user._id, addressId, newAddress);
             } else {
                 // Add new address
+                // @ts-ignore
                 savedAddress = await addAddress(user._id, newAddress);
             }
 

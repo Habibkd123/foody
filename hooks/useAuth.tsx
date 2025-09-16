@@ -7,13 +7,10 @@ type AuthResult = {
 };
 
 export function useAuthStorage(result?: AuthResult) {
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return window.localStorage.getItem("token");
-    }
-    return null;
-  });
 
+  const [token, setToken] = useState<string | null>("");
+const [loacaluser,setLocalUser]=useState<any>(  {})
+ 
   const [user, setUser] = useState<any>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -25,25 +22,49 @@ export function useAuthStorage(result?: AuthResult) {
     return {};
   });
 
-  // Update state when result changes
-  useEffect(() => {
-    if (!result) return;
-    if (result.data?.token) setToken(result.data.token);
-    if (result.user) setUser(result.user);
-  }, [result]);
+ 
 
-  // Persist to localStorage
-  useEffect(() => {
-    if (token) {
-      window.localStorage.setItem("token", token);
+  const getData= async()=>{
+    const result = await fetch("/api/auth/set-cookies",{
+      method:"GET",
+      headers:{
+        "Content-Type":"application/json"
+      },
+    })
+    const data = await result.json();
+    console.log("datadatadatadatadata11111111111",data);
+    if(data.success){
+      setToken(data.token);
+      setLocalUser(data.user)
+      window.localStorage.setItem("token", data.token);
     }
-  }, [token]);
+   
+  }
+  const getUserData= async()=>{
+    console.log("loacaluser",loacaluser);
+    if(loacaluser._id){
+    const result = await fetch(`/api/users/${loacaluser._id}`,{
+      method:"GET",
+      headers:{
+        "Content-Type":"application/json"
+      },
+    })
+    const data = await result.json();
+    console.log("datadatadatadatadata",data);
+    if(data.success){
+      setUser(data.data);
+    }
+   }
+  }
+useEffect(()=>{
+  getData()
 
-  useEffect(() => {
-    if (user && Object.keys(user).length > 0) {
-      window.localStorage.setItem("G-user", JSON.stringify(user));
-    }
-  }, [user]);
+},[])
+useEffect(() => {
+  if (loacaluser && loacaluser._id) {
+    getUserData();
+  }
+}, [loacaluser]); 
 
   return { token, user, setToken, setUser };
 }

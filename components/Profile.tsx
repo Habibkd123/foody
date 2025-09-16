@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { WishListContext } from "@/context/WishListsContext";
 import { Trash2 } from "lucide-react";
 import AddressModal from "./AddressModal";
+import { useAuthStorage } from "@/hooks/useAuth";
 
 type UserShape = {
   firstName?: string;
@@ -32,29 +33,22 @@ function safeParse<T = unknown>(raw: string | null): T | null {
 }
 
 const Profile = () => {
-  const [userData, setUserData] = useState<UserShape | null>(null);
   const { wishListsData, setWistListsData } = React.useContext<any>(WishListContext);
   const [addressOpen, setAddressOpen] = useState(false);
-
+const {user,setUser}=useAuthStorage()
   const handleRemove = (id: number) => {
     setWistListsData(wishListsData.filter((item: any) => item.id !== id));
   };
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedUser = localStorage.getItem("G-user");
-    const parsed = safeParse<UserShape>(storedUser);
-    setUserData(parsed);
-  }, []);
+
 
   const handleLogout = () => {
-    localStorage.removeItem("G-user");
-    localStorage.removeItem("token");
+    setUser(null);
     window.location.reload();
   };
 
-  const firstInitial = (userData?.firstName?.[0] || "U").toUpperCase();
-  const lastInitial = (userData?.lastName?.[0] || "").toUpperCase();
+  const firstInitial = (user?.firstName?.[0] || "U").toUpperCase();
+  const lastInitial = (user?.lastName?.[0] || "").toUpperCase();
 
   return (
     <section id="profile" className="py-16 bg-gray-50 dark:bg-gray-800">
@@ -77,10 +71,10 @@ const Profile = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-6 mb-6">
                     <Avatar className="w-20 h-20">
-                      {userData?.image ? (
+                      {user?.image ? (
                         <AvatarImage
-                          src={userData.image}
-                          alt={userData?.firstName || "User"}
+                          src={user?.image}
+                          alt={user?.firstName || "User"}
                         />
                       ) : (
                         <AvatarFallback className="bg-orange-500 text-white font-bold">
@@ -92,15 +86,15 @@ const Profile = () => {
 
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {(userData?.firstName || "") +
-                          (userData?.lastName ? ` ${userData.lastName}` : "") ||
+                        {(user?.firstName || "") +
+                          (user?.lastName ? ` ${user.lastName}` : "") ||
                           "Guest"}
                       </h3>
-                      {userData?.email && (
-                        <p className="text-gray-600 dark:text-gray-400">{userData.email}</p>
+                      {user?.email && (
+                        <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
                       )}
-                      {userData?.phone && (
-                        <p className="text-gray-600 dark:text-gray-400">{userData.phone}</p>
+                      {user?.phone && (
+                        <p className="text-gray-600 dark:text-gray-400">{user.phone}</p>
                       )}
                     </div>
                   </div>

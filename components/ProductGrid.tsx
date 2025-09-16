@@ -1,85 +1,118 @@
 "use client";
-import React, { useState, useRef,useCallback } from 'react';
-import { 
-  Heart, 
-  ShoppingCart, 
-  Star, 
-  Eye, 
-  Share2, 
-  Zap, 
-  CheckCircle, 
-  Plus,
-  Minus,
-  ShoppingBag,
-  Bookmark,
-  TrendingUp
+import React, { useState, useRef, useCallback } from 'react';
+import {
+    Heart,
+    ShoppingCart,
+    Star,
+    Eye,
+    Share2,
+    Zap,
+    CheckCircle,
+    Plus,
+    Minus,
+    ShoppingBag,
+    Bookmark,
+    TrendingUp
 } from 'lucide-react';
 import { useWishListContext, WishListContext } from '@/context/WishListsContext';
 import Link from 'next/link';
 import { Product } from '../types/global';
 import "./../components/cards.css"
+import { useAuthStorage } from '@/hooks/useAuth';
 
 interface ProductCardGridProps {
-  productLists: Product[];
-  onAddToCart?: (product: Product, quantity?: number) => void;
-  onToggleWishlist?: (product: Product) => void;
-  onQuickView?: (product: Product) => void;
-  onShare?: (product: Product) => void;
-  isInCart: any;
-  getCartQuantity?: (product: Product) => number;
-  updateQuantity?: (productId: string, change: number) => void;
-  isLoading?: boolean;
-  showQuickActions?: boolean;
-  showQuantityControls?: boolean;
-  animationDelay?: boolean;
+    productLists: Product[];
+    onAddToCart?: (product: Product, quantity?: number) => void;
+    onToggleWishlist?: (product: Product) => void;
+    onQuickView?: (product: Product) => void;
+    onShare?: (product: Product) => void;
+    isInCart: any;
+    getCartQuantity?: (product: Product) => number;
+    updateQuantity?: (productId: string, change: number) => void;
+    isLoading?: boolean;
+    showQuickActions?: boolean;
+    showQuantityControls?: boolean;
+    animationDelay?: boolean;
 }
 
 /* ------------------ Enhanced Responsive Product Card Grid ------------------ */
 const ProductCardGrid: React.FC<ProductCardGridProps> = ({
-  productLists, 
-  onAddToCart, 
-  updateQuantity = () => {},
-  onToggleWishlist,
-  onQuickView,
-  onShare,
-  isInCart,
-  getCartQuantity,
-  isLoading,
-  showQuickActions = true,
-  showQuantityControls = true,
-  animationDelay = true
+    productLists,
+    onAddToCart,
+    updateQuantity = () => { },
+    onToggleWishlist,
+    onQuickView,
+    onShare,
+    isInCart,
+    getCartQuantity,
+    isLoading,
+    showQuickActions = true,
+    showQuantityControls = true,
+    animationDelay = true
 }) => {
-    const { wishListsData } = useWishListContext();
-    const [quantities, setQuantities] = useState<{[key: string]: number}>({});
+    const { wishListsData, addWishList, removeWishList } = useWishListContext();
+    const { user } = useAuthStorage()
+    const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
     const [hoveredCard, setHoveredCard] = useState<string | null>(null);
     const [addingToCart, setAddingToCart] = useState<string | null>(null);
     const [justAdded, setJustAdded] = useState<string | null>(null);
-    const imageRefs = useRef<{[key: string]: HTMLImageElement | null}>({});
-console.log('productLists', productLists);
-  
-
+    const imageRefs = useRef<{ [key: string]: HTMLImageElement | null }>({});
+    let userId = user?._id;
+    console.log("userId",userId)
     // Enhanced add to cart with animation
+    // const handleAddToCart = async (product: Product) => {
+    //     const quantity = quantities[product._id] || 1;
+    //     setAddingToCart(product._id?.toString());
+
+    //     try {
+    //         await onAddToCart?.(product, quantity);
+    //         setJustAdded(product._id?.toString());
+
+    //         // Reset quantity after adding
+    //         setQuantities(prev => ({ ...prev, [product._id]: 1 }));
+
+    //         // Clear success state
+    //         setTimeout(() => setJustAdded(null), 2000);
+    //     } catch (error) {
+    //         console.error('Failed to add to cart:', error);
+    //     } finally {
+    //         setAddingToCart(null);
+    //     }
+    // };
+
     const handleAddToCart = async (product: Product) => {
         const quantity = quantities[product._id] || 1;
-        setAddingToCart(product._id?.toString());
-        
+        setAddingToCart(product._id);
+
         try {
             await onAddToCart?.(product, quantity);
-            setJustAdded(product._id?.toString());
-            
-            // Reset quantity after adding
-            setQuantities(prev => ({ ...prev, [product._id]: 1 }));
-            
-            // Clear success state
+            setJustAdded(product._id);
+            setQuantities((prev) => ({ ...prev, [product._id]: 1 }));
             setTimeout(() => setJustAdded(null), 2000);
         } catch (error) {
-            console.error('Failed to add to cart:', error);
+            console.error("Failed to add to cart:", error);
         } finally {
             setAddingToCart(null);
         }
     };
 
-    // Share functionality
+    // Toggle Wishlist
+    const handleToggleWishlist = async (product: Product) => {
+        console.log("productsssssss",product)
+        const isWishlisted = wishListsData.some((item) => item._id === product._id);
+console.log("isWishlisted",isWishlisted)
+        try {
+            if (isWishlisted) {
+                await removeWishList(userId, product._id);
+            } else {
+                await addWishList(userId, product._id);
+            }
+        } catch (error) {
+            console.error("Error toggling wishlist:", error);
+        }
+    };
+
+    // Share
     const handleShare = async (product: Product) => {
         if (navigator.share) {
             try {
@@ -88,12 +121,13 @@ console.log('productLists', productLists);
                     text: `Check out this amazing product: ${product.name}`,
                     url: `/products/${product._id}`
                 });
-            } catch (error) {
-                console.log('Share cancelled or failed');
+            } catch {
+                console.log("Share cancelled or failed");
             }
         } else {
-            // Fallback: copy to clipboard
-            navigator.clipboard.writeText(`${window.location.origin}/products/${product._id}`);
+            navigator.clipboard.writeText(
+                `${window.location.origin}/products/${product._id}`
+            );
             onShare?.(product);
         }
     };
@@ -146,10 +180,9 @@ console.log('productLists', productLists);
 
                 return (
                     <div
-                        key={product.id}
-                        className={`bg-white relative border border-gray-200 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden group transform hover:-translate-y-2 hover:scale-[1.02] ${
-                            animationDelay ? 'animate-fade-in-up' : ''
-                        }`}
+                        key={product._id}
+                        className={`bg-white relative border border-gray-200 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden group transform hover:-translate-y-2 hover:scale-[1.02] ${animationDelay ? 'animate-fade-in-up' : ''
+                            }`}
                         style={{
                             animationDelay: animationDelay ? `${index * 100}ms` : '0ms'
                         }}
@@ -157,7 +190,7 @@ console.log('productLists', productLists);
                         onMouseLeave={() => setHoveredCard(null)}
                     >
                         {/* Image Container with Enhanced Hover Effects */}
-                        <Link href={`/products/${product.id}`} className="block relative overflow-hidden">
+                        <Link href={`/products/${product._id}`} className="block relative overflow-hidden">
                             <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-2 sm:p-3 rounded-t-xl relative overflow-hidden">
                                 <img
                                     ref={(el: HTMLImageElement | null) => {
@@ -165,16 +198,14 @@ console.log('productLists', productLists);
                                     }}
                                     src={product.images[0]}
                                     alt={product.name}
-                                    className={`w-full h-full object-cover rounded-lg transition-all duration-700 ${
-                                        isHovered ? 'scale-110 rotate-1' : 'scale-100 rotate-0'
-                                    }`}
+                                    className={`w-full h-full object-cover rounded-lg transition-all duration-700 ${isHovered ? 'scale-110 rotate-1' : 'scale-100 rotate-0'
+                                        }`}
                                     loading="lazy"
                                 />
-                                
+
                                 {/* Shimmer effect on hover */}
-                                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 ${
-                                    isHovered ? 'animate-shimmer opacity-20' : ''
-                                }`}></div>
+                                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 ${isHovered ? 'animate-shimmer opacity-20' : ''
+                                    }`}></div>
                             </div>
 
                             {/* Enhanced badges */}
@@ -199,26 +230,38 @@ console.log('productLists', productLists);
 
                         {/* Quick Action Buttons */}
                         {showQuickActions && (
-                            <div className={`absolute top-2 right-2 flex flex-col space-y-2 z-30 transform transition-all duration-300 ${
-                                isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-                            }`}>
+                            <div className={`absolute top-2 right-2 flex flex-col space-y-2 z-30 transform transition-all duration-300 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
+                                }`}>
                                 {/* Wishlist Button */}
-                                <button
+                                {/* <button
                                     onClick={(e: React.MouseEvent) => {
                                         e.stopPropagation();
                                         onToggleWishlist?.(product);
                                     }}
-                                    className={`p-2 bg-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${
-                                        isWishlisted ? 'bg-red-50 border-red-200' : 'border-gray-200'
-                                    }`}
+                                    className={`p-2 bg-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${isWishlisted ? 'bg-red-50 border-red-200' : 'border-gray-200'
+                                        }`}
                                 >
                                     <Heart
-                                        className={`w-4 h-4 transition-all duration-300 ${
-                                            isWishlisted ? 'text-red-500 fill-current scale-110' : 'text-gray-400 hover:text-red-500'
+                                        className={`w-4 h-4 transition-all duration-300 ${isWishlisted ? 'text-red-500 fill-current scale-110' : 'text-gray-400 hover:text-red-500'
+                                            }`}
+                                    />
+                                </button> */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleWishlist(product);
+
+                                    }}
+                                    className={`p-2 bg-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${isWishlisted ? "bg-red-50 border-red-200" : "border-gray-200"
                                         }`}
+                                >
+                                    <Heart
+                                        className={`w-4 h-4 transition-all duration-300 ${isWishlisted
+                                                ? "text-red-500 fill-current scale-110"
+                                                : "text-gray-400 hover:text-red-500"
+                                            }`}
                                     />
                                 </button>
-
                                 {/* Quick View Button */}
                                 <button
                                     onClick={(e: React.MouseEvent) => {
@@ -245,7 +288,7 @@ console.log('productLists', productLists);
 
                         {/* Enhanced Content */}
                         <div className="p-3 sm:p-4 md:p-5">
-                            <Link href={`/products/${product.id}`}>
+                            <Link href={`/products/${product._id}`}>
                                 <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors duration-300 text-sm sm:text-base leading-tight">
                                     {product.name}
                                 </h3>
@@ -258,11 +301,10 @@ console.log('productLists', productLists);
                                         {[...Array(5)].map((_, i) => (
                                             <Star
                                                 key={i}
-                                                className={`w-3 h-3 sm:w-4 sm:h-4 transition-all duration-200 ${
-                                                    i < Math.floor(product.rating)
-                                                        ? 'text-yellow-400 fill-current scale-100'
-                                                        : 'text-gray-300 scale-90'
-                                                } ${isHovered && i < Math.floor(product.rating) ? 'animate-pulse' : ''}`}
+                                                className={`w-3 h-3 sm:w-4 sm:h-4 transition-all duration-200 ${i < Math.floor(product.rating)
+                                                    ? 'text-yellow-400 fill-current scale-100'
+                                                    : 'text-gray-300 scale-90'
+                                                    } ${isHovered && i < Math.floor(product.rating) ? 'animate-pulse' : ''}`}
                                             />
                                         ))}
                                     </div>
@@ -321,13 +363,12 @@ console.log('productLists', productLists);
                             <button
                                 onClick={() => handleAddToCart(product)}
                                 disabled={isAdding}
-                                className={`w-full py-2.5 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-sm relative overflow-hidden ${
-                                    wasJustAdded
-                                        ? 'bg-green-500 text-white'
-                                        : inCart
+                                className={`w-full py-2.5 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-sm relative overflow-hidden ${wasJustAdded
+                                    ? 'bg-green-500 text-white'
+                                    : inCart
                                         ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
                                         : 'bg-gradient-to-r from-orange-400 to-red-500 text-white hover:from-orange-500 hover:to-red-600 shadow-lg hover:shadow-xl'
-                                } ${isAdding ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                    } ${isAdding ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                                 {isAdding ? (
                                     <div className="flex items-center">
@@ -354,17 +395,15 @@ console.log('productLists', productLists);
                                         )}
                                     </div>
                                 )}
-                                
+
                                 {/* Ripple effect */}
-                                <div className={`absolute inset-0 bg-white opacity-0 ${
-                                    isHovered ? 'animate-ping opacity-20' : ''
-                                }`}></div>
+                                <div className={`absolute inset-0 bg-white opacity-0 ${isHovered ? 'animate-ping opacity-20' : ''
+                                    }`}></div>
                             </button>
 
                             {/* Additional Info on Hover */}
-                            <div className={`mt-2 text-xs text-gray-500 transition-all duration-300 ${
-                                isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-                            }`}>
+                            <div className={`mt-2 text-xs text-gray-500 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+                                }`}>
                                 <div className="flex justify-between items-center">
                                     <span>Free delivery available</span>
                                     <span className="text-green-600">✓ In stock</span>
@@ -374,7 +413,7 @@ console.log('productLists', productLists);
                     </div>
                 );
             })}
-          
+
         </div>
     );
 };

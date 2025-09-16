@@ -834,32 +834,6 @@ const products = [
   { id: 29, name: 'Chambal Refined Soyabean Oil', price: 129, originalPrice: 163, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/394ff2b1-52e1-430c-8e35-2eab0ad407df.png', rating: 4.6, reviews: 187, category: 'oil', discount: 21 },
   { id: 30, name: 'Fortune Sunlite Refined Sunflower Oil (870 g)', price: 159, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/08e99bfb-e035-4320-85ac-dd81880237c9.png', rating: 4.6, reviews: 187, category: 'oil', discount: 12 },
 
-  // // Rice & Grains
-  // { id: 45, name: 'India Gate Basmati Rice Classic', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/basmati-rice-classic.jpg', rating: 4.5, reviews: 432, category: 'grains', discount: 7 },
-  // { id: 46, name: 'Daawat Rozana Super Basmati Rice', price: 395, originalPrice: 420, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/daawat-rozana.jpg', rating: 4.4, reviews: 298, category: 'grains', discount: 6 },
-  // { id: 50, name: 'Ashirvaad Whole Wheat Flour', price: 285, originalPrice: 300, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ashirvaad-atta.jpg', rating: 4.7, reviews: 567, category: 'grains', discount: 5 },
-
-  // // Dairy Products
-  // { id: 51, name: 'Amul Fresh Paneer', price: 85, originalPrice: 90, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-paneer.jpg', rating: 4.4, reviews: 189, category: 'dairy', discount: 6 },
-  // { id: 52, name: 'Mother Dairy Classic Curd', price: 28, originalPrice: 30, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/mother-dairy-curd.jpg', rating: 4.3, reviews: 245, category: 'dairy', discount: 7 },
-  // { id: 53, name: 'Amul Butter - Salted', price: 56, originalPrice: 60, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/amul-butter.jpg', rating: 4.6, reviews: 678, category: 'dairy', discount: 7 },
-
-  // // Vegetables & Fruits
-  // { id: 56, name: 'Fresh Onions (1 kg)', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-onions.jpg', rating: 4.1, reviews: 89, category: 'vegetables', discount: 13 },
-  // { id: 57, name: 'Fresh Tomatoes (500g)', price: 28, originalPrice: 32, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-tomatoes.jpg', rating: 4.0, reviews: 67, category: 'vegetables', discount: 13 },
-  // { id: 58, name: 'Fresh Potatoes (1 kg)', price: 25, originalPrice: 28, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-potatoes.jpg', rating: 4.2, reviews: 123, category: 'vegetables', discount: 11 },
-  // { id: 59, name: 'Fresh Bananas (1 dozen)', price: 48, originalPrice: 55, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/fresh-bananas.jpg', rating: 4.3, reviews: 145, category: 'fruits', discount: 13 },
-  // { id: 60, name: 'Fresh Apples - Shimla (500g)', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/shimla-apples.jpg', rating: 4.4, reviews: 178, category: 'fruits', discount: 11 },
-
-  // // Household Items
-  // { id: 71, name: 'Surf Excel Easy Wash Detergent Powder', price: 485, originalPrice: 520, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/surf-excel.jpg', rating: 4.5, reviews: 456, category: 'household', discount: 7 },
-  // { id: 72, name: 'Vim Dishwash Liquid Gel', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/vim-liquid.jpg', rating: 4.2, reviews: 234, category: 'household', discount: 11 },
-  // { id: 73, name: 'Harpic Toilet Cleaner', price: 125, originalPrice: 140, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/harpic-cleaner.jpg', rating: 4.3, reviews: 189, category: 'household', discount: 11 },
-
-  // // Personal Care
-  // { id: 66, name: 'Colgate Total Advanced Health Toothpaste', price: 85, originalPrice: 95, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/colgate-total.jpg', rating: 4.3, reviews: 234, category: 'personal-care', discount: 11 },
-  // { id: 67, name: 'Head & Shoulders Anti-Dandruff Shampoo', price: 245, originalPrice: 270, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/head-shoulders.jpg', rating: 4.2, reviews: 189, category: 'personal-care', discount: 9 },
-  // { id: 68, name: 'Dettol Original Soap', price: 35, originalPrice: 40, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/dettol-soap.jpg', rating: 4.5, reviews: 345, category: 'personal-care', discount: 13 },
 ]
 
 export function Grocery() {
@@ -868,11 +842,10 @@ export function Grocery() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const [cartItems, setCartItems] = useState<Array<any>>([])
   const [cartOpen, setCartOpen] = useState<boolean>(false)
-  const [activeSection, setActiveSection] = useState<string>("home")
   const [userData, setUserData] = useState<any | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
-
+const {token,user,setToken,setUser}=useAuthStorage()
   // Categories for grocery items
   const groceryCategories = [
     { id: 'all', name: "All Items", icon: "🛒" },
@@ -966,13 +939,12 @@ export function Grocery() {
     }
     addToCart(item)
   }
-  useEffect(() => {
-    let getToken = localStorage.getItem("token")
-    if (getToken) {
-      setUserData(getToken)
-    }
-  }, [])
-
+ 
+useEffect(()=>{
+  if (token) {
+    setUserData(token)
+  }
+},[])
   const logout = async () => {
     try {
       await fetch("/api/auth/logout", {
@@ -983,6 +955,10 @@ export function Grocery() {
         credentials: 'include', // important!
       });
       setUserData(null)
+      router.push('/login')
+      localStorage.removeItem("token")
+      localStorage.removeItem("G-user")
+      localStorage.clear()
 
 
     } catch (error: any) {

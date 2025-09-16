@@ -14,45 +14,50 @@ import { useAddress } from '@/context/AddressContext';
 import { useCartOrder, useOrder } from '@/context/OrderContext';
 import { useRouter } from 'next/navigation';
 import { useAuthStorage } from '@/hooks/useAuth';
-const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen,type, updateQuantity, getTotalPrice, removeFromCart }: any) => {
+const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, updateQuantity, getTotalPrice, removeFromCart }: any) => {
   const [addressOpen, setAddressOpen] = React.useState(false);
-  const { state ,dispatch} = useOrder();
-  const { loadCart} = useCartOrder();
+  const { loadCart } = useCartOrder();
+  const { state, dispatch } = useOrder();
   const { address, items, distance } = state
   const router = useRouter()
-   const {user}=useAuthStorage()  // const {  distance } = useAddress();
-    //  console.log('state',loadCart);
+  const { user } = useAuthStorage()  // const {  distance } = useAddress();
+   console.log('state', user);
   useEffect(() => {
     const fun = async () => {
-   let data= await loadCart(user?._id)
-      console.log('state',data);
+      try {
+        let data = await loadCart(user?._id)
+        console.log('state', data);
+      }
+      catch (error) {
+        console.log(error)
+      }
 
     }
     fun()
-  },[])
-  const handleCheckout =() => {
-    if(!address){
+  }, [user])
+  const handleCheckout = () => {
+    if (!address) {
       alert("Please enter Address")
       return
-    }else{
+    } else {
       router.push('/checkout')
     }
 
-    }
+  }
   return (
     <>
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-        {type!=="wishlist"&&
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative text-gray-700 dark:text-gray-300 z-[90px]">
-            <ShoppingCart className="h-5 w-5" />
-            {items.length > 0 && (
-              <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-orange-500">
-                {items.reduce((sum: any, item: any) => sum + item.quantity, 0)}
-              </Badge>
-            )}
-          </Button>
-        </SheetTrigger>}
+        {type !== "wishlist" &&
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative text-gray-700 dark:text-gray-300 z-[90px]">
+              <ShoppingCart className="h-5 w-5" />
+              {items.length > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-orange-500">
+                  {items.reduce((sum: any, item: any) => sum + item.quantity, 0)}
+                </Badge>
+              )}
+            </Button>
+          </SheetTrigger>}
         <SheetContent className="w-full sm:max-w-lg overflow-auto">
           <SheetHeader>
             <SheetTitle>Your Cart</SheetTitle>
@@ -70,15 +75,15 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen,type, upda
 
                   {/* Delivery Address */}
                   <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center space-x-3">
                         <div className="bg-gray-300 rounded-full p-1">
                           <MapPin className="h-4 w-4" />
                         </div>
                         <div>
                           {address && (<>  <h4 className="font-semibold text-sm">Delivering to Home</h4>
-                            <p className="text-xs text-gray-600">{`${address?.name&&address?.name}, ${address?.area}`}</p>
-                            <p className="text-xs text-gray-600">{`${distance&&distance?.toFixed(2)}`} km</p>
+                            <p className="text-xs text-gray-600">{`${address?.name && address?.name}, ${address?.label}`}</p>
+                            <p className="text-xs text-gray-600">{`${distance && distance?.toFixed(2)}`} km</p>
                           </>)}
                         </div>
                       </div>
@@ -93,7 +98,7 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen,type, upda
                     <Input placeholder="Enter promo code" className="mb-4 " />
                   </div> */}
                   {/* <Link href="/checkout"> */}
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 " onClick={handleCheckout}>Proceed to Checkout</Button>
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600 " onClick={handleCheckout}>Proceed to Checkout</Button>
                   {/* </Link> */}
                 </div>
               </>

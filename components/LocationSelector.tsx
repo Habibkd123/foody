@@ -5,7 +5,7 @@ import { MapPin, X } from 'lucide-react';
 
 import { GoogleMap, Marker, useLoadScript, Autocomplete } from "@react-google-maps/api";
 import { useOrder } from '@/context/OrderContext';
-
+import { Address } from '@/types/global';
 const libraries: any = ["places"];
 
 const mapContainerStyle = {
@@ -49,10 +49,11 @@ const [geoError, setGeoError] = useState<string | null>(null);
         const formatted = results[0].formatted_address;
         setCurrentLocationAddress(formatted);
 
-        // Update the order context with the address
+        // @ts-ignore
         dispatch({
           type: "SET_ADDRESS",
           address: {
+            userId: '',
             label: formatted,
             flatNumber: results[0].address_components.find(comp => comp.types.includes('street_number'))?.long_name || '',
             floor: results[0].address_components.find(comp => comp.types.includes('subpremise'))?.long_name || '',
@@ -66,7 +67,10 @@ const [geoError, setGeoError] = useState<string | null>(null);
               comp.types.includes('sublocality_level_1') ||
               comp.types.includes('locality')
             )?.long_name || '',
-          }
+            city: results[0].address_components.find(comp => comp.types.includes('locality'))?.long_name || '',
+            state: results[0].address_components.find(comp => comp.types.includes('administrative_area_level_1'))?.long_name || '',
+            zipCode: results[0].address_components.find(comp => comp.types.includes('postal_code'))?.long_name || '',
+          } as Address
         });
       }
     });
@@ -95,21 +99,25 @@ const [geoError, setGeoError] = useState<string | null>(null);
         setMarker({ lat, lng });
         setLocationInput(place.formatted_address || '');
 
-        // Update the order context with selected address
+        // @ts-ignore
         dispatch({
           type: "SET_ADDRESS",
           address: {
+            userId: '',
             street: place.formatted_address || '',
-            flatNumber: '',
-            floor: '',
-            landmark: '',
+            flatNumber:  place.address_components.find((comp: any) => comp.types.includes('street_number'))?.long_name || '',
+            floor: place.address_components.find((comp: any) => comp.types.includes('subpremise'))?.long_name || '',
+            landmark: place.address_components.find((comp: any) => comp.types.includes('route'))?.long_name || '',
             name: '',
             phone: 0,
             label: place.formatted_address || '',
             lat,
             lng,
             area: place.name || '',
-          }
+            city: '',
+            state: '',
+            zipCode: '',
+          } as Address,
         });
 
         // Calculate distance from default center
@@ -147,7 +155,21 @@ const [geoError, setGeoError] = useState<string | null>(null);
         console.error("Geolocation error:", error.message);
         setIsLoadingLocation(false);
 
-        // Fallback to default center if geolocation fails
+        // @ts-ignore
+        let errorMessage = "Unable to retrieve your location";
+        
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage = "Location access was denied. Using default location.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMessage = "Location information is unavailable. Using default location.";
+        } else if (error.code === error.TIMEOUT) {
+          errorMessage = "The request to get your location timed out. Using default location.";
+        }
+        
+        // Show error message to user (you can use a toast notification here)
+        console.warn(errorMessage);
+        
+        // Fallback to default center
         setMarker(defaultCenter);
         getAddressFromLatLng(defaultCenter.lat, defaultCenter.lng);
       },

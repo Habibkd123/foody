@@ -23,47 +23,110 @@
 
 
 "use client";
-import React, { useState, createContext, useContext, ReactNode } from 'react';
-import { Product } from '@/types/global';
-
-
-
-
+import React, { useState, createContext, useContext, ReactNode, useEffect } from "react";
+import { Product, UserWishList } from "@/types/global";
+import {
+  getUserWishList as apiGetUserWishList,
+  addWishList as apiAddWishList,
+  removeWishList as apiRemoveWishList,
+} from "@/components/APICall/wishlist";
 
 interface WishListContextType {
-  wishListsData: Product[];
-  setWistListsData: React.Dispatch<React.SetStateAction<Product[]>>;
+  wishListsData:  UserWishList[];
+  setWistListsData: React.Dispatch<React.SetStateAction<UserWishList[]>>;
+  addWishList: (userId: string, productId: string) => Promise<void>;
+  removeWishList: (userId: string, productId: string) => Promise<void>;
+  getUserWishList: (userId: string) => Promise<void>;
 }
-
 
 interface ProviderProps {
   children: ReactNode;
 }
 
-// Create Contexts
-const WishListContext = createContext<WishListContextType | undefined>(undefined);
-
-
+// Context
+const WishListContext = createContext<WishListContextType | undefined>(
+  undefined
+);
 
 const useWishListContext = (): WishListContextType => {
   const context = useContext(WishListContext);
   if (!context) {
-    throw new Error('useWishListContext must be used within a WishListProvider');
+    throw new Error("useWishListContext must be used within a WishListProvider");
   }
   return context;
 };
 
-// WishList Provider
 const WishListProvider: React.FC<ProviderProps> = ({ children }) => {
-  const [wishListsData, setWistListsData] = useState<Product[]>([]);
+  const [wishListsData, setWistListsData] = useState<UserWishList[]>([]);
+
+  const getUserWishList = async (userId: string) => {
+    try {
+      const response = await apiGetUserWishList({userId});
+      if(response.success){
+        console.log("response", response)
+        setWistListsData(response.data.products);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlists:", error);
+    }
+  };
+
+ 
+
+  const addWishList = async (userId: string, productId: string) => {
+    if (!userId) {
+      alert("Please login to add to wishlist");
+      return;
+    }
+    if (!productId) {
+      alert("Please select a product to add to wishlist");
+      return;
+    }
+  
+    try {
+      const response = await apiAddWishList(userId, productId);
+  
+      // Update full wishlist with populated products
+      setWistListsData(response.data.products || []);
+    } catch (error) {
+      console.error("Error adding wishlist:", error);
+    }
+  };
+  
+
+  const removeWishList = async (userId: string, productId: string) => {
+    if (!userId) {
+      alert("Please login to remove from wishlist");
+      return;
+    }
+    if (!productId) {
+      alert("Please select a product to remove from wishlist");
+      return;
+    }
+  
+    try {
+      const response = await apiRemoveWishList(userId, productId);
+  
+      // Update wishlist with populated products from backend
+      setWistListsData(response.data.products || []);
+    } catch (error) {
+      console.error("Error removing wishlist:", error);
+    }
+  };
   
   return (
-    <WishListContext.Provider value={{ wishListsData, setWistListsData }}>
+    <WishListContext.Provider
+      value={{
+        wishListsData,
+        setWistListsData,
+        addWishList,
+        removeWishList,
+        getUserWishList,
+      }}
+    >
       {children}
     </WishListContext.Provider>
   );
 };
-
-
 
 export { WishListContext, useWishListContext, WishListProvider };

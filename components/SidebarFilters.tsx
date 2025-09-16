@@ -1,253 +1,16 @@
-// // import React, { useState } from 'react';
-// // import { Filter, Star } from 'lucide-react';
-
-// import { useFilterContext } from "@/context/FilterContext";
-// import { Filter, Star } from "lucide-react";
-// import { useContext, ReactNode, FC, useState } from "react";
-
-// // const SidebarFilters = () => {
-// //   /* -------------  LOCAL STATE ------------- */
-// //   const [selectedCategory, setSelectedCategory] = useState('all');
-// //   const [priceFilters, setPriceFilters] = useState([]);
-// //   const [ratingFilters, setRatingFilters] = useState([]);
-
-// //   /* -------------  DUMMY DATA ------------- */
-// //   const categories = ['All', 'Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Beverages'];
-
-// //   /* -------------  HANDLERS ------------- */
-// //   const togglePrice = (range:any) =>
-// //     setPriceFilters((prev) =>
-// //       prev.includes(range) ? prev.filter((r) => r !== range) : [...prev, range]
-// //     );
-
-// //   const toggleRating = (rate:any) =>
-// //     setRatingFilters((prev) =>
-// //       prev.includes(rate) ? prev.filter((r) => r !== rate) : [...prev, rate]
-// //     );
-
-
-// //     const price=['Under ₹200', '₹200 - ₹500', 'Above ₹500']
-// //     const rating =[4, 3, 2, 1]
-// //   /* -------------  RENDER ------------- */
-
-// //   return (
-// //     <div className="w-64 bg-white rounded-lg shadow-sm p-6 h-fit sticky top-0 ">
-// //       {/* <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-// //         <Filter className="w-5 h-5 mr-2 text-orange-400" />
-// //         Filters
-// //       </h3> */}
-
-// //       <div className="space-y-6">
-// //         {/* ----- Categories ----- */}
-// //         <div>
-// //           <h4 className="font-medium text-gray-700 mb-3">Categories</h4>
-// //           <div className="space-y-2">
-// //             {categories.map((cat) => {
-// //               const key = cat === 'All' ? 'all' : cat.toLowerCase();
-// //               return (
-// //                 <label key={key} className="flex items-center">
-// //                   <input
-// //                     type="radio"
-// //                     name="category"
-// //                     className="text-orange-400 focus:ring-orange-400"
-// //                     checked={selectedCategory === key}
-// //                     onChange={() => setSelectedCategory(key)}
-// //                   />
-// //                   <span className="ml-2 text-sm text-gray-600">{cat}</span>
-// //                 </label>
-// //               );
-// //             })}
-// //           </div>
-// //         </div>
-
-// //         {/* ----- Price Range ----- */}
-// //         <div>
-// //           <h4 className="font-medium text-gray-700 mb-3">Price Range</h4>
-// //           {price.map((range) => (
-// //             <label key={range} className="flex items-center mb-2">
-// //               <input
-// //                 type="checkbox"
-// //                 className="text-orange-400 focus:ring-orange-400 rounded"
-// //                 checked={priceFilters.includes(range)}
-// //                 onChange={() => togglePrice(range)}
-// //               />
-// //               <span className="ml-2 text-sm text-gray-600">{range}</span>
-// //             </label>
-// //           ))}
-// //         </div>
-
-// //         {/* ----- Rating ----- */}
-// //         <div>
-// //           <h4 className="font-medium text-gray-700 mb-3">Rating</h4>
-// //           {rating.map((rating) => (
-// //             <label key={rating} className="flex items-center mb-2">
-// //               <input
-// //                 type="checkbox"
-// //                 className="text-orange-400 focus:ring-orange-400 rounded"
-// //                 checked={ratingFilters.includes(rating)}
-// //                 onChange={() => toggleRating(rating)}
-// //               />
-// //               <div className="ml-2 flex items-center">
-// //                 {[...Array(5)].map((_, i) => (
-// //                   <Star
-// //                     key={i}
-// //                     className={`w-4 h-4 ${
-// //                       i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-// //                     }`}
-// //                   />
-// //                 ))}
-// //                 <span className="ml-1 text-sm text-gray-600">& Up</span>
-// //               </div>
-// //             </label>
-// //           ))}
-// //         </div>
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default SidebarFilters;
-
-
-
-// const SidebarFilters: React.FC = () => {
-//   const { filters, updateFilter, toggleArrayFilter } = useFilterContext();
-
-
-//   const categories = [
-//     { key: 'all', label: 'All Products', icon: '🛒' },
-//     { key: 'fruits', label: 'Fresh Fruits', icon: '🍎' },
-//     { key: 'vegetables', label: 'Vegetables', icon: '🥕' },
-//     { key: 'dairy', label: 'Dairy Products', icon: '🥛' },
-//     { key: 'bakery', label: 'Bakery Items', icon: '🍞' },
-//     { key: 'beverages', label: 'Beverages', icon: '🥤' },
-//     { key: 'snacks', label: 'Snacks & Chips', icon: '🍿' },
-//     { key: 'frozen', label: 'Frozen Foods', icon: '🧊' },
-//     { key: 'spices', label: 'Spices & Herbs', icon: '🌶️' },
-//     { key: 'pantry', label: 'Pantry Staples', icon: '🥫' }
-//   ];
-
-//   const priceRanges = [
-//     { key: 'under-100', label: 'Under ₹100', min: 0, max: 100 },
-//     { key: '100-300', label: '₹100 - ₹300', min: 100, max: 300 },
-//     { key: '300-500', label: '₹300 - ₹500', min: 300, max: 500 },
-//     { key: '500-1000', label: '₹500 - ₹1000', min: 500, max: 1000 },
-//     { key: 'above-1000', label: 'Above ₹1000', min: 1000, max: Infinity }
-//   ];
-
-//   const ratings = [5, 4, 3, 2, 1];
-
-//   return (
-//     <div className="w-64 bg-white rounded-lg shadow-sm p-6 h-fit sticky top-0 border border-gray-200">
-//       <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center">
-//         <Filter className="w-6 h-6 mr-2 text-orange-500" />
-//         Filters
-//       </h3>
-
-//       <div className="space-y-8">
-//         {/* Categories */}
-//         <div>
-//           <h4 className="font-semibold text-gray-800 mb-4 text-lg">Categories</h4>
-//           <div className="space-y-3 max-h-64 overflow-y-auto">
-//             {categories.map((cat) => (
-//               <label 
-//                 key={cat.key} 
-//                 className="flex items-center cursor-pointer hover:bg-orange-50 p-2 rounded-lg transition-colors duration-200"
-//               >
-//                 <input
-//                   type="radio"
-//                   name="category"
-//                   className="w-4 h-4 text-orange-500 focus:ring-orange-400 focus:ring-2"
-//                   checked={filters.category === cat.key}
-//                   onChange={() => updateFilter('category', cat.key)}
-//                 />
-//                 <span className="ml-3 text-2xl">{cat.icon}</span>
-//                 <span className="ml-2 text-sm text-gray-700 font-medium">{cat.label}</span>
-//               </label>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Price Range */}
-//         <div>
-//           <h4 className="font-semibold text-gray-800 mb-4 text-lg">Price Range</h4>
-//           <div className="space-y-3">
-//             {priceRanges.map((range) => (
-//               <label 
-//                 key={range.key} 
-//                 className="flex items-center cursor-pointer hover:bg-orange-50 p-2 rounded-lg transition-colors duration-200"
-//               >
-//                 <input
-//                   type="checkbox"
-//                   className="w-4 h-4 text-orange-500 focus:ring-orange-400 focus:ring-2 rounded"
-//                   checked={filters.priceRanges.includes(range.key)}
-//                   onChange={() => toggleArrayFilter('priceRanges', range.key)}
-//                 />
-//                 <span className="ml-3 text-sm text-gray-700 font-medium">{range.label}</span>
-//               </label>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Rating */}
-//         <div>
-//           <h4 className="font-semibold text-gray-800 mb-4 text-lg">Customer Rating</h4>
-//           <div className="space-y-3">
-//             {ratings.map((rating) => (
-//               <label 
-//                 key={rating} 
-//                 className="flex items-center cursor-pointer hover:bg-orange-50 p-2 rounded-lg transition-colors duration-200"
-//               >
-//                 <input
-//                   type="checkbox"
-//                   className="w-4 h-4 text-orange-500 focus:ring-orange-400 focus:ring-2 rounded"
-//                   checked={filters.ratings.includes(rating)}
-//                   onChange={() => toggleArrayFilter('ratings', rating)}
-//                 />
-//                 <div className="ml-3 flex items-center">
-//                   {[...Array(5)].map((_, i) => (
-//                     <Star
-//                       key={i}
-//                       className={`w-4 h-4 ${
-//                         i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-//                       }`}
-//                     />
-//                   ))}
-//                   <span className="ml-2 text-sm text-gray-600 font-medium">& Up</span>
-//                 </div>
-//               </label>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Clear Filters Button */}
-//         <button
-//           onClick={() => {
-//             updateFilter('category', 'all');
-//             updateFilter('priceRanges', []);
-//             updateFilter('ratings', []);
-//           }}
-//           className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
-//         >
-//           Clear All Filters
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-
-
 // export default SidebarFilters;
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Filter, Star, X, ChevronDown, ChevronUp, Search, Trash2, Check } from 'lucide-react';
 import { useFilterContext } from '@/context/FilterContext';
+import { getCategories } from './APICall/category';
 
 interface SidebarFiltersProps {
   isMobile?: boolean;
   onClose?: () => void;
+  productsData?: any;
 }
 
-const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClose }) => {
+const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClose, productsData }) => {
   const { filters, updateFilter, toggleArrayFilter } = useFilterContext();
   
   // Enhanced state management
@@ -259,7 +22,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClo
   const [categorySearch, setCategorySearch] = useState('');
   const [animatingFilters, setAnimatingFilters] = useState<string[]>([]);
   const [filterCounts, setFilterCounts] = useState({ categories: 0, priceRanges: 0, ratings: 0 });
-
+const [categoryData, setCategoryData] = useState<any>([]);
   // Basic grocery and bakery categories only
   const categories = [
     { key: 'all', label: 'All Products', icon: '🛒', color: 'bg-gray-100' },
@@ -295,6 +58,28 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClo
   const filteredCategories = categories.filter(cat =>
     cat.label.toLowerCase().includes(categorySearch.toLowerCase())
   );
+const getCategoryData= useCallback(async()=>{
+  try {
+    let payload={
+      search:categorySearch,
+      limit:10,
+      page:1,
+      sort:"asc"
+    }
+    const response=await getCategories(payload)
+    console.log("response",response)
+    if(response.success){
+      setCategoryData(response.data.categories)
+    }
+  } catch (error) {
+    console.log(error)
+  }
+},[categorySearch])
+
+
+useEffect(()=>{
+  getCategoryData()
+},[getCategoryData])
 
   // Calculate active filter counts
   useEffect(() => {
@@ -444,13 +229,13 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClo
               </div>
 
               <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                {filteredCategories.map((cat, index) => {
-                  const isActive = filters.category === cat.key;
-                  const isAnimating = animatingFilters.includes(`category-${cat.key}`);
+                {categoryData.map((cat:any, index:any) => {
+                  const isActive = filters.category === cat._id;
+                  const isAnimating = animatingFilters.includes(`category-${cat._id}`);
                   
                   return (
                     <label 
-                      key={cat.key} 
+                      key={cat._id} 
                       className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${
                         isActive ? 'bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200' : 'hover:bg-gray-50'
                       } ${isAnimating ? 'scale-105' : 'scale-100'}`}
@@ -462,7 +247,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClo
                           name="category"
                           className="sr-only"
                           checked={isActive}
-                          onChange={() => handleFilterChange('category', cat.key)}
+                          onChange={() => handleFilterChange('category', cat._id)}
                         />
                         <div className={`w-5 h-5 rounded-full border-2 transition-all duration-300 ${
                           isActive 
@@ -476,13 +261,13 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClo
                       </div>
                       
                       <div className={`ml-3 p-2 rounded-lg ${cat.color} transition-all duration-300`}>
-                        <span className="text-lg">{cat.icon}</span>
+                        <img className="w-6 h-6 rounded-full" src={cat.image} alt={cat.name} />
                       </div>
                       
                       <span className={`ml-3 text-sm font-medium transition-colors duration-300 ${
                         isActive ? 'text-orange-700' : 'text-gray-700'
                       }`}>
-                        {cat.label}
+                        {cat.name}
                       </span>
                     </label>
                   );

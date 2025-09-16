@@ -66,7 +66,7 @@ const slideIn = {
 const ProductGrid: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
-  const { wishListsData, setWistListsData } = useWishListContext();
+  const { wishListsData, setWistListsData ,getUserWishList} = useWishListContext();
   const { productsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -83,7 +83,11 @@ const ProductGrid: React.FC = () => {
   const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-
+  useEffect(() => {
+    if(user._id){
+      getUserWishList(user._id);
+    }
+  }, [user._id]);
   // Scroll to top functionality
   useEffect(() => {
     const handleScroll = () => {
@@ -127,13 +131,19 @@ const ProductGrid: React.FC = () => {
         'under-100': { min: 0, max: 100 },
         '100-300': { min: 100, max: 300 },
         '300-500': { min: 300, max: 500 },
+        'above-500': { min: 500, max: Infinity },
         '500-1000': { min: 500, max: 1000 },
         'above-1000': { min: 1000, max: Infinity }
       };
 
       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
         const range = priceRangeMap[rangeKey];
-        return product.price >= range.min && product.price <= range.max;
+        console.log("rangeKey",rangeKey)
+        console.log("priceRangeMap",priceRangeMap)
+        console.log("range",range)
+        console.log("product.price",product.price)
+        console.log("product.price >= range?.min && product.price <= range?.max",product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity))
+        return product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity);
       });
 
       if (!matchesPrice) return false;
@@ -178,6 +188,7 @@ const ProductGrid: React.FC = () => {
 
     let response = await addToCart(user._id, cartItem);
     console.log("response", response)
+    // @ts-ignore
     if (response.success) {
       alert("Product added to cart successfully");
     } else {
@@ -189,9 +200,11 @@ const ProductGrid: React.FC = () => {
     try {
       let response = removeFromCart(user._id, itemId);
       console.log("response", response)
+      // @ts-ignore
       if (response.success) {
         alert("Product removed from cart successfully");
       } else {
+        // @ts-ignore
         alert(response.message);
       }
     } catch (error) {
@@ -226,7 +239,6 @@ const ProductGrid: React.FC = () => {
 
   // Check if product is in cart
   const isInCart = useCallback((product: Product) => {
-    console.log("productisInCart", state.items)
     return state.items.some((item: any) => item.id === product._id);
   }, [state.items]);
 
@@ -270,12 +282,11 @@ const ProductGrid: React.FC = () => {
   };
 
   // Check authentication status
-  useEffect(() => {
-    if (!user) {
-      handleLogout();
-    }
-  }, [user]); // Add user to dependency array
-
+  // useEffect(() => {
+  //   if (!user) {
+  //     handleLogout();
+  //   }
+  // }, [user]); // Add user to dependency array
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
@@ -544,7 +555,7 @@ const ProductGrid: React.FC = () => {
         <div className="flex gap-2 lg:gap-6">
           {/* Desktop Sidebar Filters */}
           <div className="hidden lg:block">
-            <SidebarFilters />
+            <SidebarFilters productsData={productsData} />
           </div>
 
           {/* Products Grid */}
@@ -610,7 +621,6 @@ const ProductGrid: React.FC = () => {
                 isLoading={isLoading}
                 isInCart={isInCart}
                 getCartQuantity={getCartQuantity}
-                updateQuantity={updateQuantity}
                 productLists={filteredProducts}
                 onAddToCart={handleAddToCart}
                 onToggleWishlist={toggleWishlist}
