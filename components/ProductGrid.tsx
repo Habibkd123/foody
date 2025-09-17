@@ -59,26 +59,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
     const imageRefs = useRef<{ [key: string]: HTMLImageElement | null }>({});
     let userId = user?._id;
     console.log("userId",userId)
-    // Enhanced add to cart with animation
-    // const handleAddToCart = async (product: Product) => {
-    //     const quantity = quantities[product._id] || 1;
-    //     setAddingToCart(product._id?.toString());
-
-    //     try {
-    //         await onAddToCart?.(product, quantity);
-    //         setJustAdded(product._id?.toString());
-
-    //         // Reset quantity after adding
-    //         setQuantities(prev => ({ ...prev, [product._id]: 1 }));
-
-    //         // Clear success state
-    //         setTimeout(() => setJustAdded(null), 2000);
-    //     } catch (error) {
-    //         console.error('Failed to add to cart:', error);
-    //     } finally {
-    //         setAddingToCart(null);
-    //     }
-    // };
+ 
 
     const handleAddToCart = async (product: Product) => {
         const quantity = quantities[product._id] || 1;
@@ -98,9 +79,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
 
     // Toggle Wishlist
     const handleToggleWishlist = async (product: Product) => {
-        console.log("productsssssss",product)
         const isWishlisted = wishListsData.some((item) => item._id === product._id);
-console.log("isWishlisted",isWishlisted)
         try {
             if (isWishlisted) {
                 await removeWishList(userId, product._id);

@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   Heart, ShoppingCart, Star, Share2, Zap, CheckCircle, Plus, Minus, TrendingUp,
   Truck, Shield, RotateCcw, Award, ThumbsUp, ThumbsDown, MessageCircle,
@@ -16,10 +16,11 @@ import { useWishListContext } from "@/context/WishListsContext";
 import AddCardList from "@/components/AddCards";
 import { CartItem, Product } from "@/types/global";
 import { Button } from "@/components/ui/button";
+import { useAuthStorage } from '@/hooks/useAuth';
 
 const ProductPage = () => {
   const { product_id } = useParams();
-  
+  const { user } = useAuthStorage()
   // ALL HOOKS MUST BE DECLARED AT THE TOP - BEFORE ANY CONDITIONAL LOGIC
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
@@ -28,8 +29,8 @@ const ProductPage = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [reviewFilter, setReviewFilter] = useState('all');
+
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [showNutrition, setShowNutrition] = useState(false);
   const [viewedRecently, setViewedRecently] = useState(true);
   const [cartAnimation, setCartAnimation] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -38,10 +39,15 @@ const ProductPage = () => {
 
   // Hook calls
   const { product, loading, error } = useProduct(product_id ? product_id.toString() : '');
-  const { wishListsData, setWistListsData } = useWishListContext();
+  const { wishListsData, setWistListsData ,getUserWishList} = useWishListContext();
   const { dispatch, state } = useOrder();
   const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
-
+  useEffect(() => {
+    if(user._id){
+      getUserWishList(user._id);
+      setIsWishlisted(wishListsData.some((item) => item._id === product_id));
+    }
+  }, [user._id]);
   // useCallback hooks
   const isInCart = useCallback((product: Product) => {
     return state.items.some((item: any) => item.id === product._id);
@@ -93,15 +99,11 @@ const ProductPage = () => {
     );
   }
 
-  // Helper functions and event handlers
-  const user = typeof window !== 'undefined' 
-    ? JSON.parse(window.localStorage.getItem("G-user") || "{}")
-    : {};
-
   const toggleWishlist = (item: any) => {
     const exists = wishListsData.find((fav: any) => fav.id === item.id);
     if (exists) {
       setWistListsData(wishListsData.filter((fav: any) => fav.id !== item.id));
+      setIsWishlisted(false);
     } else {
       setWistListsData([...wishListsData, item]);
       const wishlistIcon = document.querySelector(`[data-wishlist-${item.id}]`);
@@ -109,6 +111,7 @@ const ProductPage = () => {
         wishlistIcon.classList.add('animate-pulse');
         setTimeout(() => wishlistIcon.classList.remove('animate-pulse'), 600);
       }
+      setIsWishlisted(true);
     }
   };
 
@@ -242,7 +245,7 @@ const ProductPage = () => {
           </div>
         </div>
       </header>
-      
+
       <div className="max-w-7xl mx-auto p-4">
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -331,14 +334,14 @@ const ProductPage = () => {
               <div className="flex items-center">
                 <Truck className="w-5 h-5 mr-2 text-blue-600" />
                 <span className="font-semibold">
-                  {product?.deliveryInfo.freeDelivery ? 'Free Delivery' : 'Paid Delivery'}
+                  {product?.deliveryInfo?.freeDelivery ? 'Free Delivery' : 'Paid Delivery'}
                 </span>
-                <span className="ml-2 text-gray-600">in {product?.deliveryInfo.estimatedDays}</span>
+                <span className="ml-2 text-gray-600">in {product?.deliveryInfo?.estimatedDays}</span>
               </div>
-              {product?.deliveryInfo.expressAvailable && (
+              {product?.deliveryInfo?.expressAvailable && (
                 <div className="flex items-center">
                   <Zap className="w-4 h-4 mr-2 text-yellow-500" />
-                  <span className="text-sm">Express delivery available ({product?.deliveryInfo.expressDays})</span>
+                  <span className="text-sm">Express delivery available ({product?.deliveryInfo?.expressDays})</span>
                 </div>
               )}
             </div>
@@ -398,7 +401,7 @@ const ProductPage = () => {
 
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={() => toggleWishlist(product)}
                   className={`flex-1 py-3 rounded-xl border-2 font-semibold flex items-center justify-center transition-all ${isWishlisted
                     ? "bg-red-50 border-red-300 text-red-600"
                     : "bg-white border-gray-300 text-gray-700 hover:border-red-300"
@@ -597,9 +600,9 @@ const ProductPage = () => {
                       </div>
                     </div>
                     <p className="text-gray-700 mb-2">{review.comment}</p>
-                    {review.images.length > 0 && (
+                    {review?.images?.length > 0 && (
                       <div className="flex space-x-2 mb-2">
-                        {review.images.map((img: any, i: any) => (
+                        {review?.images?.map((img: any, i: any) => (
                           <img key={i} src={img} alt="" className="w-16 h-16 object-cover rounded" />
                         ))}
                       </div>

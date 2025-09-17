@@ -818,34 +818,38 @@ import { useRouter } from "next/navigation"
 import AddCardList from "@/components/AddCards"
 import MyMap from "@/components/ui/mapsData"
 import { useAuthStorage } from "@/hooks/useAuth"
+import { useProductsContext } from "@/context/AllProductContext"
 
 // Grocery Products Data
-const products = [
-  // Masala & Spices
-  { id: 17, name: 'Maggi Masala-ae-Magic Sabzi Masala', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/18c2665c-3591-482c-a11a-e35662e756a4.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
-  { id: 18, name: 'Everest Tikhalal Red Chilli Powder', price: 54, originalPrice: 54, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/9dea2d22-108f-4021-aeec-e95b4e271e16.png', rating: 4.6, reviews: 187, category: 'masala', discount: 0 },
-  { id: 19, name: 'MCatch Turmeric Powder/Haldi', price: 39, originalPrice: 45, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c34b8c71-a7b3-4311-88de-80533ee0fc12.png', rating: 4.6, reviews: 187, category: 'masala', discount: 13 },
-  { id: 20, name: 'Catch Coriander Powder/Dhania', price: 65, originalPrice: 80, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/6df5cd41-6ace-47e9-952c-6a245a4994dc.png', rating: 4.6, reviews: 187, category: 'masala', discount: 19 },
-  { id: 21, name: 'Organic Tattva Red Organic Chilli Powder', price: 94, originalPrice: 110, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/4d2590f5-d68f-435a-af14-d9c09d2753b1.png', rating: 4.6, reviews: 187, category: 'masala', discount: 15 },
-  { id: 22, name: 'Tata Sampann Chilli Powder with Natural Oils', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c3f31b7f-0492-45b8-a14a-ad6dae3ca393.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
+// const products = [
+//   // Masala & Spices
+//   { id: 17, name: 'Maggi Masala-ae-Magic Sabzi Masala', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/18c2665c-3591-482c-a11a-e35662e756a4.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
+//   { id: 18, name: 'Everest Tikhalal Red Chilli Powder', price: 54, originalPrice: 54, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/9dea2d22-108f-4021-aeec-e95b4e271e16.png', rating: 4.6, reviews: 187, category: 'masala', discount: 0 },
+//   { id: 19, name: 'MCatch Turmeric Powder/Haldi', price: 39, originalPrice: 45, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c34b8c71-a7b3-4311-88de-80533ee0fc12.png', rating: 4.6, reviews: 187, category: 'masala', discount: 13 },
+//   { id: 20, name: 'Catch Coriander Powder/Dhania', price: 65, originalPrice: 80, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/6df5cd41-6ace-47e9-952c-6a245a4994dc.png', rating: 4.6, reviews: 187, category: 'masala', discount: 19 },
+//   { id: 21, name: 'Organic Tattva Red Organic Chilli Powder', price: 94, originalPrice: 110, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/4d2590f5-d68f-435a-af14-d9c09d2753b1.png', rating: 4.6, reviews: 187, category: 'masala', discount: 15 },
+//   { id: 22, name: 'Tata Sampann Chilli Powder with Natural Oils', price: 280, originalPrice: 350, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/c3f31b7f-0492-45b8-a14a-ad6dae3ca393.png', rating: 4.6, reviews: 187, category: 'masala', discount: 20 },
 
-  // Cooking Oils
-  { id: 28, name: 'Natureland Organic Mustard Oil Cold Pressed', price: 238, originalPrice: 375, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ba77235a-8b79-4c60-b68f-ccb559878363.png', rating: 4.6, reviews: 187, category: 'oil', discount: 37 },
-  { id: 29, name: 'Chambal Refined Soyabean Oil', price: 129, originalPrice: 163, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/394ff2b1-52e1-430c-8e35-2eab0ad407df.png', rating: 4.6, reviews: 187, category: 'oil', discount: 21 },
-  { id: 30, name: 'Fortune Sunlite Refined Sunflower Oil (870 g)', price: 159, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/08e99bfb-e035-4320-85ac-dd81880237c9.png', rating: 4.6, reviews: 187, category: 'oil', discount: 12 },
+//   // Cooking Oils
+//   { id: 28, name: 'Natureland Organic Mustard Oil Cold Pressed', price: 238, originalPrice: 375, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/ba77235a-8b79-4c60-b68f-ccb559878363.png', rating: 4.6, reviews: 187, category: 'oil', discount: 37 },
+//   { id: 29, name: 'Chambal Refined Soyabean Oil', price: 129, originalPrice: 163, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/394ff2b1-52e1-430c-8e35-2eab0ad407df.png', rating: 4.6, reviews: 187, category: 'oil', discount: 21 },
+//   { id: 30, name: 'Fortune Sunlite Refined Sunflower Oil (870 g)', price: 159, originalPrice: 180, image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/da/cms-assets/cms/product/08e99bfb-e035-4320-85ac-dd81880237c9.png', rating: 4.6, reviews: 187, category: 'oil', discount: 12 },
 
-]
+// ]
 
 export function Grocery() {
   const router = useRouter()
   const [darkMode, setDarkMode] = useState<boolean>(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
+  const { productsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<Array<any>>([])
   const [cartOpen, setCartOpen] = useState<boolean>(false)
   const [userData, setUserData] = useState<any | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
-const {token,user,setToken,setUser}=useAuthStorage()
+  const { token, user, setToken, setUser } = useAuthStorage()
+  let products = productsData
+  console.log(products)
   // Categories for grocery items
   const groceryCategories = [
     { id: 'all', name: "All Items", icon: "🛒" },
@@ -939,32 +943,33 @@ const {token,user,setToken,setUser}=useAuthStorage()
     }
     addToCart(item)
   }
- 
-useEffect(()=>{
-  if (token) {
-    setUserData(token)
-  }
-},[])
+
+  useEffect(() => {
+    if (!token || !user?._id) {
+      router.push("/login");
+    }
+  }, [token, user]);
+
   const logout = async () => {
     try {
       await fetch("/api/auth/logout", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // important!
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // cookie भी हटेगी
       });
-      setUserData(null)
-      router.push('/login')
-      localStorage.removeItem("token")
-      localStorage.removeItem("G-user")
-      localStorage.clear()
+      setUserData(null);
+      setToken(null);
+      setUser(null);
 
+      localStorage.removeItem("token");
+      localStorage.removeItem("G-user");
 
+      router.push("/login");
     } catch (error: any) {
-      alert(error?.message)
+      console.error(error);
     }
-  }
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
       {/* Sticky Header */}
@@ -993,7 +998,7 @@ useEffect(()=>{
               <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 Contact
               </a>
-              {!userData ? <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
+              {userData ? <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
                 Login
               </Button> :
                 <Button onClick={() => logout()} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" >
@@ -1175,18 +1180,18 @@ useEffect(()=>{
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
               <Card
-                key={product.id}
+                key={product._id}
                 className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
                 <div className="relative">
                   <img
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
+                    src={product?.images?.[0] || "/placeholder.svg"}
+                    alt={product?.name}
                     className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  {product.discount > 0 && (
+                  {product?.discount > 0 && (
                     <Badge className="absolute top-3 left-3 bg-red-500 hover:bg-red-600">
-                      {product.discount}% OFF
+                      {product?.discount}% OFF
                     </Badge>
                   )}
                   <Button
@@ -1198,19 +1203,19 @@ useEffect(()=>{
                 </div>
 
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-1 text-gray-900 dark:text-white line-clamp-2">{product.name}</h3>
+                  <h3 className="font-semibold text-lg mb-1 text-gray-900 dark:text-white line-clamp-2">{product?.name}</h3>
 
                   <div className="flex items-center space-x-1 mb-2">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{product.rating}</span>
-                    <span className="text-xs text-gray-500">({product.reviews})</span>
+                    <span className="text-sm font-medium">{product?.rating || 0}</span>
+                    <span className="text-xs text-gray-500">({product?.reviews?.length || 0})</span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg font-bold text-orange-500">₹{product.price}</span>
-                      {product.originalPrice > product.price && (
-                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
+                      <span className="text-lg font-bold text-orange-500">₹{product?.price}</span>
+                      {product?.originalPrice > product?.price && (
+                        <span className="text-sm text-gray-500 line-through">₹{product?.originalPrice}</span>
                       )}
                     </div>
                     <Button size="sm" className="bg-orange-500 hover:bg-orange-600" onClick={() => handleAddToCart(product)}>
@@ -1449,7 +1454,7 @@ useEffect(()=>{
 }
 
 export default function Page() {
-  
+
   return (
     <main>
       <Grocery />

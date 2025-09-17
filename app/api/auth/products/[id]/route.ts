@@ -86,51 +86,33 @@ export async function GET(
       originalPrice: product.originalPrice,
       images: product.images || [],
       totalReviews: product.reviews ? product.reviews.length : 0,
-      category: product.category ? {
+      category: product?.category ? {
         id: product.category._id.toString(),
         name: product.category.name
-      } : null,
+      } : {},
       discount: 47,
-      description: product.description || "No description available",
-      rating: product.rating || 0,
+      description: product.description,
+      rating: product.rating,
       inStock: product.inStock,
-      longDescription: product.longDescription || "Experience the perfect combination of nutrition and taste with our biofortified rice. Each grain is carefully selected and processed to retain maximum nutritional value while ensuring superior taste and texture. This rice is enriched with iron, zinc, and vitamin A, making it an excellent choice for health-conscious families.",
-      features: product.features || [
-        "Biofortified with essential nutrients (Iron, Zinc, Vitamin A)",
-        "Medium grain rice with perfect texture",
-        "Premium quality, hand-selected grains",
-        "Rich aroma and authentic taste",
-        "Easy to cook and digest",
-        "Naturally gluten-free",
-        "Source of complex carbohydrates",
-        "Suitable for all age groups"
-      ],
-      specifications: product.specifications || {
-        Weight: "1kg",
-        Brand: "Better Nutrition",
-        Type: "Biofortified Rice",
-        "Grain Type": "Medium Grain",
-        "Shelf Life": "12 months from date of packaging",
-        Storage: "Cool & dry place, away from direct sunlight",
-        "Nutritional Benefits": "Enriched with Iron (15mg/100g), Zinc (8mg/100g), Vitamin A (120mcg/100g)",
-        Origin: "Premium farms in Punjab, India",
-        "Processing Type": "Traditional milling with modern fortification",
-        "Cooking Time": "15-20 minutes",
-        "Water Ratio": "1:2 (Rice:Water)",
-        Certification: "FSSAI Approved, ISO 22000:2018"
-      },
-      nutritionalInfo: product.nutritionalInfo || {
-        "Energy": "345 kcal",
-        "Protein": "6.8g",
-        "Carbohydrates": "78g",
-        "Fat": "0.7g",
-        "Fiber": "1.3g",
-        "Iron": "15mg",
-        "Zinc": "8mg",
-        "Vitamin A": "120mcg"
-      },
-      stockCount: product.stock || 0,
-      brand: product.brand || "Better Nutrition",
+      longDescription: product.longDescription,
+      features: product.features,
+      specifications: (() => {
+        if (!product.specifications) return {};
+        // If it's already an object, return it directly
+        if (typeof product.specifications === 'object' && !Array.isArray(product.specifications) && !(product.specifications instanceof Map)) {
+          return product.specifications;
+        }
+        // If it's an array or Map, try to convert to object
+        try {
+          return Object.fromEntries(product.specifications);
+        } catch (error) {
+          console.error('Error converting specifications to object:', error);
+          return {};
+        }
+      })(),
+      nutritionalInfo: product.nutritionalInfo,
+      stockCount: product.stock,
+      brand: product.brand,
       sku: product.sku || "BN-BFR-1KG-001",
       weight: product.weight || "1kg",
       dimensions: product.dimensions || "25cm x 15cm x 8cm",

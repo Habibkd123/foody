@@ -259,6 +259,13 @@ const Sidebar = () => {
 
     },
     {
+      id: "banner",
+      label: "Banner",
+      icon: CheckSquare,
+      href: "/admin/banner",
+
+    },
+    {
       id: "orders",
       label: "Orders",
       icon: CheckSquare,
