@@ -1,6 +1,6 @@
 "use client";
 
-import { Navigation } from "lucide-react";
+import { ChevronDownIcon, Navigation } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
@@ -13,6 +13,7 @@ interface IBanner {
   _id: string;
   image: string[];
   title: string;
+  type: string;
   active: boolean;
 }
 
@@ -20,6 +21,7 @@ export default function BannerAdmin() {
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [formData, setFormData] = useState({
     title: "",
+    type: "Home",
     active: true,
   });
   const [editId, setEditId] = useState<string | null>(null);
@@ -97,7 +99,7 @@ export default function BannerAdmin() {
 
   async function uploadImages(files: File[]): Promise<string[]> {
     const formData = new FormData();
-    
+
     // Append all files to the form data
     files.forEach(file => {
       formData.append('image', file);
@@ -115,14 +117,14 @@ export default function BannerAdmin() {
       }
 
       const data = await res.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Upload failed');
       }
 
       // Extract URLs from the response
       return data.files.map((file: any) => file.url);
-      
+
     } catch (error) {
       console.error('Error uploading files:', error);
       throw error;
@@ -146,6 +148,7 @@ export default function BannerAdmin() {
       const bannerPayload = {
         image: urls,
         title: formData.title,
+        type: formData.type,
         active: formData.active,
       };
 
@@ -177,6 +180,7 @@ export default function BannerAdmin() {
   function resetForm() {
     setFormData({
       title: "",
+      type: "Home",
       active: true,
     });
     setEditId(null);
@@ -202,7 +206,9 @@ export default function BannerAdmin() {
     // Populate form with existing banner data
     setFormData({
       title: banner.title || '',
+      type: banner.type || 'Home',
       active: banner.active ?? true,
+      
     });
     setEditId(banner._id);
 
@@ -221,6 +227,7 @@ export default function BannerAdmin() {
       previews.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
     };
   }, []);
+console.log("Previews:", formData);
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
@@ -233,7 +240,7 @@ export default function BannerAdmin() {
           {/* Form Section */}
           <div className="p-6">
             <div className="grid grid-cols-1 gap-6 mb-6">
-              
+
               {/* Image Upload Section */}
               <div className="space-y-4">
                 <div className="space-y-1">
@@ -317,9 +324,9 @@ export default function BannerAdmin() {
                 )}
               </div>
 
-              {/* Other Form Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
+              <div className="space-y-6">
+                {/* Title */}
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Title</label>
                   <input
                     name="title"
@@ -327,11 +334,13 @@ export default function BannerAdmin() {
                     maxLength={100}
                     value={formData.title}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   />
                 </div>
 
-                <div className="flex items-center space-x-3 pt-6">
+                {/* Active Checkbox */}
+                <div className="flex items-center space-x-3">
                   <input
                     name="active"
                     type="checkbox"
@@ -341,7 +350,24 @@ export default function BannerAdmin() {
                   />
                   <label className="text-sm font-medium text-gray-700">Active</label>
                 </div>
+
+                {/* Type Dropdown */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Type</label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">Select type</option>
+                    <option value="Home">Home</option>
+                    <option value="LandInding">Landing</option>
+                  </select>
+                </div>
               </div>
+
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -362,7 +388,7 @@ export default function BannerAdmin() {
                   editId ? 'Update Banner' : 'Create Banner'
                 )}
               </button>
-              
+
               {selectedFiles.length > 0 && (
                 <button
                   onClick={resetForm}
@@ -439,12 +465,14 @@ export default function BannerAdmin() {
                       <div className="flex items-start justify-between">
                         <h3 className="font-medium text-gray-900 truncate flex-1 mr-2">{banner.title}</h3>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${banner.active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {banner.active ? "Active" : "Inactive"}
                         </span>
                       </div>
+                      <p>type:{banner.type}</p>
+
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2">

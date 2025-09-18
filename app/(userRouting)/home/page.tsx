@@ -387,7 +387,7 @@ const HomePage: React.FC = () => {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           >
 
-            <HeroSlider />
+            <HeroSlider type="Home" />
           </div>
         </section>
         <div className="max-w-7xl mx-auto px-4 py-6">
