@@ -25,11 +25,11 @@ export interface CategorySectionType {
 
 
 
-const CategorySection = ({ section }: { section: CategorySectionType }) => {
+const CategorySection = ({ section }: { section: any }) => {
   return (
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{section?.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{section?.name}</h2>
         <Link href={`/productList`} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
           <span>View All</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -37,8 +37,8 @@ const CategorySection = ({ section }: { section: CategorySectionType }) => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        {Array.isArray(section.items) && section.items.length > 0 ? (
-          section.items.map((item, idx) => (
+        {Array.isArray(section.products) && section.products.length > 0 ? (
+          section.products.map((item:any, idx:any) => (
             <div
               key={idx}
               className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200"
@@ -47,15 +47,15 @@ const CategorySection = ({ section }: { section: CategorySectionType }) => {
               <Link href={`/products/${item._id}`}>
                 <div className="relative overflow-hidden rounded-lg mb-3">
                   <img
-                    src={item.img}
-                    alt={item.label}
+                    src={item.images[0]}
+                    alt={item.name}
                     className="w-full h-20 sm:h-24 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="text-center">
                   <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2">
-                    {item.label}
+                    {item.name}
                   </h3>
                 </div>
               </Link>
@@ -166,7 +166,7 @@ const HomePage: React.FC = () => {
     localStorage.removeItem("token");
     window.location.reload();
   };
-
+console.log("Categories:", categories?.length);
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
@@ -390,18 +390,18 @@ const HomePage: React.FC = () => {
             <HeroSlider type="Home" />
           </div>
         </section>
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          {categories.length === 0 ? (
-            <div className="text-center text-gray-400 py-12">Loading categories...</div>
-          ) : (
+        <div className="max-w-8xl mx-auto px-6 py-6">
+          {Array.isArray(categories) ?
             categories.map((section, idx) => (
               // @ts-ignore
-              <CategorySection section={section} key={section?._id || idx} />
+              <CategorySection section={section} key={idx} />
             ))
+          : (
+            <div className="text-center text-gray-400 py-12">Loading categories...</div>
           )}
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Section */}
           <div className="mt-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 text-white">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">

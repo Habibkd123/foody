@@ -14,6 +14,7 @@ export interface Product {
   specifications: Record<string, string>;
   inStock?: boolean;
   stockCount?: number;
+  quantity?: number;
   brand?: string;
   sku?: string;
   weight?: string;

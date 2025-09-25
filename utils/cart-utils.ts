@@ -10,7 +10,7 @@ export function handleCartError(error: any): NextResponse<ApiResponse<null>> {
       {
         success: false,
         error: 'Validation error',
-        message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+        message: Array.isArray(error.errors) ? error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ') : 'Unknown validation error'
       },
       { status: 400 }
     );

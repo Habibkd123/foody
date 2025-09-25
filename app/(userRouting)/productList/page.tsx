@@ -176,8 +176,9 @@ const ProductGrid: React.FC = () => {
 
   // Enhanced add to cart with animation and better state management
   const handleAddToCart = useCallback(async (item: Product) => {
+    console.log("user",user)
     if (!user?._id) return;
-
+console.log("item",item)
     const cartItem: any = {
       id: item._id,
       name: item.name,
@@ -185,7 +186,7 @@ const ProductGrid: React.FC = () => {
       quantity: 1,
       image: item.images[0],
     };
-
+console.log("cartItem",cartItem)
     let response = await addToCart(user._id, cartItem);
     console.log("response", response)
     // @ts-ignore
@@ -297,7 +298,7 @@ const ProductGrid: React.FC = () => {
 
       <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
         <header className="transition-all duration-300">
-          <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
+          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
             <div className="flex items-center justify-between">
               {/* Enhanced Logo with hover animation */}
               <div className="flex items-center gap-2 flex-shrink-0 group">
@@ -624,6 +625,7 @@ const ProductGrid: React.FC = () => {
                 productLists={filteredProducts}
                 onAddToCart={handleAddToCart}
                 onToggleWishlist={toggleWishlist}
+                
               />
             </div>
           </div>

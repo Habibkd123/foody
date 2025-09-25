@@ -58,15 +58,14 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
     const [justAdded, setJustAdded] = useState<string | null>(null);
     const imageRefs = useRef<{ [key: string]: HTMLImageElement | null }>({});
     let userId = user?._id;
-    console.log("userId",userId)
  
 
     const handleAddToCart = async (product: Product) => {
         const quantity = quantities[product._id] || 1;
         setAddingToCart(product._id);
-
+        product.quantity = quantity;
         try {
-            await onAddToCart?.(product, quantity);
+            await onAddToCart?.(product);
             setJustAdded(product._id);
             setQuantities((prev) => ({ ...prev, [product._id]: 1 }));
             setTimeout(() => setJustAdded(null), 2000);
@@ -188,14 +187,16 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                             </div>
 
                             {/* Enhanced badges */}
-                            <div className="absolute top-0 left-0 z-20">
-                                <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-bold px-3 py-1 rounded-br-xl shadow-lg transform transition-all duration-300 hover:scale-105">
-                                    <span className="flex items-center">
-                                        <Zap className="w-3 h-3 mr-1" />
-                                        {product.discount}% OFF
-                                    </span>
+                            {product.discount > 0 && (
+                                <div className="absolute top-0 left-0 z-20">
+                                    <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-bold px-3 py-1 rounded-br-xl shadow-lg transform transition-all duration-300 hover:scale-105">
+                                        <span className="flex items-center">
+                                            <Zap className="w-3 h-3 mr-1" />
+                                            {product.discount}% OFF
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Trending badge for highly rated products */}
                             {product.rating >= 4.5 && (
@@ -211,20 +212,6 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                         {showQuickActions && (
                             <div className={`absolute top-2 right-2 flex flex-col space-y-2 z-30 transform transition-all duration-300 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
                                 }`}>
-                                {/* Wishlist Button */}
-                                {/* <button
-                                    onClick={(e: React.MouseEvent) => {
-                                        e.stopPropagation();
-                                        onToggleWishlist?.(product);
-                                    }}
-                                    className={`p-2 bg-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${isWishlisted ? 'bg-red-50 border-red-200' : 'border-gray-200'
-                                        }`}
-                                >
-                                    <Heart
-                                        className={`w-4 h-4 transition-all duration-300 ${isWishlisted ? 'text-red-500 fill-current scale-110' : 'text-gray-400 hover:text-red-500'
-                                            }`}
-                                    />
-                                </button> */}
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -308,9 +295,11 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                                         </span>
                                     </div>
                                 </div>
-                                <div className="text-xs text-green-600 font-medium mt-1">
-                                    You save ₹{savings.toLocaleString()}
-                                </div>
+                                {!isNaN(savings) && (
+                                    <div className="text-xs text-green-600 font-medium mt-1">
+                                        You save ₹{savings.toLocaleString()}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Quantity Controls */}

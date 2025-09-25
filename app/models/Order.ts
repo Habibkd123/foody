@@ -12,8 +12,11 @@ export interface IOrder extends Document {
   items: IOrderItem[];
   total: number;
   status: OrderStatus;
-  payment: Types.ObjectId;
+  // payment: Types.ObjectId;
+  paymentId: string;
   delivery: Types.ObjectId;
+  orderId: string;
+  method: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,8 +30,11 @@ const OrderSchema = new Schema<IOrder>({
   }],
   total: { type: Number, required: true },
   status: { type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING },
-  payment: { type: Schema.Types.ObjectId, ref: 'Payment' },
+  orderId: { type: String, required: true },
+  // payment: { type: Schema.Types.ObjectId, ref: 'Payment' },
+  paymentId: { type: String, required: true },
   delivery: { type: Schema.Types.ObjectId, ref: 'Delivery' },
+  method: { type: String, enum: ["card", "upi"], default: "card" },
 }, { timestamps: true });
 
 export default mongoose.models.Order || model<IOrder>('Order', OrderSchema);

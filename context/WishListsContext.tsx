@@ -76,6 +76,7 @@ const WishListProvider: React.FC<ProviderProps> = ({ children }) => {
   const addWishList = async (userId: string, productId: string) => {
     if (!userId) {
       alert("Please login to add to wishlist");
+      
       return;
     }
     if (!productId) {

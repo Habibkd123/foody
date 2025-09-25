@@ -227,7 +227,7 @@ export default function BannerAdmin() {
       previews.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
     };
   }, []);
-console.log("Previews:", formData);
+// console.log("Previews:", formData);
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
