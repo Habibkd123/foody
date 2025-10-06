@@ -13,22 +13,18 @@ export async function GET(request: NextRequest) {
     if (active === 'true') query.active = true;
     if (type) query.type = type;
     const banners = await Banner.find(query).sort({ createdAt: -1 });
-    console.log("Banner data:", banners);
-    return NextResponse.json(banners);
+    return NextResponse.json({message:"banner found successfully ",banners:banners,status:true});
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch banners' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to fetch banners',status:false }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Banner data:", body);
     const banner = await Banner.create(body);
-    console.log("Banner created:", banner);
-    return NextResponse.json(banner);
+    return NextResponse.json({message:"banner created successfully",banner:banner,status:true});
   } catch (err) {
-    console.log("Banner created:", err);
-    return NextResponse.json({ error: 'Failed to create banner' }, { status: 400 });
+    return NextResponse.json({ message: 'Failed to create banner',banner:[],status:false }, { status: 400 });
   }
 }

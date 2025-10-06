@@ -26,8 +26,13 @@ export default function HeroSlider({type}: {type: string}) {
           },
         });
         const data = await res.json();
-        console.log("Banner data:", data);
-        setBanners(data.map((banner:any) => banner.imageUrl));
+        console.log("Banner data11:", data);
+
+        if(data.status){
+        console.log("Banner data:", banners);
+
+        setBanners(data&&data.banners.map((banner:any) => banner.imageUrl));
+        }
       } catch (error) {
         console.error("Error fetching banners:", error);
       }

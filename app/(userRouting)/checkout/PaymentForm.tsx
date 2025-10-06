@@ -5,36 +5,54 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { useAuthStorage } from "@/hooks/useAuth";
+import { useOrder } from "@/context/OrderContext";
 
-export default function PaymentForm() {
+export default function PaymentForm({totalAmount}:any) {
   const stripe = useStripe();
   const elements = useElements();
-
+ const { user } = useAuthStorage()
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) return;
-
-    setIsLoading(true);
-
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: "http://localhost:3000/success", // Customize for production
-      },
-    });
-
-    if (error?.type === "card_error" || error?.type === "validation_error") {
-      setMessage(error.message || null);
-    } else if (error) {
-      setMessage("An unexpected error occurred.");
-    }
-
+ const { dispatch, state } = useOrder();
+// in PaymentForm.jsx
+const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  if (!stripe || !elements) return;
+  setIsLoading(true);
+  const { error, paymentIntent } = await stripe.confirmPayment({
+    elements,
+    confirmParams: { return_url: `${window.location.origin}/success` },
+    redirect: "if_required"
+  });
+console.log("ddddddddd", error, paymentIntent)
+  if (error) {
+    setMessage(error.message || "An unexpected error occurred.");
     setIsLoading(false);
-  };
+    return;
+  }
+
+  // If paymentIntent status is succeeded, save order
+  if (paymentIntent?.status === "succeeded") {
+    // Call backend order save API
+    await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user: user?.id,
+        items: state.items.map((i:any) => ({ product: i.product, quantity: i.quantity, price: i.price })),
+        total: totalAmount,
+        paymentId: paymentIntent.id,
+        delivery: state?.address?.label,
+        method: "card",
+        orderId: paymentIntent.id
+      })
+    });
+    // Redirect or show confirmation UI on success
+  }
+  setIsLoading(false);
+};
+
 
   const paymentElementOptions = { layout: "accordion" };
 

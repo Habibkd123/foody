@@ -32,7 +32,6 @@ const [loacaluser,setLocalUser]=useState<any>(  {})
       },
     })
     const data = await result.json();
-    console.log("datadatadatadatadata11111111111",data);
     if(data.success){
       setToken(data.token);
       setLocalUser(data.user)
@@ -41,7 +40,6 @@ const [loacaluser,setLocalUser]=useState<any>(  {})
    
   }
   const getUserData= async()=>{
-    console.log("loacaluser",loacaluser);
     if(loacaluser._id){
     const result = await fetch(`/api/users/${loacaluser._id}`,{
       method:"GET",
@@ -50,7 +48,6 @@ const [loacaluser,setLocalUser]=useState<any>(  {})
       },
     })
     const data = await result.json();
-    console.log("datadatadatadatadata",data);
     if(data.success){
       setUser(data.data);
     }

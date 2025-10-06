@@ -304,15 +304,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string>("");
 
-  useEffect(() => {
-    fetch("/api/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: 1000 }), // Amount in cents ($10)
-    })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret));
-  }, []);
+ 
 
   const appearance = {
     theme: "stripe",
@@ -331,7 +323,24 @@ export default function CheckoutPage() {
   console.log(state);
   const toggle = (section: string) => setExpanded(expanded === section ? "" : section);
   let totalAmount = state?.items?.reduce((t, i) => t + i.price * i.quantity, 0) + (state.tip || 0) + (state.deliveryCharge || 0) + (state.handlingCharge || 0) + (state.donation || 0);
-
+  useEffect(() => {
+    if (!totalAmount || totalAmount < 50) { // Ensure cart is not empty and above minimum
+      setClientSecret("");
+      return;
+    }
+  
+    fetch("/api/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: Math.round(totalAmount * 100), // ₹ to paise
+        currency: "inr"
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => setClientSecret(data.clientSecret));
+  }, [totalAmount]);
+  
   return (
     <>
      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">
@@ -344,7 +353,7 @@ export default function CheckoutPage() {
         <div className="flex flex-col lg:flex-row gap-8 grid grid-cols-1 lg:grid-cols-2">
         {clientSecret && (
         <Elements stripe={stripePromise} options={options}>
-          <PaymentForm />
+          <PaymentForm  totalAmount={totalAmount}/>
         </Elements>
       )}
           <div className="w-full space-y-6">

@@ -612,8 +612,8 @@ export default function PaymentPage() {
       quantity: item.quantity,
       price: item.price,
     }));
-
-    const res = await fetch("/api/create-order", {
+    // /api/orders
+    const res = await fetch("/api/order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 

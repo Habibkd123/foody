@@ -29,11 +29,43 @@
 //     { id: 'Other', label: 'Other', icon: MapPin },
 // ];
 
-// const DeliveryAddressPage = ({ handleAddAddress, onClose, open, setShowAddModal, userId }: any) => {
-//     const { address, addAddress, distance, setDistance } = useCartOrder();
-//     const { user } = useAuthStorage()
-//     const [searchText, setSearchText] = useState("");
+// interface DeliveryAddressPageProps {
+//     handleAddAddress: (address: Address) => Promise<void>;
+//     onClose: () => void;
+//     open: boolean;
+//     setShowAddModal: (show: boolean) => void;
+//     userId?: string;
+//     editingAddress?: Address;
+// }
 
+// const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({ 
+//     handleAddAddress, 
+//     onClose, 
+//     open, 
+//     setShowAddModal, 
+//     userId,
+//     editingAddress
+// }) => {
+    
+//     const { setDistance, updateAddress, loading} = useCartOrder();
+//     const { user } = useAuthStorage();
+    
+//     // Local state for the address being edited/created
+//     const [localAddress, setLocalAddress] = useState<Partial<Address>>({
+//         street: '',
+//         area: '',
+//         city: '',
+//         state: '',
+//         zipCode: '',
+//         landmark: '',
+//         name: user?.firstName || '',
+//         phone: Number(user?.phone) || 0,
+//         isDefault: false,
+//         lat: undefined,
+//         lng: undefined,
+//     });
+
+//     const [searchText, setSearchText] = useState("");
 //     const [selectedAddressType, setSelectedAddressType] = useState('Home');
 //     const [marker, setMarker] = useState(defaultCenter);
 //     const [closestShop, setClosestShop] = useState<{ name: string, distance: number } | null>(null);
@@ -43,6 +75,54 @@
 //         googleMapsApiKey: "AIzaSyAQODjSc_eWcBWoIdk7trMzl98oRHF9HFs",
 //         libraries,
 //     });
+
+//     // Initialize form when editing an address
+//     useEffect(() => {
+//         if (editingAddress) {
+//             setLocalAddress({
+                
+//                 street: editingAddress.street || '',
+//                 area: editingAddress.area || '',
+//                 city: editingAddress.city || '',
+//                 state: editingAddress.state || '',
+//                 zipCode: editingAddress.zipCode || '',
+//                 landmark: editingAddress.landmark || '',
+//                 name: editingAddress.name || user?.firstName || '',
+//                 phone: editingAddress.phone || Number(user?.phone) || 0,
+//                 isDefault: editingAddress?.isDefault || false,
+//                 lat: editingAddress?.lat,
+//                 lng: editingAddress?.lng,
+//             });
+            
+//             setSelectedAddressType(editingAddress.label || 'Home');
+            
+//             if (editingAddress?.lat && editingAddress?.lng) {
+//                 setMarker({ lat: editingAddress?.lat, lng: editingAddress?.lng });
+//             }
+            
+//             // Set search text to formatted address
+//             const formattedAddress = `${editingAddress?.street || ''} ${editingAddress?.area || ''} ${editingAddress?.city || ''}`.trim();
+//             setSearchText(formattedAddress);
+//         } else {
+//             // Reset form for new address
+//             setLocalAddress({
+//                 street: '',
+//                 area: '',
+//                 city: '',
+//                 state: '',
+//                 zipCode: '',
+//                 landmark: '',
+//                 name: user?.firstName || '',
+//                 phone: Number(user?.phone) || 0,
+//                 isDefault: false,
+//                 lat: undefined,
+//                 lng: undefined,
+//             });
+//             setSelectedAddressType('Home');
+//             setSearchText('');
+//             getUserLocation(); // Get current location for new addresses
+//         }
+//     }, [editingAddress, user, open]);
 
 //     const getAddressFromLatLng = useCallback((lat: number, lng: number) => {
 //         const geocoder = new window.google.maps.Geocoder();
@@ -55,7 +135,8 @@
 //                     area: "",
 //                     city: "",
 //                     state: "",
-//                     zipCode: ""
+//                     zipCode: "",
+                    
 //                 };
 
 //                 addressComponents.forEach((component: any) => {
@@ -79,15 +160,14 @@
 //                     }
 //                 });
 
-//                 dispatchAddressUpdate({
+//                 updateLocalAddress({
 //                     ...parsedAddress,
 //                     lat,
 //                     lng,
 //                 });
 //             }
 //         });
-//     }, [address]);
-
+//     }, []);
 
 //     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
 //         const R = 6371;
@@ -110,58 +190,28 @@
 //     };
 
 //     const getUserLocation = () => {
-//         navigator.geolocation.getCurrentPosition((position) => {
-//             const userLat = position.coords.latitude;
-//             const userLng = position.coords.longitude;
-//             setMarker({ lat: userLat, lng: userLng });
-//             getAddressFromLatLng(userLat, userLng);
-//             const d = calculateDistance(userLat, userLng, defaultCenter.lat, defaultCenter.lng);
-//             setDistance(Number(d.toFixed(2)));
-//         }, (err) => {
-//             console.error("Geolocation error:", err.message);
-//         });
+//         if (navigator.geolocation) {
+//             navigator.geolocation.getCurrentPosition((position) => {
+//                 const userLat = position.coords.latitude;
+//                 const userLng = position.coords.longitude;
+//                 setMarker({ lat: userLat, lng: userLng });
+//                 getAddressFromLatLng(userLat, userLng);
+//                 const d = calculateDistance(userLat, userLng, defaultCenter.lat, defaultCenter.lng);
+//                 setDistance(Number(d.toFixed(2)));
+//             }, (err) => {
+//                 console.error("Geolocation error:", err.message);
+//                 // Fallback to default center if geolocation fails
+//                 setMarker(defaultCenter);
+//             });
+//         }
 //     };
 
-//     useEffect(() => {
-//         getUserLocation();
-//     }, []);
-
-//     // Updated function to only update provided fields, preserving existing ones
-//     const dispatchAddressUpdate = async (updates: Partial<Address>) => {
-//         const currentAddress = address || {};
-//         console.log("currentAddress", currentAddress)
-//         const updatedAddress = {
-//             ...currentAddress,
-//             label: selectedAddressType,
-//             address: currentAddress.address || '',
-//             area: currentAddress.area || '',
-//             city: currentAddress.city || '',
-//             state: currentAddress.state || '',
-//             zipCode: currentAddress.zipCode || '',
-//             landmark: currentAddress.landmark || '',
-//             name: currentAddress.name || '',
-//             phone: currentAddress.phone || Number(user?.phone) || 0,
-//             isDefault: currentAddress.isDefault || false,
-//             ...updates // Spread the updates to override only the provided fields
-//         };
-
-//         // Use the userId from props if available, otherwise fall back to the one from auth context
-//         const effectiveUserId = user?._id;
-//         console.log("effectiveUserId", user)
-//         if (!effectiveUserId) {
-//             console.error('User ID is required to add an address');
-//             return;
-//         }
-
-//         try {
-//             await addAddress(effectiveUserId, updatedAddress);
-//             // If we're in the modal context, call the handleAddAddress callback
-//             // if (handleAddAddress) {
-//             //     handleAddAddress(updatedAddress);
-//             // }
-//         } catch (error) {
-//             console.error('Error saving address:', error);
-//         }
+//     // Update local address state
+//     const updateLocalAddress = (updates: Partial<Address>) => {
+//         setLocalAddress(prev => ({
+//             ...prev,
+//             ...updates
+//         }));
 //     };
 
 //     const handlePlaceChanged = () => {
@@ -206,16 +256,16 @@
 
 //             const area = sublocalityLevel2 || sublocalityLevel1 || locality;
 //             const street = streetNumber && route ? `${streetNumber} ${route}` : route;
-//             setSearchText(place.formatted_address || place.name || ""); 
-//             // Update the address with the extracted components
-//             dispatchAddressUpdate({
+
+//             // Update local address with the extracted components
+//             updateLocalAddress({
+//                 address : place.formatted_address || place.name || "", 
 //                 street: street || '',
 //                 area: area || '',
+//                 city: locality || '',
+//                 state: administrativeAreaLevel1 || '',
+//                 zipCode: postalCode || '',
 //                 landmark: place.name || '',
-//                 flatNumber: streetNumber || '',
-//                 floor: '', // Google Places API doesn't provide floor information
-//                 name: user?.name || '',
-//                 phone: Number(user?.phone) || 0,
 //                 lat,
 //                 lng,
 //             });
@@ -245,14 +295,47 @@
 //         }
 //     }, [marker]);
 
-//     const handleSaveAddress = () => {
-//         if (address) {
-//             // Final save with all current values including selected address type
-//             dispatchAddressUpdate({
-//                 label: selectedAddressType
-//             });
+//     const validateAddress = (): boolean => {
+//         if (!localAddress.area?.trim()) {
+//             alert('Area is required');
+//             return false;
 //         }
-//         onClose();
+//         if (!localAddress.city?.trim()) {
+//             alert('City is required');
+//             return false;
+//         }
+//         if (!localAddress.state?.trim()) {
+//             alert('State is required');
+//             return false;
+//         }
+//         if (!localAddress.name?.trim()) {
+//             alert('Name is required');
+//             return false;
+//         }
+//         if (!localAddress.phone) {
+//             alert('Phone number is required');
+//             return false;
+//         }
+//         return true;
+//     };
+
+//     const handleSaveAddress = async () => {
+//         if (!validateAddress()) return;
+
+//         try {
+//             if(editingAddress){
+//                 await updateAddress(addressToSave);
+//             }
+//             const addressToSave: Address = {
+//                 ...localAddress as Address,
+//                 label: selectedAddressType,
+//             };
+
+//             await handleAddAddress(addressToSave);
+//         } catch (error) {
+//             console.error('Error saving address:', error);
+//             alert('Failed to save address. Please try again.');
+//         }
 //     };
 
 //     if (!isLoaded) return (
@@ -292,7 +375,7 @@
 //                             </div>
 
 //                             <GoogleMap
-// // ...
+//                                 mapContainerStyle={mapContainerStyle}
 //                                 center={marker}
 //                                 zoom={16}
 //                                 onClick={handleMapClick}
@@ -323,7 +406,7 @@
 //                                         />
 //                                         <div className="min-w-0 flex-1">
 //                                             <div className="font-medium text-sm sm:text-base lg:text-lg truncate">
-//                                                 {address?.area || 'Select location'}
+//                                                 {localAddress?.area || 'Select location'}
 //                                             </div>
 //                                             {closestShop && (
 //                                                 <div className="text-xs sm:text-sm text-green-700 font-medium">
@@ -338,6 +421,12 @@
 
 //                         {/* Form Section */}
 //                         <div className="flex-1 lg:order-2 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+//                             <SheetHeader className="mb-4">
+//                                 <SheetTitle>
+//                                     {editingAddress ? 'Edit Address' : 'Add New Address'}
+//                                 </SheetTitle>
+//                             </SheetHeader>
+
 //                             <div className="space-y-4 sm:space-y-5">
 //                                 {/* Address Type Selection */}
 //                                 <div>
@@ -365,42 +454,74 @@
 //                                 <div className="space-y-3 sm:space-y-4">
 //                                     <Input
 //                                         placeholder="Flat / House no / Building name *"
-//                                         value={address?.street || ""}
-//                                         onChange={(e) => dispatchAddressUpdate({ street: e.target.value })}
+//                                         value={localAddress?.street || ""}
+//                                         onChange={(e) => updateLocalAddress({ street: e.target.value })}
 //                                     />
 
 //                                     <Input
 //                                         placeholder="Area *"
-//                                         value={address?.area || ""}
-//                                         onChange={(e) => dispatchAddressUpdate({ area: e.target.value })}
+//                                         value={localAddress?.area || ""}
+//                                         onChange={(e) => updateLocalAddress({ area: e.target.value })}
 //                                     />
 
 //                                     <Input
 //                                         placeholder="City *"
-//                                         value={address?.city || ""}
-//                                         onChange={(e) => dispatchAddressUpdate({ city: e.target.value })}
+//                                         value={localAddress?.city || ""}
+//                                         onChange={(e) => updateLocalAddress({ city: e.target.value })}
 //                                     />
 
 //                                     <Input
 //                                         placeholder="State *"
-//                                         value={address?.state || ""}
-//                                         onChange={(e) => dispatchAddressUpdate({ state: e.target.value })}
+//                                         value={localAddress?.state || ""}
+//                                         onChange={(e) => updateLocalAddress({ state: e.target.value })}
 //                                     />
 
 //                                     <Input
 //                                         placeholder="Zip Code *"
-//                                         value={address?.zipCode || ""}
-//                                         onChange={(e) => dispatchAddressUpdate({ zipCode: e.target.value })}
+//                                         value={localAddress?.zipCode || ""}
+//                                         onChange={(e) => updateLocalAddress({ zipCode: e.target.value })}
 //                                     />
 
+//                                     <Input
+//                                         placeholder="Landmark (Optional)"
+//                                         value={localAddress?.landmark || ""}
+//                                         onChange={(e) => updateLocalAddress({ landmark: e.target.value })}
+//                                     />
+
+//                                     <Input
+//                                         placeholder="Name *"
+//                                         value={localAddress?.name || ""}
+//                                         onChange={(e) => updateLocalAddress({ name: e.target.value })}
+//                                     />
+
+//                                     <Input
+//                                         placeholder="Phone Number *"
+//                                         type="number"
+//                                         value={localAddress?.phone || ""}
+//                                         onChange={(e) => updateLocalAddress({ phone: Number(e.target.value) })}
+//                                     />
+
+//                                     <div className="flex items-center space-x-2">
+//                                         <input
+//                                             type="checkbox"
+//                                             id="isDefault"
+//                                             checked={localAddress?.isDefault || false}
+//                                             onChange={(e) => updateLocalAddress({ isDefault: e.target.checked })}
+//                                             className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+//                                         />
+//                                         <label htmlFor="isDefault" className="text-sm text-gray-700">
+//                                             Set as default address
+//                                         </label>
+//                                     </div>
 //                                 </div>
 
 //                                 {/* Save Button */}
 //                                 <Button
 //                                     onClick={handleSaveAddress}
 //                                     className="w-full bg-green-600 hover:bg-green-700 text-white h-12 sm:h-14 text-base sm:text-lg rounded-lg"
+//                                     disabled={!localAddress?.area || !localAddress?.city || !localAddress?.state || !localAddress?.name}
 //                                 >
-//                                     Save & Continue
+//                                     {editingAddress ? 'Update Address' : 'Save & Continue'}
 //                                 </Button>
 //                             </div>
 //                         </div>
@@ -460,9 +581,10 @@ const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({
     open, 
     setShowAddModal, 
     userId,
-    editingAddress 
+    editingAddress
 }) => {
-    const { setDistance } = useCartOrder();
+    
+    const { setDistance, updateAddress, loading} = useCartOrder();
     const { user } = useAuthStorage();
     
     // Local state for the address being edited/created
@@ -495,7 +617,6 @@ const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({
     useEffect(() => {
         if (editingAddress) {
             setLocalAddress({
-                
                 street: editingAddress.street || '',
                 area: editingAddress.area || '',
                 city: editingAddress.city || '',
@@ -535,6 +656,7 @@ const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({
             });
             setSelectedAddressType('Home');
             setSearchText('');
+            setMarker(defaultCenter);
             getUserLocation(); // Get current location for new addresses
         }
     }, [editingAddress, user, open]);
@@ -551,7 +673,6 @@ const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({
                     city: "",
                     state: "",
                     zipCode: "",
-                    
                 };
 
                 addressComponents.forEach((component: any) => {
@@ -738,12 +859,23 @@ const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({
         if (!validateAddress()) return;
 
         try {
+            // Create the address object first
             const addressToSave: Address = {
                 ...localAddress as Address,
                 label: selectedAddressType,
             };
 
-            await handleAddAddress(addressToSave);
+            // Check if editing or adding new
+            if (editingAddress) {
+                // Update existing address
+                await updateAddress(user?._id || "", editingAddress._id || "", addressToSave);
+            } else {
+                // Add new address
+                await handleAddAddress(addressToSave);
+            }
+            
+            // Close modal after successful save
+            onClose();
         } catch (error) {
             console.error('Error saving address:', error);
             alert('Failed to save address. Please try again.');
@@ -931,9 +1063,9 @@ const DeliveryAddressPage: React.FC<DeliveryAddressPageProps> = ({
                                 <Button
                                     onClick={handleSaveAddress}
                                     className="w-full bg-green-600 hover:bg-green-700 text-white h-12 sm:h-14 text-base sm:text-lg rounded-lg"
-                                    disabled={!localAddress?.area || !localAddress?.city || !localAddress?.state || !localAddress?.name}
+                                    disabled={loading || !localAddress?.area || !localAddress?.city || !localAddress?.state || !localAddress?.name}
                                 >
-                                    {editingAddress ? 'Update Address' : 'Save & Continue'}
+                                    {loading ? 'Saving...' : (editingAddress ? 'Update Address' : 'Save & Continue')}
                                 </Button>
                             </div>
                         </div>
