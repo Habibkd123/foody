@@ -221,21 +221,20 @@ export async function POST(request: NextRequest) {
           400
         );
       }
-    }
-
     // Merge items with same product (combine quantities)
     const mergedItems = mergeCartItems(validatedData.items);
 
     const cart = await Cart.create({
       user: validatedData.user,
-      items: mergedItems
+      items: mergedItems,
+      status: 'active',
+      expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
     });
 
     // Populate the cart with user and product details
     await cart.populate([
       {
         path: 'user',
-        select: 'firstName lastName email'
       },
       {
         path: 'items.product',

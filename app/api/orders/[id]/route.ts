@@ -7,12 +7,12 @@ import mongoose from 'mongoose';
 // GET /api/orders/[id] - Fetch a single order by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const { id } = params;
+    const { id } = await params;
     
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -25,7 +25,7 @@ export async function GET(
     // Find order with population
     const order = await Order.findById(id)
       .populate('user', 'firstName lastName email phone addresses')
-      .populate('items.product', 'name price image category description stock')
+      .populate('items.product')
       .populate('delivery', 'address status estimatedDelivery trackingNumber')
       .lean();
     
@@ -53,14 +53,15 @@ export async function GET(
 // PUT /api/orders/[id] - Update an existing order
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const { id } = params;
+    const { id } = await params;
+
     const body = await request.json();
-    
+    console.log("daa",body)
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -134,9 +135,9 @@ export async function PUT(
       { new: true, runValidators: true }
     )
       .populate('user', 'firstName lastName email phone addresses')
-      .populate('items.product', 'name price image category description stock')
+      .populate('items.product',)
       .populate('delivery', 'address status estimatedDelivery trackingNumber');
-    
+      console.log("daa",updatedOrder)
     return NextResponse.json({
       success: true,
       data: updatedOrder,
@@ -164,12 +165,12 @@ export async function PUT(
 // DELETE /api/orders/[id] - Delete an order
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const { id } = params;
+    const { id } = await params;
     
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {

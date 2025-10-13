@@ -289,76 +289,95 @@
 //     </div>
 //   );
 // }
-
 "use client";
 import { useEffect, useState } from "react";
 import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
+import { loadStripe, StripeElementsOptions, Appearance } from "@stripe/stripe-js";
 import PaymentForm from "./PaymentForm";
 import { useAuthStorage } from "@/hooks/useAuth";
 import { useOrder } from "@/context/OrderContext";
 import { Star } from "lucide-react";
+import RazorpayButton from "./RazorpayButton";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
 
 export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string>("");
+  const [gateway, setGateway] = useState<'stripe' | 'razorpay'>('stripe');
+  const { state } = useOrder();
 
- 
+  const totalAmount =
+    (state?.items?.reduce((t, i) => t + i.price * i.quantity, 0) || 0) +
+    (state?.tip || 0) +
+    (state?.deliveryCharge || 0) +
+    (state?.handlingCharge || 0) +
+    (state?.donation || 0);
 
-  const appearance = {
+  useEffect(() => {
+    // Fetch active payment gateway from settings
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.data?.paymentGateway === 'razorpay') setGateway('razorpay');
+        else setGateway('stripe');
+      })
+      .catch(() => setGateway('stripe'));
+
+    if (!totalAmount || totalAmount < 50) {
+      setClientSecret("");
+      return;
+    }
+
+    if (gateway === 'stripe') {
+      fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Math.round(totalAmount * 100), // convert ₹ to paise
+          currency: "inr",
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => setClientSecret(data.clientSecret))
+        .catch((err) => console.error("Error creating payment intent:", err));
+    }
+  }, [totalAmount, gateway]);
+
+  const appearance: Appearance = {
     theme: "stripe",
-    variables: {
-      colorPrimary: "#50667c",
-    },
+    variables: { colorPrimary: "#50667c" },
   };
 
   const options: StripeElementsOptions = {
     clientSecret,
     appearance,
   };
-  const [expanded, setExpanded] = useState<string>("wallets");
-  const { user } = useAuthStorage();
-  let { state } = useOrder();
-  console.log(state);
-  const toggle = (section: string) => setExpanded(expanded === section ? "" : section);
-  let totalAmount = state?.items?.reduce((t, i) => t + i.price * i.quantity, 0) + (state.tip || 0) + (state.deliveryCharge || 0) + (state.handlingCharge || 0) + (state.donation || 0);
-  useEffect(() => {
-    if (!totalAmount || totalAmount < 50) { // Ensure cart is not empty and above minimum
-      setClientSecret("");
-      return;
-    }
-  
-    fetch("/api/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: Math.round(totalAmount * 100), // ₹ to paise
-        currency: "inr"
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret));
-  }, [totalAmount]);
-  
+
   return (
-    <>
-     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Secure Checkout</h1>
           <p className="text-gray-600">Choose your preferred payment method</p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 grid grid-cols-1 lg:grid-cols-2">
-        {clientSecret && (
-        <Elements stripe={stripePromise} options={options}>
-          <PaymentForm  totalAmount={totalAmount}/>
-        </Elements>
-      )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {gateway === 'stripe' ? (
+            clientSecret ? (
+              <Elements stripe={stripePromise} options={options}>
+                <PaymentForm totalAmount={totalAmount} />
+              </Elements>
+            ) : (
+              <div className="p-6 rounded-2xl border-2 border-gray-200 bg-white">Preparing Stripe checkout...</div>
+            )
+          ) : (
+            <div className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
+              <RazorpayButton totalAmount={totalAmount} />
+            </div>
+          )}
+
+          {/* Order Summary */}
           <div className="w-full space-y-6">
-  
-         <div className="w-full ">
             <div className="sticky top-6 bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-xl">
               <div className="bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white">
                 <h2 className="text-2xl font-bold mb-2">Order Summary</h2>
@@ -367,50 +386,57 @@ export default function CheckoutPage() {
                   <span className="text-sm">Secure & Fast Checkout</span>
                 </div>
               </div>
+
               <div className="p-6 space-y-6">
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-3">Delivery Address</h3>
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      <span className="font-medium text-gray-800">{state?.address?.label}:</span> {state?.address?.area}
+                      <span className="font-medium text-gray-800">{state?.address?.label}:</span>{" "}
+                      {state?.address?.area}
                     </p>
                   </div>
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center justify-between">
-                    My Cart <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">{state?.items?.length} items</span>
+                    My Cart{" "}
+                    <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">
+                      {state?.items?.length} items
+                    </span>
                   </h3>
                   <div className="space-y-2">
                     {state?.items?.map((item, index) => (
                       <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium text-gray-800">{item.name}</p>
-                        </div>
+                        <p className="font-medium text-gray-800">{item.name}</p>
                         <span className="font-semibold text-gray-800">₹{item.price}</span>
                       </div>
                     ))}
+
                     {state?.tip > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div><p className="font-medium text-gray-800">Tip</p></div>
+                        <p className="font-medium text-gray-800">Tip</p>
                         <span className="font-semibold text-gray-800">₹{state.tip}</span>
                       </div>
                     )}
-                    {state?.donation&&state?.donation > 0 && (
+
+                    {(state?.donation ?? 0) > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div><p className="font-medium text-gray-800">Donation</p></div>
-                        <span className="font-semibold text-gray-800">₹{state.donation}</span>
+                        <p className="font-medium text-gray-800">Donation</p>
+                        <span className="font-semibold text-gray-800">₹{state?.donation ?? 0}</span>
                       </div>
                     )}
+
                     {state?.deliveryCharge > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div><p className="font-medium text-gray-800">Delivery Charge</p></div>
+                        <p className="font-medium text-gray-800">Delivery Charge</p>
                         <span className="font-semibold text-gray-800">₹{state.deliveryCharge}</span>
                       </div>
                     )}
+
                     {state?.handlingCharge > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div><p className="font-medium text-gray-800">Handling Charge</p></div>
+                        <p className="font-medium text-gray-800">Handling Charge</p>
                         <span className="font-semibold text-gray-800">₹{state.handlingCharge}</span>
                       </div>
                     )}
@@ -423,21 +449,15 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 </div>
-{/* 
-                <button 
-                  onClick={() => }
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Complete Payment
-                </button> */}
-                <p className="text-xs text-gray-500 text-center">🔒 Your payment information is secure and encrypted</p>
+
+                <p className="text-xs text-gray-500 text-center">
+                  🔒 Your payment information is secure and encrypted
+                </p>
               </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
     </div>
-    </>
   );
 }

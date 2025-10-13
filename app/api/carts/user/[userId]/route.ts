@@ -61,7 +61,9 @@ export async function GET(
     if (!cart) {
       const newCart = await Cart.create({
         user: userId,
-        items: []
+        items: [],
+        status: 'active',
+        expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
       });
 
       await newCart.populate([
@@ -135,7 +137,9 @@ export async function POST(
         items: [{
           product: validatedData.productId,
           quantity: validatedData.quantity
-        }]
+        }],
+        status: 'active',
+        expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
       });
     } else {
       // Check if product already exists in cart
@@ -166,6 +170,9 @@ export async function POST(
         });
       }
 
+      // Refresh TTL and keep cart active on any change
+      cart.status = 'active';
+      cart.expiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
       await cart.save();
     }
 
@@ -357,6 +364,9 @@ export async function DELETE(
     } else {
       // Clear entire cart
       cart.items = [];
+      // Refresh TTL and keep cart active on clear as well
+      cart.status = 'active';
+      cart.expiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
       await cart.save();
 
       return NextResponse.json<ApiResponse<null>>({
@@ -418,6 +428,9 @@ async function handleBulkUpdate(userId: string, body: any) {
   }
 
   cart.items = updatedItems;
+  // Refresh TTL and keep cart active on bulk update
+  cart.status = 'active';
+  cart.expiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
   await cart.save();
 
   // Populate and return updated cart

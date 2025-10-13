@@ -10,10 +10,10 @@ import mongoose from "mongoose";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
-    const { amount } = await req.json(); // get payment amount (in cents)
+    const { amount, currency = 'inr' } = await req.json(); // amount should already be in smallest unit
     const paymentIntent = await stripe.paymentIntents.create({
         amount,
-        currency: 'usd',
+        currency,
         automatic_payment_methods: { enabled: true },
     });
 

@@ -19,6 +19,7 @@ export interface IOrder extends Document {
   method: string;
   createdAt: Date;
   updatedAt: Date;
+  notes: string;
 }
 
 const OrderSchema = new Schema<IOrder>({
@@ -31,6 +32,7 @@ const OrderSchema = new Schema<IOrder>({
   total: { type: Number, required: true },
   status: { type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING },
   orderId: { type: String, required: true },
+  notes: { type: String },
   // payment: { type: Schema.Types.ObjectId, ref: 'Payment' },
   paymentId: { type: String, required: true },
   delivery: { type: Schema.Types.ObjectId, ref: 'Delivery' },

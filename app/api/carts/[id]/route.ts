@@ -3,11 +3,11 @@ import connectDB from '@/lib/mongodb';
 import Cart from '@/app/models/Cart';
 import Product from '@/app/models/Product';
 import { updateCartSchema } from '@/lib/cart-validations';
-import { 
-  handleCartError, 
-  validateCartObjectId, 
-  formatCartResponse, 
-  createCartSuccessResponse, 
+import {
+  handleCartError,
+  validateCartObjectId,
+  formatCartResponse,
+  createCartSuccessResponse,
   createCartErrorResponse,
   validateProductAvailability,
   mergeCartItems
@@ -125,38 +125,42 @@ export async function PUT(
             400
           );
         }
+        // Merge items with same product (combine quantities)
+        validatedData.items = mergeCartItems(validatedData.items);
       }
 
-      // Merge items with same product (combine quantities)
-      validatedData.items = mergeCartItems(validatedData.items);
+      const updateData: any = {
+        ...validatedData,
+        status: 'active',
+        expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+      };
+
+      const updatedCart = await Cart.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true, runValidators: true }
+      )
+        .populate({
+          path: 'user',
+          select: 'firstName lastName email'
+        })
+        .populate({
+          path: 'items.product',
+          select: 'name price images stock status'
+        });
+
+      const formattedCart = formatCartResponse(updatedCart!, true);
+
+      return createCartSuccessResponse(
+        formattedCart,
+        'Cart updated successfully'
+      );
     }
-
-    const updatedCart = await Cart.findByIdAndUpdate(
-      id,
-      validatedData,
-      { new: true, runValidators: true }
-    )
-    .populate({
-      path: 'user',
-      select: 'firstName lastName email'
-    })
-    .populate({
-      path: 'items.product',
-      select: 'name price images stock status'
-    });
-
-    const formattedCart = formatCartResponse(updatedCart!, true);
-
-    return createCartSuccessResponse(
-      formattedCart,
-      'Cart updated successfully'
-    );
-
   } catch (error) {
     return handleCartError(error);
   }
-}
 
+}
 // DELETE - Delete cart by ID
 export async function DELETE(
   request: NextRequest,

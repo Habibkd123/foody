@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 export enum UserRole { USER = 'user', ADMIN = 'admin' }
 export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
-export enum OrderStatus { PENDING = 'pending', PAID = 'paid', SHIPPED = 'shipped', DELIVERED = 'delivered', CANCELED = 'canceled' }
+export enum OrderStatus { PENDING = 'pending', PAID = 'paid', SHIPPED = 'shipped', DELIVERED = 'delivered', CANCELED = 'canceled',PROCESSING='processing' }
 export enum PaymentStatus { PENDING = 'pending', SUCCESS = 'success', FAILED = 'failed' }
 export enum DeliveryStatus { PENDING = 'pending', DISPATCHED = 'dispatched', DELIVERED = 'delivered', RETURNED = 'returned' }
 
