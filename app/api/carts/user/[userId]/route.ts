@@ -46,7 +46,7 @@ export async function GET(
       );
     }
 
-    let cart = await Cart.findOne({ user: userId })
+    let cart = await Cart.findOne({ user: userId, status:"active"})
       .populate({
         path: 'user',
         select: 'firstName lastName email'
