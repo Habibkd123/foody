@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
       'Cart created successfully',
       201
     );
-
+  }
   } catch (error) {
     return handleCartError(error);
   }
