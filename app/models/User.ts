@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 export enum UserRole { USER = 'user', ADMIN = 'admin' }
 export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
-export enum OrderStatus { PENDING = 'pending', PAID = 'paid', SHIPPED = 'shipped', DELIVERED = 'delivered', CANCELED = 'canceled',PROCESSING='processing' }
+export enum OrderStatus { PENDING = 'pending', PENDING_UPPER = 'PENDING', PAID = 'paid', SHIPPED = 'shipped', DELIVERED = 'delivered', CANCELED = 'canceled', PROCESSING = 'processing' }
 export enum PaymentStatus { PENDING = 'pending', SUCCESS = 'success', FAILED = 'failed' }
 export enum DeliveryStatus { PENDING = 'pending', DISPATCHED = 'dispatched', DELIVERED = 'delivered', RETURNED = 'returned' }
 
@@ -57,29 +57,29 @@ const UserSchema = new Schema<IUser>({
   role: { type: String, enum: Object.values(UserRole), default: UserRole.USER },
   addresses: [{
     address: { type: String, default: '' },
-    area: { type: String ,default: '' },
-    city: { type: String, required: false ,default: '' },
+    area: { type: String, default: '' },
+    city: { type: String, required: false, default: '' },
     flatNumber: { type: String, default: '' },
     floor: { type: String, default: '' },
     isDefault: { type: Boolean, default: false },
-    label: { type: String, required: false ,default: '' },
-    landmark: { type: String ,default: '' },
-    lat: { type: Number ,default: 0},
-    lng: { type: Number ,default: 0},
+    label: { type: String, required: false, default: '' },
+    landmark: { type: String, default: '' },
+    lat: { type: Number, default: 0 },
+    lng: { type: Number, default: 0 },
     name: { type: String, default: '' },
     phone: { type: Number, default: 0 },
-    state: { type: String, required: false ,default: '' },
-    street: { type: String ,default: ''},
-    zipCode: { type: String ,default: ''}
+    state: { type: String, required: false, default: '' },
+    street: { type: String, default: '' },
+    zipCode: { type: String, default: '' }
   }]
 }, { timestamps: true });
 
 UserSchema.index({ email: 1 }, { unique: true });
 
 // Hash password before saving
-UserSchema.pre<IUser>('save', async function(next) {
+UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password')) return next();
-  
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -90,7 +90,7 @@ UserSchema.pre<IUser>('save', async function(next) {
 });
 
 // Method to compare password
-UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 

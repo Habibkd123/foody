@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       paymentId: razorpay_payment_id,
       orderId: orderId || razorpay_order_id,
       method,
-      status: 'PENDING',
+      status: 'pending',
       address,
     };
 
