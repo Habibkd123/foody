@@ -105,12 +105,12 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({
       $or: [
         { email: validatedData.email },
-        { phone: validatedData.phone }
+        // { phone: validatedData.phone }
       ]
     });
 
     if (existingUser) {
-      const field = existingUser.email === validatedData.email ? 'email' : 'phone';
+      const field = existingUser.email === validatedData.email && 'email' 
       return createUserErrorResponse(
         'User already exists',
         `A user with this ${field} already exists`,

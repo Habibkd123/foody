@@ -101,7 +101,7 @@ export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
     <button
       onClick={handlePay}
       disabled={loading || !scriptReady}
-      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+      className="w-full  bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-lg border-b border-orange-100 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
     >
       {loading ? 'Processing...' : 'Pay with Razorpay'}
     </button>

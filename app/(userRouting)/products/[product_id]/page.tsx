@@ -11,7 +11,9 @@ import {
 import { useProduct } from "@/hooks/useProduct";
 import { useParams } from "next/navigation";
 import { useCartOrder, useOrder } from "@/context/OrderContext";
+import { useProductsContext } from "@/context/AllProductContext";
 import Link from "next/link";
+import ProductCardGrid from "@/components/ProductGrid";
 import { useWishListContext } from "@/context/WishListsContext";
 import AddCardList from "@/components/AddCards";
 import { CartItem, Product } from "@/types/global";
@@ -29,6 +31,11 @@ const ProductPage = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [reviewFilter, setReviewFilter] = useState('all');
+  const [remoteReviews, setRemoteReviews] = useState<any[]>([]);
+  const [reviewForm, setReviewForm] = useState<{ rating: number; comment: string }>({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [viewedRecently, setViewedRecently] = useState(true);
@@ -36,10 +43,14 @@ const ProductPage = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   // Hook calls
   const { product, loading, error } = useProduct(product_id ? product_id.toString() : '');
   const { wishListsData, setWistListsData ,getUserWishList} = useWishListContext();
+  const { productsData } = useProductsContext();
   const { dispatch, state } = useOrder();
   const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
   useEffect(() => {
@@ -48,6 +59,80 @@ const ProductPage = () => {
       setIsWishlisted(wishListsData.some((item) => item._id === product_id));
     }
   }, [user._id]);
+
+  useEffect(() => {
+    if (!user?._id) {
+      const existing = typeof window !== 'undefined' ? localStorage.getItem('session-id') : null;
+      if (existing) {
+        setSessionId(existing);
+      } else {
+        const sid = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        try { localStorage.setItem('session-id', sid); } catch {}
+        setSessionId(sid);
+      }
+    }
+  }, [user?._id]);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetch(`/api/recommendations/user/${user._id}`)
+        .then(res => res.json())
+        .then(json => setRecommendations(json?.data || []))
+        .catch(() => setRecommendations([]));
+    }
+  }, [user._id]);
+
+  // Load reviews from API when product is available
+  useEffect(() => {
+    const load = async () => {
+      try {
+        if (!product?._id) return;
+        const res = await fetch(`/api/products/${product._id}/reviews`, { cache: 'no-store' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setRemoteReviews(Array.isArray(data.data) ? data.data : []);
+        }
+      } catch {}
+    };
+
+    load();
+  }, [product?._id]);
+
+  // Compute related products by category (exclude current product)
+  useEffect(() => {
+    if (!product?._id || !product?.category) {
+      setRelatedProducts([]);
+      return;
+    }
+    const list = (productsData || [])
+      .filter((p: Product) => p.category === product.category && p._id !== product._id)
+      .slice(0, 12);
+    setRelatedProducts(list);
+  }, [product?._id, product?.category, productsData]);
+
+  const handleAddToCartFromGrid = async (item: Product) => {
+    if (!user?._id) return;
+    const cartItem1: any = {
+      id: item._id,
+      name: item.name,
+      price: item.price,
+      quantity: 1,
+      image: item.images?.[0],
+    };
+    try {
+      await addToCart(user._id, cartItem1);
+    } catch {}
+  };
+useEffect(() => {
+  if (user?._id) {
+    fetch(`/api/recommendations/user/${user._id}`)
+      .then(res => res.json())
+      .then(json => setRecommendations(json?.data || []))
+      .catch(() => setRecommendations([]));
+  }
+}, [user._id]);
+
+console.log("recommendations", recommendations);
   // useCallback hooks
   const isInCart = useCallback((product: Product) => {
     return state.items.some((item: any) => item.id === product._id);
@@ -116,19 +201,27 @@ const ProductPage = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!product || !user?.id) return;
+    console.log("useruseruser",product)
+    if(!user?._id){
+      alert('Please login to add to cart');
+    }
+    if(!product){
+      alert('Please select a product to add to cart');
+    }
+    
+    if (!product ||!user?._id) return;
 
     setAdding(true);
     try {
       const cartItem1: any = {
-        id: product._id,
+        id: product._id||product?.id,
         name: product.name,
         price: product.price,
         quantity: quantity,
         image: product.images[0],
       };
 
-      await addToCart(user.id, cartItem1);
+      await addToCart(user?._id, cartItem1);
       setJustAdded(true);
       setTimeout(() => setJustAdded(false), 2000);
     } catch (error) {
@@ -157,15 +250,17 @@ const ProductPage = () => {
   const savings = product?.originalPrice - product?.price;
   const savingsPercent = Math.round((savings / product?.originalPrice) * 100);
 
+  const sourceReviews = (remoteReviews && remoteReviews.length > 0) ? remoteReviews : (product?.reviews || []);
+
   const filteredReviews = reviewFilter === 'all'
-    ? product?.reviews
-    : product?.reviews.filter((review: any) => review?.rating === parseInt(reviewFilter));
+    ? sourceReviews
+    : sourceReviews.filter((review: any) => review?.rating === parseInt(reviewFilter));
 
   const reviewsToShow = showAllReviews ? filteredReviews : filteredReviews?.slice(0, 3);
 
   const getRatingDistribution = () => {
     const distribution: { [key: string]: number } = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    product?.reviews.forEach((review: { rating?: string }) => {
+    sourceReviews.forEach((review: { rating?: any }) => {
       const rating = review?.rating;
       if (rating && distribution.hasOwnProperty(rating)) {
         distribution[rating]++;
@@ -175,6 +270,68 @@ const ProductPage = () => {
   };
 
   const ratingDistribution = getRatingDistribution();
+
+const handleSubmitReview = async () => {
+  console.log("productproductproductproduct", product);
+  if (!product?.id || submittingReview) return;
+
+  setSubmittingReview(true);
+
+  try {
+    const res = await fetch(`/api/products/${product.id}/reviews`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user: user?._id,
+        rating: Number(reviewForm.rating),
+        comment: reviewForm.comment,
+        images: reviewImages,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      setReviewForm({ rating: 5, comment: '' });
+      setReviewImages([]);
+
+      // ✅ Use product._id again here
+      const r = await fetch(`/api/products/${product.id}/reviews`, { cache: 'no-store' });
+      const dj = await r.json();
+
+      if (r.ok && dj.success) {
+        setRemoteReviews(Array.isArray(dj.data) ? dj.data : []);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to submit review:", err);
+  } finally {
+    setSubmittingReview(false);
+  }
+};
+
+  const handleReviewImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const formData = new FormData();
+    Array.from(files).forEach((file) => formData.append('images', file));
+    setUploadingImages(true);
+    try {
+      const res = await fetch('/api/auth/products/uploads', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.imagesAdded)) {
+        setReviewImages((prev) => [...prev, ...data.imagesAdded].slice(0, 6));
+      }
+    } catch {}
+    finally {
+      setUploadingImages(false);
+      // reset input so same files can be reselected if needed
+      e.currentTarget.value = '';
+    }
+  };
 
   return (
     <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
@@ -215,10 +372,10 @@ const ProductPage = () => {
                     removeFromCart={removeFromCart}
                     updateQuantity={(itemId: any, newQuantity: any) => {
                       if (newQuantity === 0) {
-                        removeFromCart(user?.id, itemId);
+                        removeFromCart(user?._id, itemId);
                       } else {
                         const change = newQuantity - getCartQuantity({ id: itemId } as Product);
-                        updateQuantity(user?.id, itemId?.toString(), change);
+                        updateQuantity(user?._id, itemId?.toString(), change);
                       }
                     }}
                     getTotalPrice={getTotalPrice}
@@ -463,7 +620,7 @@ const ProductPage = () => {
                   }`}
               >
                 {tab.charAt(0).toUpperCase() + tab?.slice(1)}
-                {tab === 'reviews' && ` (${product?.reviews.length})`}
+                {tab === 'reviews' && ` (${sourceReviews.length})`}
               </button>
             ))}
           </nav>
@@ -528,6 +685,61 @@ const ProductPage = () => {
 
           {activeTab === 'reviews' && (
             <div className="space-y-6">
+              {/* Review submission */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-semibold mb-3">Write a review</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+                  <div>
+                    <label className="block text-sm mb-1">Rating</label>
+                    <select
+                      value={reviewForm.rating}
+                      onChange={(e) => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
+                      className="border rounded px-3 py-2 w-full"
+                    >
+                      {[5,4,3,2,1].map(r => (
+                        <option key={r} value={r}>{r} Stars</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm mb-1">Comment</label>
+                    <textarea
+                      value={reviewForm.comment}
+                      onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                      className="border rounded px-3 py-2 w-full min-h-[80px]"
+                      placeholder="Share your experience..."
+                    />
+                    <div className="mt-3">
+                      <label className="block text-sm mb-1">Add images (max 6)</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleReviewImagesSelect}
+                        className="block w-full text-sm"
+                      />
+                      {uploadingImages && <p className="text-xs text-gray-500 mt-1">Uploading...</p>}
+                      {reviewImages.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {reviewImages.map((url, idx) => (
+                            <img key={idx} src={url} alt="review" className="w-16 h-16 object-cover rounded border" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={submittingReview}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded disabled:opacity-60"
+                  >
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold">Customer Reviews</h3>
                 <div className="flex items-center space-x-4">
@@ -556,7 +768,7 @@ const ProductPage = () => {
                         <Star key={i} className={`w-5 h-5 ${i < Math.floor(product?.rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
                       ))}
                     </div>
-                    <div className="text-gray-600">{product?.totalReviews} total reviews</div>
+                    <div className="text-gray-600">{sourceReviews.length} total reviews</div>
                   </div>
                   <div className="space-y-2">
                     {[5, 4, 3, 2, 1].map((rating) => (
@@ -566,7 +778,7 @@ const ProductPage = () => {
                           <div
                             className="bg-yellow-400 h-2 rounded-full"
                             style={{
-                              width: `${(ratingDistribution[rating] / product?.reviews.length) * 100}%`
+                              width: `${(ratingDistribution[rating] / sourceReviews.length) * 100}%`
                             }}
                           ></div>
                         </div>
@@ -580,11 +792,11 @@ const ProductPage = () => {
               {/* Reviews List */}
               <div className="space-y-4">
                 {reviewsToShow.map((review: any) => (
-                  <div key={review.id} className="border-b pb-4">
+                  <div key={review._id || review.id} className="border-b pb-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="font-semibold">{review.userName}</span>
+                          <span className="font-semibold">{review?.user?.firstName || review?.userName || 'User'}</span>
                           {review.verified && (
                             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
                               Verified Purchase
@@ -595,7 +807,7 @@ const ProductPage = () => {
                           {[...Array(5)].map((_, i) => (
                             <Star key={i} className={`w-4 h-4 ${i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
                           ))}
-                          <span className="ml-2 text-sm text-gray-500">{review.date}</span>
+                          <span className="ml-2 text-sm text-gray-500">{review?.date || (review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : '')}</span>
                         </div>
                       </div>
                     </div>
@@ -610,7 +822,7 @@ const ProductPage = () => {
                     <div className="flex items-center space-x-4 text-sm">
                       <button className="flex items-center text-gray-600 hover:text-green-600">
                         <ThumbsUp className="w-4 h-4 mr-1" />
-                        Helpful ({review.helpful})
+                        Helpful ({review.helpful || 0})
                       </button>
                       <button className="flex items-center text-gray-600 hover:text-red-600">
                         <ThumbsDown className="w-4 h-4 mr-1" />
@@ -635,43 +847,6 @@ const ProductPage = () => {
               )}
             </div>
           )}
-        </div>
-
-        {/* Related Products */}
-        <div className="space-y-4">
-          <h3 className="text-2xl font-bold">You might also like</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {product?.relatedProducts && product?.relatedProducts.map((relatedProduct: any) => (
-              <div key={relatedProduct?.id} className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
-                <img
-                  src={relatedProduct.image}
-                  alt={relatedProduct.name}
-                  className="w-full h-48 object-cover rounded mb-3"
-                />
-                <h4 className="font-semibold mb-2 line-clamp-2">{relatedProduct.name}</h4>
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(relatedProduct.rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
-                  ))}
-                  <span className="ml-2 text-sm text-gray-600">{relatedProduct.rating}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-lg">₹{relatedProduct.price}</span>
-                    <span className="text-gray-500 line-through ml-2">₹{relatedProduct.originalPrice}</span>
-                  </div>
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">
-                    {relatedProduct.discount}% OFF
-                  </span>
-                </div>
-                <button className="w-full mt-3 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition-colors">
-                  Add to Cart
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* FAQ Section */}
         <div className="mt-12 space-y-4">
           <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
@@ -767,7 +942,8 @@ const ProductPage = () => {
           <ChevronUp className="w-6 h-6" />
         </button>
       </div>
-    </div>
+      </div>
+      </div>
   );
 };
 

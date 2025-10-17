@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCartOrder, useOrder } from "@/context/OrderContext";
 import { useAuthStorage } from "@/hooks/useAuth";
+import { Input } from "./ui/input";
 const coupons = [
   {
     id: 3,
@@ -32,6 +33,8 @@ const CartSummary = ({ cartItems }: any) => {
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [selectedTip, setSelectedTip] = useState<number>(0);
   const [customTipValue, setCustomTipValue] = useState<string>("");
+    const [pincode, setPincode] = useState("");
+  const [deliveryAvailability, setDeliveryAvailability] = useState(false);
   const getTotalPrice = () =>
     cartItems.reduce((total: number, item: any) => total + item.price * item.quantity, 0);
 
@@ -69,6 +72,45 @@ const CartSummary = ({ cartItems }: any) => {
     }
   };
 
+const handlePincodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const value = event.target.value;
+  setPincode(value);
+
+  // Automatically check availability
+  if (value.length === 6) {
+    fetchDeliveryAvailability(value);
+  } else {
+    setDeliveryAvailability(false);
+  }
+};
+
+const fetchDeliveryAvailability = async (pincode: string) => {
+  if (!pincode || pincode.length !== 6) {
+    setDeliveryAvailability(false);
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/pincode/${pincode}`);
+    if (!response.ok) throw new Error("Pincode not found");
+
+    const data = await response.json();
+    setDeliveryAvailability(data.serviceable); // assuming your API returns { pincode, city, serviceable, ... }
+  } catch (err) {
+    console.error("Delivery check failed:", err);
+    setDeliveryAvailability(false);
+  }
+};
+const getEstimatedDeliveryDate = (daysToAdd = 2) => {
+  const today = new Date();
+  today.setDate(today.getDate() + daysToAdd);
+
+  return today.toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+};
 
   return (
     <div className="max-w-md mx-auto px-2 border rounded-lg shadow-md bg-white">
@@ -145,6 +187,33 @@ const CartSummary = ({ cartItems }: any) => {
           </div>
         )}
       </div>
+ <div className="bg-gray-50 p-3 rounded-lg mb-4">
+          <label htmlFor="pincode" className="block text-sm font-medium text-gray-700">
+            Enter Pincode
+          </label>
+          <Input
+            id="pincode"
+            name="pincode"
+            type="text"
+            value={pincode}
+            onChange={handlePincodeChange}
+            className="mt-1 block w-full shadow-sm sm:text-sm"
+          />
+        </div>
+       <p className={`text-sm font-semibold ${deliveryAvailability ? "text-green-600" : "text-red-500"}`}>
+  {pincode.length === 6
+    ? deliveryAvailability
+      ? "✅ Delivery Available"
+      : "❌ Delivery Not Available"
+    : "Enter valid 6-digit pincode"}
+</p>
+{pincode.length === 6 && deliveryAvailability && (
+  <div className="bg-green-50 p-3 rounded-lg mb-4">
+    <p className="text-sm font-medium text-green-700">
+      🚚 Estimated Delivery: <strong>{getEstimatedDeliveryDate(2)}</strong>
+    </p>
+  </div>
+)}
 
       {/* Total */}
       <div className="border-t pt-4 mt-4">

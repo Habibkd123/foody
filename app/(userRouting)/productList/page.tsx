@@ -26,11 +26,7 @@ interface CartItem extends Product {
   quantity: number;
 }
 
-interface CartLine {
-  id: string;
-  quantity: number;
-  [key: string]: any;
-}
+
 
 interface Category {
   key: string;
@@ -49,20 +45,6 @@ interface Filter {
   categories: Category[];
   priceRanges: PriceRange[];
 }
-
-// Animation variants for smooth transitions
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3 }
-};
-
-const slideIn = {
-  initial: { opacity: 0, x: -20 },
-  animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.4 }
-};
-
 const ProductGrid: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
@@ -83,11 +65,22 @@ const ProductGrid: React.FC = () => {
   const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
   useEffect(() => {
     if(user._id){
       getUserWishList(user._id);
     }
   }, [user._id]);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetch(`/api/recommendations/user/${user._id}`)
+        .then(res => res.json())
+        .then(json => setRecommendations(json?.data || []))
+        .catch(() => setRecommendations([]));
+    }
+  }, [user._id]);
+
   // Scroll to top functionality
   useEffect(() => {
     const handleScroll = () => {
@@ -177,7 +170,9 @@ const ProductGrid: React.FC = () => {
   // Enhanced add to cart with animation and better state management
   const handleAddToCart = useCallback(async (item: Product) => {
     console.log("user",user)
-    if (!user?._id) return;
+    if (!user?._id) {
+      alert("please Login First ")
+    };
 console.log("item",item)
     const cartItem: any = {
       id: item._id,
@@ -358,7 +353,7 @@ console.log("cartItem",cartItem)
                 {/* Notifications */}
                 <div className="relative">
                   <button
-                    className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110"
+                    className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300"
                     onClick={() => setShowNotifications(!showNotifications)}
                   >
                     <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
@@ -618,6 +613,19 @@ console.log("cartItem",cartItem)
 
             {/* Product Grid with enhanced loading state */}
             <div className={`transition-all duration-500 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+              {user?._id && recommendations.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3">Recommended for you</h3>
+                  <ProductCardGrid
+                    isLoading={false}
+                    isInCart={isInCart}
+                    getCartQuantity={getCartQuantity}
+                    productLists={recommendations}
+                    onAddToCart={handleAddToCart}
+                    onToggleWishlist={toggleWishlist}
+                  />
+                </div>
+              )}
               <ProductCardGrid
                 isLoading={isLoading}
                 isInCart={isInCart}

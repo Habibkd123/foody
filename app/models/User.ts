@@ -52,9 +52,9 @@ const UserSchema = new Schema<IUser>({
     trim: true,
   },
   email: { type: String, unique: true },
-  phone: { type: Number, unique: true },
+  phone: { type: Number, unique: false },
   password: { type: String, required: true },
-  role: { type: String, enum: Object.values(UserRole), default: UserRole.USER },
+  role: { type: String, enum: Object.values(UserRole), default: UserRole.ADMIN },
   addresses: [{
     address: { type: String, default: '' },
     area: { type: String, default: '' },

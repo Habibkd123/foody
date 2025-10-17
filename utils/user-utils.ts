@@ -11,7 +11,7 @@ export function handleUserError(error: any): NextResponse<ApiResponse<null>> {
       {
         success: false,
         error: 'Validation error',
-        message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+        message: error.message
       },
       { status: 400 }
     );

@@ -355,6 +355,22 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">
+      {/* ✅ HEADER */}
+      <header className="flex justify-between bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 items-center bg-white shadow-sm px-6 py-4 rounded-2xl mb-10">
+         <div className="flex items-center gap-2 group">
+            <img
+              src="/logoGro.png"
+              className="w-10 h-10 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+              alt="logo"
+            />
+            <h1 className="text-2xl font-bold bg-clip-text ">
+              Gro-Delivery
+            </h1>
+          </div>
+        <div className="text-gray-600 text-sm">
+          <span className="font-semibold">Need help?</span> support@gostay.com
+        </div>
+      </header>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Secure Checkout</h1>

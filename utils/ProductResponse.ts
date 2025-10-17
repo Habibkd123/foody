@@ -65,6 +65,39 @@ export function validateObjectId(id: string): boolean {
   return /^[0-9a-fA-F]{24}$/.test(id);
 }
 
+function toPlainObject(input: any): Record<string, any> {
+  if (!input) return {};
+  // Map
+  if (input instanceof Map) {
+    return Object.fromEntries(input);
+  }
+  // Array of [key, value]
+  if (Array.isArray(input)) {
+    if (input.length === 0) return {};
+    const first = input[0];
+    if (Array.isArray(first) && first.length === 2) {
+      try {
+        return Object.fromEntries(input as [string, any][]);
+      } catch {
+        return {};
+      }
+    }
+    // Array of objects like { key, value }
+    if (typeof first === 'object' && first !== null && 'key' in first && 'value' in first) {
+      const obj: Record<string, any> = {};
+      for (const item of input as Array<{ key: string; value: any }>) {
+        obj[item.key] = item.value;
+      }
+      return obj;
+    }
+    return {};
+  }
+  // Plain object
+  if (typeof input === 'object') {
+    return { ...input };
+  }
+  return {};
+}
 
 export function formatProductResponse(product: any) {
   return {
@@ -86,8 +119,8 @@ export function formatProductResponse(product: any) {
     dimensions: product.dimensions || '',
     tags: product.tags || [],
     features: product.features || [],
-    specifications: product.specifications ? Object.fromEntries(product.specifications) : {},
-    nutritionalInfo: product.nutritionalInfo ? Object.fromEntries(product.nutritionalInfo) : {},
+    specifications: toPlainObject(product.specifications),
+    nutritionalInfo: toPlainObject(product.nutritionalInfo),
     deliveryInfo: {
       freeDelivery: product.deliveryInfo?.freeDelivery || false,
       estimatedDays: product.deliveryInfo?.estimatedDays || '2-3 days',
