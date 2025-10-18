@@ -146,8 +146,8 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
 
     return (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-            {productLists?.map((product, index) => {
-                const isWishlisted = wishListsData.some((item: any) => item._id === product._id);
+            {Array.isArray(productLists) && productLists?.map((product, index) => {
+                const isWishlisted = wishListsData&&wishListsData.some((item: any) => item._id === product._id);
                 const inCart = isInCart(product);
                 const cartQuantity = getCartQuantity?.(product) || 0;
                 const currentQuantity = quantities[product._id] || 1;

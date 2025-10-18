@@ -13,7 +13,7 @@ export interface IUser extends Document {
   lastName: string;
 
   email: string;
-  phone: number;
+  phone: String;
   password: string;
   role: UserRole;
   addresses: Array<{
@@ -51,10 +51,10 @@ const UserSchema = new Schema<IUser>({
     required: [true, 'Last name is required'],
     trim: true,
   },
-  email: { type: String, unique: true },
-  phone: { type: Number, unique: false },
+  email: { type: String, trim: true, lowercase: true, default: undefined },
+  phone: { type: String, trim: true, default: undefined },
   password: { type: String, required: true },
-  role: { type: String, enum: Object.values(UserRole), default: UserRole.ADMIN },
+  role: { type: String, enum: Object.values(UserRole), default: UserRole.USER },
   addresses: [{
     address: { type: String, default: '' },
     area: { type: String, default: '' },
@@ -93,5 +93,14 @@ UserSchema.pre<IUser>('save', async function (next) {
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
+// Remove any path-level unique: true and use indexes instead:
+UserSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { email: { $type: "string", $ne: "" } } }
+);
 
+UserSchema.index(
+  { phone: 1 },
+  { unique: true, partialFilterExpression: { phone: { $type: "string", $ne: "" } } }
+);
 export default mongoose.models.User || model<IUser>('User', UserSchema); 

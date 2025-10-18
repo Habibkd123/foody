@@ -30,14 +30,16 @@ import { useRouter } from "next/navigation"
 import AddCardList from "@/components/AddCards"
 import MyMap from "@/components/ui/mapsData"
 import { useAuthStorage } from "@/hooks/useAuth"
+import { useTheme } from "@/context/ThemeContext"
 import { useProductsContext } from "@/context/AllProductContext"
 import { useCartOrder } from "@/context/OrderContext"
 import { useOrder } from "@/context/OrderContext"
 import { useWishListContext } from "@/context/WishListsContext"
 export function Grocery() {
   const router = useRouter()
-  const [darkMode, setDarkMode] = useState<boolean>(false)
+  const { theme, toggleTheme } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
+
   const { productsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<Array<any>>([])
   const [cartOpen, setCartOpen] = useState<boolean>(false)
@@ -201,46 +203,13 @@ export function Grocery() {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
-  }, [darkMode])
+  // Theme is applied globally via ThemeProvider; no local effect needed here
 
 
 
-  useEffect(() => {
-    if (!token || !user?._id) {
-      setUser(null);
-    } else {
-      setUser(user);
-    }
-  }, [token, user]);
-
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // cookie भी हटेगी
-      });
-      setUserData(null);
-      setToken(null);
-      setUser(null);
-
-      localStorage.removeItem("token");
-      localStorage.removeItem("G-user");
-
-      router.push("/login");
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-gray-900" : "bg-white"}`}>
+    <div className={"min-h-screen transition-colors duration-300 bg-white dark:bg-gray-900"}>
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-3">
@@ -267,13 +236,16 @@ export function Grocery() {
               <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 Contact
               </a>
-              {user ? <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
-                Login
-              </Button> :
-                <Button onClick={() => logout()} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" >
-                  Logout
+              {user?._id ? (
+                <span className="text-sm text-gray-700 dark:text-gray-300">Hi, {user?.firstName || user?.name || 'User'}</span>
+              ) : (
+                <Button
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full"
+                  onClick={() => router.push('/login')}
+                >
+                  Login
                 </Button>
-              }
+              )}
             </nav>
 
             {/* Right Side Icons */}
@@ -281,10 +253,10 @@ export function Grocery() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setDarkMode(!darkMode)}
+                onClick={toggleTheme}
                 className="text-gray-700 dark:text-gray-300"
               >
-                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
 
 
@@ -309,16 +281,6 @@ export function Grocery() {
                   {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </div>
-
-              {/* Mobile Menu Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden text-gray-700 dark:text-gray-300"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
             </div>
           </div>
 
@@ -338,9 +300,13 @@ export function Grocery() {
                 <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                   Contact
                 </a>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push("/login")}>
-                  Login
-                </Button>
+                {user?._id ? (
+                  <span className="text-sm text-gray-700 dark:text-gray-300 px-2">Hi, {user?.firstName || user?.name || 'User'}</span>
+                ) : (
+                  <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push('/login')}>
+                    Login
+                  </Button>
+                )}
               </div>
             </nav>
           )}

@@ -50,7 +50,6 @@ const ProductPage = () => {
   // Hook calls
   const { product, loading, error } = useProduct(product_id ? product_id.toString() : '');
   const { wishListsData, setWistListsData ,getUserWishList} = useWishListContext();
-  const { productsData } = useProductsContext();
   const { dispatch, state } = useOrder();
   const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
   useEffect(() => {
@@ -60,18 +59,18 @@ const ProductPage = () => {
     }
   }, [user._id]);
 
-  useEffect(() => {
-    if (!user?._id) {
-      const existing = typeof window !== 'undefined' ? localStorage.getItem('session-id') : null;
-      if (existing) {
-        setSessionId(existing);
-      } else {
-        const sid = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-        try { localStorage.setItem('session-id', sid); } catch {}
-        setSessionId(sid);
-      }
-    }
-  }, [user?._id]);
+  // useEffect(() => {
+  //   if (!user?._id) {
+  //     const existing = typeof window !== 'undefined' ? localStorage.getItem('session-id') : null;
+  //     if (existing) {
+  //       setSessionId(existing);
+  //     } else {
+  //       const sid = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  //       try { localStorage.setItem('session-id', sid); } catch {}
+  //       setSessionId(sid);
+  //     }
+  //   }
+  // }, [user?._id]);
 
   useEffect(() => {
     if (user?._id) {
@@ -98,17 +97,15 @@ const ProductPage = () => {
     load();
   }, [product?._id]);
 
-  // Compute related products by category (exclude current product)
-  useEffect(() => {
-    if (!product?._id || !product?.category) {
-      setRelatedProducts([]);
-      return;
-    }
-    const list = (productsData || [])
-      .filter((p: Product) => p.category === product.category && p._id !== product._id)
-      .slice(0, 12);
-    setRelatedProducts(list);
-  }, [product?._id, product?.category, productsData]);
+useEffect(() => {
+  if (!product?.id || !product?.category) {
+    setRelatedProducts([]);
+    return;
+  };
+  setRelatedProducts(product.relatedProducts);
+}, [product?.id, product?.category]);
+
+
 
   const handleAddToCartFromGrid = async (item: Product) => {
     if (!user?._id) return;
@@ -334,74 +331,90 @@ const handleSubmitReview = async () => {
   };
 
   return (
-    <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
-      <header className="transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
-          <div className="flex items-center justify-between">
-            {/* Enhanced Logo with hover animation */}
-            <div className="flex items-center gap-2 flex-shrink-0 group">
-              <img
-                src="../logoGro.png"
-                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                alt="logo"
-              />
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent hover:from-orange-500 hover:via-red-600 hover:to-pink-600 transition-all duration-300">
-                Gro-Delivery
-              </h1>
-            </div>
+    <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100 ">
+  <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-400 via-red-500 to-red-600 text-white shadow-md transition-all duration-300">
+  <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+    <div className="flex items-center justify-between">
 
-            {/* Enhanced Right side icons */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Enhanced Wishlist */}
-              <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
-                <Link href="/wishlist">
-                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
-                  {wishListsData.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
-                      {wishListsData.length}
-                    </span>
-                  )}
-                </Link>
-              </button>
+      {/* --- LOGO --- */}
+      <div className="flex items-center gap-3 group cursor-pointer">
+        <img
+          src="/logoGro.png"
+          alt="Gro Delivery Logo"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+        />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight group-hover:text-white transition-colors duration-300">
+          Gro-Delivery
+        </h1>
+      </div>
 
-              {/* Enhanced Cart */}
-              <div className="flex items-center space-x-2 relative z-[120px]">
-                <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
-                  <AddCardList
-                    cartItems={cartItems}
-                    removeFromCart={removeFromCart}
-                    updateQuantity={(itemId: any, newQuantity: any) => {
-                      if (newQuantity === 0) {
-                        removeFromCart(user?._id, itemId);
-                      } else {
-                        const change = newQuantity - getCartQuantity({ id: itemId } as Product);
-                        updateQuantity(user?._id, itemId?.toString(), change);
-                      }
-                    }}
-                    getTotalPrice={getTotalPrice}
-                    setCartItems={setCartItems}
-                    cartOpen={cartOpen}
-                    setCartOpen={setCartOpen}
-                  />
-                </div>
+      {/* --- RIGHT ICONS --- */}
+      <div className="flex items-center space-x-3 sm:space-x-5">
 
-                {/* Enhanced Mobile Menu Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden text-gray-700 hover:bg-orange-100 transition-all duration-300"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  <div className="relative">
-                    <Menu className={`h-5 w-5 transition-all duration-300 ${mobileMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`} />
-                    <X className={`h-5 w-5 absolute top-0 left-0 transition-all duration-300 ${mobileMenuOpen ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'}`} />
-                  </div>
-                </Button>
-              </div>
-            </div>
+        {/* Wishlist */}
+        <Link
+          href="/wishlist"
+          className="relative bg-white/10 backdrop-blur-md p-2 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-110"
+        >
+          <Heart className="w-6 h-6 text-white" />
+          {wishListsData&&wishListsData.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
+              {wishListsData.length}
+            </span>
+          )}
+        </Link>
+
+        {/* Cart */}
+        <div className="relative">
+          <div
+            className={`transition-transform duration-300 ${
+              cartAnimation ? "scale-110" : "scale-100"
+            }`}
+          >
+            <AddCardList
+              cartItems={cartItems}
+              removeFromCart={removeFromCart}
+              updateQuantity={(itemId: any, newQuantity: any) => {
+                if (newQuantity === 0) {
+                  removeFromCart(user?._id, itemId);
+                } else {
+                  const change =
+                    newQuantity - getCartQuantity({ id: itemId } as Product);
+                  updateQuantity(user?._id, itemId?.toString(), change);
+                }
+              }}
+              getTotalPrice={getTotalPrice}
+              setCartItems={setCartItems}
+              cartOpen={cartOpen}
+              setCartOpen={setCartOpen}
+            />
           </div>
         </div>
-      </header>
+
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden text-white hover:bg-white/20 transition-all duration-300"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <div className="relative">
+            <Menu
+              className={`h-6 w-6 transition-all duration-300 ${
+                mobileMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
+              }`}
+            />
+            <X
+              className={`h-6 w-6 absolute top-0 left-0 transition-all duration-300 ${
+                mobileMenuOpen ? "rotate-0 opacity-100" : "rotate-90 opacity-0"
+              }`}
+            />
+          </div>
+        </Button>
+      </div>
+    </div>
+  </div>
+</header>
 
       <div className="max-w-7xl mx-auto p-4">
         {/* Main Product Section */}
@@ -847,35 +860,44 @@ const handleSubmitReview = async () => {
               )}
             </div>
           )}
+  
+          {/* Related Products */}
+          {relatedProducts && relatedProducts.length > 0 && (
+            <div className="mt-12">
+              <h3 className="text-2xl font-bold mb-4">Related Products</h3>
+              <ProductCardGrid
+                productLists={relatedProducts}
+                onAddToCart={handleAddToCartFromGrid}
+                isInCart={isInCart}
+                getCartQuantity={getCartQuantity}
+                showQuantityControls={false}
+              />
+            </div>
+          )}
+
         {/* FAQ Section */}
         <div className="mt-12 space-y-4">
           <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
-          <div className="space-y-3">
-            {[
-              {
-                question: "What makes this rice biofortified?",
-                answer: "This rice is enhanced with essential nutrients like Iron, Zinc, and Vitamin A through advanced agricultural techniques, making it more nutritious than regular rice."
-              },
-              {
-                question: "How should I store this rice?",
-                answer: "Store in a cool, dry place away from direct sunlight. Use an airtight container after opening to maintain freshness and prevent pest infestation."
-              },
-              {
-                question: "Is this rice suitable for diabetics?",
-                answer: "While this rice has a lower glycemic index than white rice due to its biofortification, we recommend consulting with your healthcare provider for dietary advice."
-              },
-              {
-                question: "What is the cooking ratio for this rice?",
-                answer: "Use a 1:2 ratio (1 cup rice to 2 cups water). Cook for 15-20 minutes on medium heat until water is absorbed."
-              }
-            ].map((faq, index) => (
-              <details key={index} className="border rounded-lg p-4">
-                <summary className="font-semibold cursor-pointer hover:text-orange-600">
-                  {faq.question}
-                </summary>
-                <p className="mt-2 text-gray-700">{faq.answer}</p>
-              </details>
-            ))}
+          {[{
+            question: "How should I store this rice?",
+            answer: "Store in a cool, dry place away from direct sunlight. Use an airtight container after opening to maintain freshness and prevent pest infestation."
+          },
+          {
+            question: "Is this rice suitable for diabetics?",
+            answer: "While this rice has a lower glycemic index than white rice due to its biofortification, we recommend consulting with your healthcare provider for dietary advice."
+          },
+          {
+            question: "What is the cooking ratio for this rice?",
+            answer: "Use a 1:2 ratio (1 cup rice to 2 cups water). Cook for 15-20 minutes on medium heat until water is absorbed."
+          }
+          ].map((faq, index) => (
+            <details key={index} className="border rounded-lg p-4">
+              <summary className="font-semibold cursor-pointer hover:text-orange-600">
+                {faq.question}
+              </summary>
+              <p className="mt-2 text-gray-700">{faq.answer}</p>
+            </details>
+          ))}
           </div>
         </div>
 
@@ -905,6 +927,7 @@ const handleSubmitReview = async () => {
             </button>
           </div>
         </div>
+      </div>
 
         {/* Trust Badges */}
         <div className="mt-12 bg-gray-50 p-6 rounded-lg">
@@ -942,9 +965,8 @@ const handleSubmitReview = async () => {
           <ChevronUp className="w-6 h-6" />
         </button>
       </div>
-      </div>
-      </div>
-  );
+
+    );
 };
 
 export default ProductPage;

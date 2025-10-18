@@ -38,14 +38,34 @@ export async function GET(request: NextRequest) {
         .lean(),
       Product.countDocuments(filter),
     ]);
-
-    const formattedProducts = products.map((product) => ({
-      ...product,
-      _id: product?._id?.toString(),
+    const formattedProducts: ProductResponse[] = products.map((product) => ({
+      _id: product._id?.toString() || '',
+      id: product.id?.toString(), // optional
+      name: product.name,         // required
+      description: product.description || '',
+      images: product.images || [], // required
+      price: product.price,        // required
+      originalPrice: product.originalPrice,
       category: product.category,
+      stock: product.stock ?? 0,   // required
+      inStock: product.inStock,
+      status: product.status || 'active', // required
+      brand: product.brand,
+      sku: product.sku,
+      weight: product.weight,
+      dimensions: product.dimensions,
+      features: product.features || [],
       specifications: product.specifications || {},
       nutritionalInfo: product.nutritionalInfo || {},
+      deliveryInfo: product.deliveryInfo || {},
+      rating: product.rating,
+      totalReviews: product.totalReviews,
+      reviews: product.reviews || [],
+      tags: product.tags || [],
+      createdAt: product.createdAt?.toISOString() || new Date().toISOString(),
+      updatedAt: product.updatedAt?.toISOString() || new Date().toISOString(),
     }));
+
 
     const responseData: ProductListResponse = {
       products: formattedProducts,
@@ -72,7 +92,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('Request Body:', body);
     const validatedData = createProductSchema.parse(body);
-console.log('Validated Data:', validatedData);
+    console.log('Validated Data:', validatedData);
     // Check if product with same name already exists
     const existingProduct = await Product.findOne({ name: validatedData.name });
     if (existingProduct) {
@@ -87,10 +107,10 @@ console.log('Validated Data:', validatedData);
     await product.populate('category', 'name');
 
     const formattedProduct = formatProductResponse(product);
-console.log('Formatted Product:', formattedProduct);
+    console.log('Formatted Product:', formattedProduct);
     return createSuccessResponse(
-      formattedProduct, 
-      'Product created successfully', 
+      formattedProduct,
+      'Product created successfully',
       201
     );
 

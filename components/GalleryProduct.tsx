@@ -199,7 +199,7 @@ const ProductDetailsPage: React.FC = () => {
   const router = useRouter();
 
   const handleGo = () => {
-    router.push('/productList');
+    router.push('/productlist');
   };
 
   const [quantity, setQuantity] = useState<number>(1);

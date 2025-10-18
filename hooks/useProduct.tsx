@@ -110,6 +110,7 @@ export const useProduct = (productId: string) => {
             dimensions: apiProduct.dimensions || "N/A",
             deliveryInfo: apiProduct.deliveryInfo ,
             reviews: apiProduct.reviews || [],
+            relatedProducts: apiProduct.relatedProducts || [],
           };
           
           setProduct(transformedProduct);

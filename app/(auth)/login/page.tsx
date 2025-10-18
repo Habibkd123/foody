@@ -31,13 +31,14 @@ const page = () => {
  const { user } = useAuthStorage()
  console.log("user", user)
  
-//  useEffect(() => {
-//    if (!user && pathname !== "/login") {
-//      router.push('/login')
-//    } else if (user && pathname !== "/productList") {
-//      router.push('/productList')
-//    }
-//  }, [user, pathname])
+  useEffect(() => {
+    if (user && (user._id || user.id)) {
+      const target = "/home";
+      if (pathname !== target) {
+        router.replace(target);
+      }
+    }
+  }, [user, pathname, router])
 
 
   return (

@@ -22,11 +22,8 @@ const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
-
     let resizeTimeout: NodeJS.Timeout;
 
     const handleResize = () => {
@@ -66,8 +63,6 @@ const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
       setIsMobileOpen(false);
     }
   }, [isMobile]);
-
-  if (!hasMounted) return null;
 
   return (
     <SidebarContext.Provider

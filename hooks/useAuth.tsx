@@ -12,13 +12,6 @@ export function useAuthStorage(result?: AuthResult) {
 const [loacaluser,setLocalUser]=useState<any>(  {})
  
   const [user, setUser] = useState<any>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return JSON.parse(window.localStorage.getItem("G-user") || "{}");
-      } catch {
-        return {};
-      }
-    }
     return {};
   });
 
@@ -35,7 +28,7 @@ const [loacaluser,setLocalUser]=useState<any>(  {})
     if(data.success){
       setToken(data.token);
       setLocalUser(data.user)
-      window.localStorage.setItem("token", data.token);
+      setUser(data.user)
     }
    
   }

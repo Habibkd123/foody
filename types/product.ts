@@ -71,13 +71,33 @@ export interface ProductUpdateRequest {
 
 export interface ProductResponse {
   _id: string;
+  id?: string; 
   name: string;
   description?: string;
   images: string[];
   price: number;
+  originalPrice?: number;
   category: string;
   stock: number;
+  inStock?: boolean;
   status: 'active' | 'inactive';
+  brand?: string;
+  sku?: string;
+  weight?: string;
+  dimensions?: string;
+  features?: string[];
+  specifications?: Record<string, any>;
+  nutritionalInfo?: Record<string, any>;
+  deliveryInfo?: {
+    freeDelivery?: boolean;
+    estimatedDays?: string;
+    expressAvailable?: boolean;
+    expressDays?: string;
+  };
+  rating?: number;
+  totalReviews?: number;
+  reviews?: Review[];
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }

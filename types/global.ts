@@ -21,6 +21,7 @@ export interface Product {
   dimensions?: string;
   reviews?: Review[];
   createdAt?: string;
+  relatedProducts?: Product[];
 }
 
 interface Review {

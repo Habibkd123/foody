@@ -146,7 +146,7 @@ useEffect(() => {
   const addAllToCart = useCallback(() => {
     setIsLoading(true);
     selectedItems.forEach((itemId) => {
-      const item = wishListsData.products.find((w: Product) => parseInt(w._id, 10) === itemId);
+      const item = wishListsData.products.find((w: any) => parseInt(w._id, 10) === itemId);
       if (item && !isInCart(itemId)) {
         addToCart1(item as Product);
       }
@@ -194,30 +194,30 @@ useEffect(() => {
 
     // Apply search filter
     if (filters.searchTerm) {
-      filtered = filtered.filter((product: Product[]) =>
+      filtered = filtered.filter((product: any) =>
         product?.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
       );
     }
 
     // Apply category filter
     if (filters.category !== 'all') {
-      filtered = filtered.filter((product: Product[]) => product?.category === filters.category);
+      filtered = filtered.filter((product: any) => product?.category === filters.category);
     }
 
     // Apply price range filter
-    filtered = filtered.filter((product: Product[]) =>
+    filtered = filtered.filter((product: any) =>
       product?.price >= priceRange.min && product?.price <= priceRange.max
     );
 
     // Apply rating filter
     if (filters.ratings?.length > 0) {
-      filtered = filtered.filter((product: Product[]) =>
+      filtered = filtered.filter((product: any) =>
         filters.ratings.some((rating: number) => (product?.rating || 0) >= rating)
       );
     }
 
     // Apply sorting
-    filtered.sort((a: Product[], b: Product[]) => {
+    filtered.sort((a: any, b: any) => {
       let aValue: any, bValue: any;
 
       switch (sortBy) {
@@ -538,7 +538,7 @@ useEffect(() => {
               }
             </p>
             <Button
-              onClick={() => router.push('/productList')}
+              onClick={() => router.push('/productlist')}
               className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600"
             >
               Browse Products
@@ -550,7 +550,7 @@ useEffect(() => {
               ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
               : "space-y-4"
           }>
-            {sortedAndFilteredProducts.map((product: Product) => {
+            {sortedAndFilteredProducts.map((product: any) => {
               const isSelected = selectedItems.includes(product.id);
               const inCart = isInCart(product.id);
               const cartItem = cartItems.find(item => item.id === product.id);

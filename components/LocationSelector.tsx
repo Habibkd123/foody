@@ -152,7 +152,7 @@ const [geoError, setGeoError] = useState<string | null>(null);
         setIsLoadingLocation(false);
       },
       (error) => {
-        console.error("Geolocation error:", error.message);
+        // console.error("Geolocation error:", error.message);
         setIsLoadingLocation(false);
 
         // @ts-ignore

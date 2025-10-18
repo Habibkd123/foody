@@ -30,7 +30,7 @@ const CategorySection = ({ section }: { section: any }) => {
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">{section?.name}</h2>
-        <Link href={`/productList`} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
+        <Link href={`/productlist`} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
           <span>View All</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
@@ -176,10 +176,10 @@ console.log("Categories:", categories?.length);
 
         <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
           <header className="transition-all duration-300">
-            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
+            <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
               <div className="flex items-center justify-between">
                 {/* Enhanced Logo with hover animation */}
-                <div className="flex items-center gap-2 flex-shrink-0 group">
+                <div className="flex items-center gap-2 flex-shrink-0 group max-w-8xl">
                   <img
                     src="./logoGro.png"
                     className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
@@ -191,7 +191,7 @@ console.log("Categories:", categories?.length);
                 </div>
 
                 {/* Enhanced Search Bar with suggestions */}
-                <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0 relative" style={{ marginLeft: "140px" }}>
+                <div className="hidden md:flex items-center space-x-4 flex-1 max-w-6xl mx-0 relative" style={{ marginLeft: "140px" }}>
                   <div className="relative flex-1 z-50">
                     <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
                       }`} />
@@ -302,7 +302,7 @@ console.log("Categories:", categories?.length);
                   <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
                     <Link href="/wishlist">
                       <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
-                      {wishListsData.length > 0 && (
+                      {wishListsData&&wishListsData.length > 0 && (
                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
                           {wishListsData.length}
                         </span>

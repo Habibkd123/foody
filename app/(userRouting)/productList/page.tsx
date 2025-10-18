@@ -277,12 +277,7 @@ console.log("cartItem",cartItem)
     }
   };
 
-  // Check authentication status
-  // useEffect(() => {
-  //   if (!user) {
-  //     handleLogout();
-  //   }
-  // }, [user]); // Add user to dependency array
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
@@ -390,7 +385,7 @@ console.log("cartItem",cartItem)
                 <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
                   <Link href="/wishlist">
                     <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
-                    {wishListsData.length > 0 && (
+                    {wishListsData&&wishListsData.length > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
                         {wishListsData.length}
                       </span>
@@ -459,10 +454,10 @@ console.log("cartItem",cartItem)
                           <span>Settings</span>
                         </button>
                         <hr className="my-2" />
-                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                        {/* <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   )}

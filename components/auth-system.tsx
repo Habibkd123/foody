@@ -1768,8 +1768,8 @@ export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps)
       const payload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
+        email: formData.email?.trim() || undefined,
+        phone: formData.phone?.trim() || undefined,
         password: formData.password
       }
 
@@ -1825,7 +1825,7 @@ const loginUser = async () => {
       console.log('Login successful, token:', result.token);
 
       // Important: Perform a full reload to ensure middleware sees the cookie
-      window.location.href = '/productList';
+      window.location.href = '/productlist';
 
       return result;
     } else {
@@ -2023,6 +2023,8 @@ const loginUser = async () => {
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
+
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900">
