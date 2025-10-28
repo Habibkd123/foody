@@ -462,9 +462,9 @@ const OrdersAdminPage = () => {
             id: order._id,
             orderNumber: order.orderId,
             customer: {
-                name: `${order.user.firstName} ${order.user.lastName}`,
-                email: order.user.email,
-                avatar: `${order.user.firstName.charAt(0)}${order.user.lastName.charAt(0)}`.toUpperCase()
+                name: `${order.user?.firstName} ${order.user?.lastName}`,
+                email: order.user?.email,
+                avatar: `${order.user?.firstName.charAt(0)}${order.user?.lastName.charAt(0)}`.toUpperCase()
             },
             date: new Date(order.createdAt).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -841,9 +841,9 @@ const OrdersAdminPage = () => {
                                 <div>
                                     <h3 className="text-lg font-semibold mb-4">Customer Information</h3>
                                     <div className="space-y-2">
-                                        <p><span className="font-medium">Name:</span> {selectedOrder.user.firstName} {selectedOrder.user.lastName}</p>
-                                        <p><span className="font-medium">Email:</span> {selectedOrder.user.email}</p>
-                                        {selectedOrder.user.phone && <p><span className="font-medium">Phone:</span> {selectedOrder.user.phone}</p>}
+                                        <p><span className="font-medium">Name:</span> {selectedOrder.user?.firstName} {selectedOrder.user?.lastName}</p>
+                                        <p><span className="font-medium">Email:</span> {selectedOrder.user?.email}</p>
+                                        {selectedOrder.user?.phone && <p><span className="font-medium">Phone:</span> {selectedOrder.user?.phone}</p>}
                                     </div>
                                 </div>
                             </div>

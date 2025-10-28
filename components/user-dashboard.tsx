@@ -276,7 +276,7 @@ export default function UserDashboard({ onClose }: UserDashboardProps) {
                 </Button>
                 <div>
                   <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Welcome back, {user.name.split(" ")[0]}!
+                    Welcome back, {user?.name.split(" ")[0]}!
                   </h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {new Date().toLocaleDateString("en-US", {
@@ -300,9 +300,9 @@ export default function UserDashboard({ onClose }: UserDashboardProps) {
                   </Badge>
                 </Button>
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={user?.avatar || "/placeholder.svg"} />
                   <AvatarFallback>
-                    {user.name
+                    {user?.name
                       .split(" ")
                       .map((n) => n[0])
                       .join("")}
@@ -690,9 +690,9 @@ export default function UserDashboard({ onClose }: UserDashboardProps) {
                       <div className="flex items-center space-x-6">
                         <div className="relative">
                           <Avatar className="w-20 h-20">
-                            <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                            <AvatarImage src={user?.avatar || "/placeholder.svg"} />
                             <AvatarFallback className="text-lg">
-                              {user.name
+                              {user?.name
                                 .split(" ")
                                 .map((n) => n[0])
                                 .join("")}
@@ -706,7 +706,7 @@ export default function UserDashboard({ onClose }: UserDashboardProps) {
                           </Button>
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{user?.name}</h3>
                           <p className="text-gray-600 dark:text-gray-400">Update your profile picture</p>
                         </div>
                       </div>
@@ -714,15 +714,15 @@ export default function UserDashboard({ onClose }: UserDashboardProps) {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="name">Full Name</Label>
-                          <Input id="name" defaultValue={user.name} />
+                          <Input id="name" defaultValue={user?.name} />
                         </div>
                         <div>
                           <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" defaultValue={user.email} />
+                          <Input id="email" type="email" defaultValue={user?.email} />
                         </div>
                         <div>
                           <Label htmlFor="phone">Phone Number</Label>
-                          <Input id="phone" defaultValue={user.phone} />
+                          <Input id="phone" defaultValue={user?.phone} />
                         </div>
                         <div>
                           <Label htmlFor="language">Language</Label>

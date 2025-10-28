@@ -1,16 +1,20 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { WishListContext } from "@/context/WishListsContext";
-import { Trash2 } from "lucide-react";
+import { Trash2, Package, Heart, MapPin, User, Edit, LogOut, TrendingUp, Clock, CheckCircle } from "lucide-react";
 import { useAuthStorage } from "@/hooks/useAuth";
 import { getUserOrders } from "./APICall/order";
 import { useCartOrder } from "@/context/OrderContext";
 import { Address } from "@/types/global";
 import DeliveryAddressPage from "./AddAddressModal";
+import EditProfileModal from "./EditProfileModal";
 
 const Profile = () => {
   const {
@@ -24,12 +28,14 @@ const Profile = () => {
   } = useCartOrder();
   
   const { wishListsData, setWistListsData } = React.useContext<any>(WishListContext);
-  const { user, setUser } = useAuthStorage();
+  const { user, setUser, updateUser, logout } = useAuthStorage();
   
   const [orders, setOrders] = useState<any[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [editProfileModal, setEditProfileModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Update addresses when context address changes
   useEffect(() => {
@@ -46,6 +52,7 @@ const Profile = () => {
   // Load addresses when component mounts
   useEffect(() => {
     if (user?._id) {
+      setIsLoading(true);
       handleGetAllAddress();
     }
   }, [user?._id]);
@@ -57,9 +64,16 @@ const Profile = () => {
     }
   }, [user?._id]);
 
+  // Set loading to false when data is loaded
+  useEffect(() => {
+    if (orders || addresses || wishListsData) {
+      setIsLoading(false);
+    }
+  }, [orders, addresses, wishListsData]);
+
   const handleGetAllAddress = async () => {
     try {
-      await getAddresses(user._id);
+      await getAddresses(user?._id);
     } catch (error) {
       console.error('Error loading addresses:', error);
     }
@@ -69,7 +83,7 @@ const Profile = () => {
     try {
       if (!user?._id) return;
 
-      let response = await getUserOrders(user._id);
+      let response = await getUserOrders(user?._id);
       console.log("response", response);
 
       if (response?.success) {
@@ -87,13 +101,13 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    setUser(null);
+    logout();
     window.location.reload();
   };
 
   const handleAddAddress = async (newAddress: Address) => {
     try {
-      await addAddress(user._id, newAddress);
+      await addAddress(user?._id, newAddress);
       setShowAddModal(false);
       setEditingAddress(null);
       // Refresh addresses list
@@ -126,62 +140,200 @@ const Profile = () => {
   const lastInitial = (user?.lastName?.[0] || "").toUpperCase();
 
   return (
-    <section id="profile" className="py-16 bg-gray-50 dark:bg-gray-800">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-          Your Profile
-        </h2>
+    <section className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Modern Profile Header */}
+        <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl p-8 mb-8 shadow-2xl">
+          <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+            <div className="relative">
+              <Avatar className="w-28 h-28 border-4 border-white shadow-xl">
+                {user?.image ? (
+                  <AvatarImage src={user?.image} alt={user?.firstName || "User"} />
+                ) : (
+                  <AvatarFallback className="bg-white text-orange-500 text-2xl font-bold">
+                    {firstInitial}{lastInitial ? ` ${lastInitial}` : ""}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white">
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                {(user?.firstName || "") + (user?.lastName ? ` ${user?.lastName}` : "") || "Guest"}
+              </h1>
+              <p className="text-orange-100 mb-1">{user?.email}</p>
+              {user?.phone && (
+                <p className="text-orange-100">{user?.phone}</p>
+              )}
+              <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                  <User className="w-3 h-3 mr-1" />
+                  Premium Member
+                </Badge>
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  Active
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="flex flex-col space-y-3">
+              <Button 
+                size="lg" 
+                className="bg-white text-orange-600 hover:bg-orange-50 font-semibold shadow-lg"
+                onClick={() => setEditProfileModal(true)}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-orange-600 font-semibold"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
 
-        <div className="max-w-4xl mx-auto">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {isLoading ? (
+            <>
+              <Skeleton className="h-24 rounded-xl" />
+              <Skeleton className="h-24 rounded-xl" />
+              <Skeleton className="h-24 rounded-xl" />
+            </>
+          ) : (
+            <>
+              <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Orders</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{orders?.length || 0}</p>
+                    </div>
+                    <div className="bg-orange-100 dark:bg-orange-900 p-3 rounded-full">
+                      <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Favorites</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{wishListsData?.length || 0}</p>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900 p-3 rounded-full">
+                      <Heart className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Addresses</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{addresses?.length || 0}</p>
+                    </div>
+                    <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
+                      <MapPin className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+        {/* Modern Tabs */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="favorites">Favorites</TabsTrigger>
-              <TabsTrigger value="addresses">Addresses</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
+              <TabsTrigger 
+                value="profile" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger 
+                value="orders" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Orders
+              </TabsTrigger>
+              <TabsTrigger 
+                value="favorites" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
+              >
+                <Heart className="w-4 h-4 mr-2" />
+                Favorites
+              </TabsTrigger>
+              <TabsTrigger 
+                value="addresses" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Addresses
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="mt-6">
-              <Card>
+              <Card className="border-0 shadow-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Profile Information
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="p-6">
-                  <div className="flex items-center space-x-6 mb-6">
-                    <Avatar className="w-20 h-20">
-                      {user?.image ? (
-                        <AvatarImage
-                          src={user?.image}
-                          alt={user?.firstName || "User"}
-                        />
-                      ) : (
-                        <AvatarFallback className="bg-orange-500 text-white font-bold">
-                          {firstInitial}
-                          {lastInitial ? ` ${lastInitial}` : ""}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {(user?.firstName || "") +
-                          (user?.lastName ? ` ${user.lastName}` : "") ||
-                          "Guest"}
-                      </h3>
-                      {user?.email && (
-                        <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
-                      )}
-                      {user?.phone && (
-                        <p className="text-gray-600 dark:text-gray-400">{user.phone}</p>
-                      )}
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Full Name</label>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+                        {(user?.firstName || "") + (user?.lastName ? ` ${user?.lastName}` : "") || "Guest"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Email Address</label>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{user?.email || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Phone Number</label>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{user?.phone || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Account Status</label>
+                      <div className="mt-1">
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Verified
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                  <Button className="bg-orange-500 hover:bg-orange-600 me-2">
-                    Edit Profile
-                  </Button>
-                  <Button
-                    className="bg-orange-500 hover:bg-orange-600"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
+                  <Separator className="my-6" />
+                  <div className="flex justify-end space-x-3">
+                    <Button 
+                      className="bg-orange-500 hover:bg-orange-600"
+                      onClick={() => setEditProfileModal(true)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Update Profile
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -237,28 +389,41 @@ const Profile = () => {
 
             <TabsContent value="favorites" className="mt-6">
               {!wishListsData || wishListsData.length === 0 ? (
-                <p className="text-gray-600 text-center py-8">Your wishlist is empty 😢</p>
+                <div className="text-center py-12">
+                  <div className="bg-red-100 dark:bg-red-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="w-10 h-10 text-red-500 dark:text-red-400" />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">Your wishlist is empty</p>
+                  <p className="text-gray-500 dark:text-gray-500 text-sm">Start adding items you love!</p>
+                </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {wishListsData.map((item: any) => (
-                    <Card key={item.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                      <CardContent className="p-4">
+                    <Card key={item.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden">
+                      <div className="relative">
                         <img
                           src={item.image || "/placeholder.svg"}
                           alt={item.title}
-                          className="w-full h-32 object-cover rounded-lg mb-3"
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {item.title}
-                        </h4>
-                        <p className="text-orange-500 font-semibold">₹{item.price}</p>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <button
                           onClick={() => handleRemove(item.id)}
-                          className="flex items-center gap-2 text-red-500 hover:text-red-700 text-sm mt-2"
+                          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-50 hover:text-red-500"
                         >
                           <Trash2 className="w-4 h-4" />
-                          Remove
                         </button>
+                      </div>
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                          {item.title}
+                        </h4>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xl font-bold text-orange-600 dark:text-orange-400">₹{item.price}</p>
+                          <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                            Add to Cart
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -270,40 +435,47 @@ const Profile = () => {
               <div className="space-y-4">
                 {Array.isArray(addresses) && addresses.length > 0 ? (
                   <>
-                    {addresses.map((adrs: any) => (
-                      <Card key={adrs._id}>
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold text-gray-900 dark:text-white">
-                                {adrs.label || 'Address'}
-                              </h4>
-                              <p className="text-gray-600 dark:text-gray-400">
-                                {adrs.street && `${adrs.street}, `}
-                                {adrs.area && `${adrs.area}, `}
-                                {adrs.city && `${adrs.city}, `}
-                                {adrs.state && `${adrs.state} `}
-                                {adrs.zipCode && adrs.zipCode}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {addresses.map((adrs: any) => (
+                        <Card key={adrs._id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
+                                  <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 dark:text-white">
+                                  {adrs.label || 'Home Address'}
+                                </h4>
+                                {adrs.isDefault && (
+                                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    Default
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-2 mb-4">
+                              <p className="text-gray-700 dark:text-gray-300">
+                                {adrs.street && `${adrs.street},`}
+                                {adrs.area && ` ${adrs.area},`}
+                                {adrs.city && ` ${adrs.city},`}
+                                {adrs.state && ` ${adrs.state}`}
+                                {adrs.zipCode && ` ${adrs.zipCode}`}
                               </p>
                               {adrs.landmark && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                  Landmark: {adrs.landmark}
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  📍 {adrs.landmark}
                                 </p>
                               )}
                               {adrs.name && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Name: {adrs.name}
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  👤 {adrs.name}
                                 </p>
                               )}
                               {adrs.phone && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Phone: {adrs.phone}
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  📞 {adrs.phone}
                                 </p>
-                              )}
-                              {adrs.isDefault && (
-                                <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                                  Default
-                                </span>
                               )}
                             </div>
                             <div className="flex gap-2">
@@ -312,46 +484,59 @@ const Profile = () => {
                                 variant="outline"
                                 onClick={() => handleEditAddress(adrs)}
                                 disabled={loading}
+                                className="hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600"
                               >
+                                <Edit className="w-4 h-4 mr-1" />
                                 Edit
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteAddress(adrs._id)}
-                                disabled={loading}
-                              >
-                                Delete
-                              </Button>
+                              {!adrs.isDefault && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300"
+                                  onClick={() => handleDeleteAddress(adrs._id)}
+                                  disabled={loading}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-1" />
+                                  Delete
+                                </Button>
+                              )}
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                     <Button
                       onClick={() => {
                         setEditingAddress(null);
                         setShowAddModal(true);
                       }}
-                      className="w-full bg-orange-500 hover:bg-orange-600"
+                      className="w-full bg-orange-500 hover:bg-orange-600 font-semibold"
                       disabled={loading}
                     >
+                      <MapPin className="w-4 h-4 mr-2" />
                       Add New Address
                     </Button>
                   </>
                 ) : (
                   <>
-                    <p className="text-gray-600 text-center py-8">No addresses saved</p>
+                    <div className="text-center py-12">
+                      <div className="bg-blue-100 dark:bg-blue-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <MapPin className="w-10 h-10 text-blue-500 dark:text-blue-400" />
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">No addresses saved</p>
+                      <p className="text-gray-500 dark:text-gray-500 text-sm mb-6">Add your first delivery address</p>
+                    </div>
                     <Button
                       onClick={() => {
                         setEditingAddress(null);
                         setShowAddModal(true);
                       }}
-                      className="w-full bg-orange-500 hover:bg-orange-600"
+                      className="w-full bg-orange-500 hover:bg-orange-600 font-semibold"
                       disabled={loading}
                     >
-                      Add New Address
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Add Your First Address
                     </Button>
                   </>
                 )}
@@ -359,7 +544,7 @@ const Profile = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+        </div>
 
       {showAddModal && (
         <DeliveryAddressPage
@@ -374,6 +559,13 @@ const Profile = () => {
           editingAddress={editingAddress || undefined}
         />
       )}
+      
+      <EditProfileModal
+        open={editProfileModal}
+        onClose={() => setEditProfileModal(false)}
+        user={user}
+        setUser={setUser}
+      />
     </section>
   );
 };

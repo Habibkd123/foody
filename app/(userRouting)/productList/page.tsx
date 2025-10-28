@@ -20,6 +20,7 @@ import { ProductsContext, useProductsContext } from "@/context/AllProductContext
 import { Product } from "@/types/global";
 // import { productData } from "@/lib/Data";
 import { useAuthStorage } from '@/hooks/useAuth';
+import NotificationCenter from '@/components/NotificationCenter';
 
 // Type Definitions
 interface CartItem extends Product {
@@ -54,7 +55,7 @@ const ProductGrid: React.FC = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const { dispatch, state } = useOrder();
   const { addToCart, loading, error, removeFromCart,updateQuantity } = useCartOrder();
-  const { user } = useAuthStorage()
+  const { user, logout } = useAuthStorage()
   // Enhanced UI states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -64,22 +65,21 @@ const ProductGrid: React.FC = () => {
   const [filterAnimation, setFilterAnimation] = useState(false);
   const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   useEffect(() => {
-    if(user._id){
-      getUserWishList(user._id);
+    if(user?._id){
+      getUserWishList(user?._id);
     }
-  }, [user._id]);
+  }, [user?._id]);
 
   useEffect(() => {
     if (user?._id) {
-      fetch(`/api/recommendations/user/${user._id}`)
+      fetch(`/api/recommendations/user/${user?._id}`)
         .then(res => res.json())
         .then(json => setRecommendations(json?.data || []))
         .catch(() => setRecommendations([]));
     }
-  }, [user._id]);
+  }, [user?._id]);
 
   // Scroll to top functionality
   useEffect(() => {
@@ -182,7 +182,7 @@ console.log("item",item)
       image: item.images[0],
     };
 console.log("cartItem",cartItem)
-    let response = await addToCart(user._id, cartItem);
+    let response = await addToCart(user?._id, cartItem);
     console.log("response", response)
     // @ts-ignore
     if (response.success) {
@@ -194,7 +194,7 @@ console.log("cartItem",cartItem)
 
   const removeFromCart1 = useCallback((itemId: any) => {
     try {
-      let response = removeFromCart(user._id, itemId);
+      let response = removeFromCart(user?._id, itemId);
       console.log("response", response)
       // @ts-ignore
       if (response.success) {
@@ -221,14 +221,14 @@ console.log("cartItem",cartItem)
         // Remove item if quantity becomes 0
         setCartItems(cartItems.filter((item: any) => item._id !== productId));
         // dispatch({ type: "REMOVE_ITEM", id: productId });
-        updateQuantity(user._id, productId, newQuantity);
+        updateQuantity(user?._id, productId, newQuantity);
       } else {
         // Update quantity in both local state and global state
         setCartItems(cartItems.map((item: any) =>
           item.id === productId ? { ...item, quantity: newQuantity } : item
         ));
         dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
-        updateQuantity(user._id, productId, newQuantity);
+        updateQuantity(user?._id, productId, newQuantity);
       }
     }
   }, [cartItems, dispatch, state.items]);
@@ -267,7 +267,7 @@ console.log("cartItem",cartItem)
       // Clear user data
       localStorage.removeItem("G-user");
       localStorage.removeItem("token");
-
+logout();
       // Redirect to login page
       router.push("/login");
     } catch (error) {
@@ -345,41 +345,8 @@ console.log("cartItem",cartItem)
 
               {/* Enhanced Right side icons */}
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Notifications */}
-                <div className="relative">
-                  <button
-                    className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300"
-                    onClick={() => setShowNotifications(!showNotifications)}
-                  >
-                    <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-pulse">
-                      3
-                    </span>
-                  </button>
-
-                  {/* Notifications Dropdown */}
-                  {showNotifications && (
-                    <div className="absolute right-0 top-full mt-2 w-80 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
-                      <div className="p-4">
-                        <h3 className="font-semibold text-gray-800 mb-3">Notifications</h3>
-                        <div className="space-y-3">
-                          <div className="p-3 bg-orange-50 rounded-lg">
-                            <p className="text-sm font-medium">Order Delivered!</p>
-                            <p className="text-xs text-gray-600">Your order #1234 has been delivered</p>
-                          </div>
-                          <div className="p-3 bg-green-50 rounded-lg">
-                            <p className="text-sm font-medium">New Discount Available</p>
-                            <p className="text-xs text-gray-600">Get 20% off on fresh fruits</p>
-                          </div>
-                          <div className="p-3 bg-blue-50 rounded-lg">
-                            <p className="text-sm font-medium">Restock Alert</p>
-                            <p className="text-xs text-gray-600">Your favorite items are back in stock</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {/* Dynamic Notification Center */}
+                {user?._id && <NotificationCenter location="products" />}
 
                 {/* Enhanced Wishlist */}
                 <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
@@ -443,7 +410,7 @@ console.log("cartItem",cartItem)
 
                   {/* Profile Dropdown */}
                   {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white  shadow-xl rounded-lg border border-orange-200 z-[100] animate-in slide-in-from-top-5 duration-300 ease-in-out text-gray-600">
                       <div className="py-2">
                         <button className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
                           <User className="w-4 h-4" />
@@ -454,10 +421,10 @@ console.log("cartItem",cartItem)
                           <span>Settings</span>
                         </button>
                         <hr className="my-2" />
-                        {/* <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
-                        </button> */}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -556,7 +523,8 @@ console.log("cartItem",cartItem)
               <div className="space-y-2">
                 <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'
                   }`}>
-                  Fresh Groceries ({filteredProducts.length} products)
+                  Fresh Groceries 
+                  {/* ({filteredProducts.length} products) */}
                 </h2>
                 {filteredProducts.length === 0 && (
                   <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
@@ -659,12 +627,11 @@ console.log("cartItem",cartItem)
       </div>
 
       {/* Background click handler for dropdowns */}
-      {(profileMenuOpen || showNotifications) && (
+      {profileMenuOpen && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[90]"
           onClick={() => {
             setProfileMenuOpen(false);
-            setShowNotifications(false);
           }}
         />
       )}

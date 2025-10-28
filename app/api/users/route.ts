@@ -94,68 +94,116 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Create a new user
-export async function POST(request: NextRequest) {
+// export async function POST(request: NextRequest) {
+//   try {
+//     await connectDB();
+
+//     const body = await request.json();
+//     const validatedData = createUserSchema.parse(body);
+
+//     // Check if user with same email or phone already exists
+//     const existingUser = await User.findOne({
+//       $or: [
+//         { email: validatedData.email },
+//         // { phone: validatedData.phone }
+//       ]
+//     });
+
+//     if (existingUser) {
+//       const field = existingUser.email === validatedData.email && 'email' 
+//       return createUserErrorResponse(
+//         'User already exists',
+//         `A user with this ${field} already exists`,
+//         409
+//       );
+//     }
+
+//     // Generate username if not provided
+//     if (!validatedData.username) {
+//       validatedData.username = generateUsername(validatedData.firstName, validatedData.lastName);
+
+//       // Ensure username is unique
+//       let attempts = 0;
+//       while (attempts < 5) {
+//         const existingUsername = await User.findOne({ username: validatedData.username });
+//         if (!existingUsername) break;
+
+//         validatedData.username = generateUsername(validatedData.firstName, validatedData.lastName);
+//         attempts++;
+//       }
+//     } else {
+//       // Check if provided username is unique
+//       const existingUsername = await User.findOne({ username: validatedData.username });
+//       if (existingUsername) {
+//         return createUserErrorResponse(
+//           'Username already exists',
+//           'A user with this username already exists',
+//           409
+//         );
+//       }
+//     }
+
+//     // Hash password
+//     validatedData.password = await hashPassword(validatedData.password);
+
+//     const user = await User.create(validatedData);
+//     const formattedUser = formatUserResponse(user, true) as UserResponse;
+
+//     return createUserSuccessResponse(
+//       formattedUser,
+//       'User created successfully',
+//       201
+//     );
+
+//   } catch (error) {
+//     return handleUserError(error);
+//   }
+// }
+
+export async function POST(request: Request) {
   try {
-    await connectDB();
+    const { firstName, lastName, email, password, phone, username } =
+      await request.json();
 
-    const body = await request.json();
-    const validatedData = createUserSchema.parse(body);
-
-    // Check if user with same email or phone already exists
-    const existingUser = await User.findOne({
-      $or: [
-        { email: validatedData.email },
-        // { phone: validatedData.phone }
-      ]
-    });
-
-    if (existingUser) {
-      const field = existingUser.email === validatedData.email && 'email' 
-      return createUserErrorResponse(
-        'User already exists',
-        `A user with this ${field} already exists`,
-        409
+    if (!firstName || !lastName || !email || !password) {
+      return NextResponse.json(
+        { success: false, message: 'All required fields must be filled' },
+        { status: 400 }
       );
     }
 
-    // Generate username if not provided
-    if (!validatedData.username) {
-      validatedData.username = generateUsername(validatedData.firstName, validatedData.lastName);
+    await connectDB();
 
-      // Ensure username is unique
-      let attempts = 0;
-      while (attempts < 5) {
-        const existingUsername = await User.findOne({ username: validatedData.username });
-        if (!existingUsername) break;
-
-        validatedData.username = generateUsername(validatedData.firstName, validatedData.lastName);
-        attempts++;
-      }
-    } else {
-      // Check if provided username is unique
-      const existingUsername = await User.findOne({ username: validatedData.username });
-      if (existingUsername) {
-        return createUserErrorResponse(
-          'Username already exists',
-          'A user with this username already exists',
-          409
-        );
-      }
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: 'Email already registered' },
+        { status: 409 }
+      );
     }
 
-    // Hash password
-    validatedData.password = await hashPassword(validatedData.password);
+    // Create user (password gets hashed automatically)
+    const newUser = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      username,
+    });
 
-    const user = await User.create(validatedData);
-    const formattedUser = formatUserResponse(user, true) as UserResponse;
+    const { password: _, ...userData } = newUser.toObject();
 
-    return createUserSuccessResponse(
-      formattedUser,
-      'User created successfully',
-      201
+    return NextResponse.json(
+      { success: true, message: 'User registered successfully', user: userData },
+      { status: 201 }
     );
-
   } catch (error) {
-    return handleUserError(error);
+    console.error('Signup Error:', error);
+    return NextResponse.json(
+      { success: false, message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

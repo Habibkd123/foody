@@ -42,7 +42,7 @@ const WalletRechargeForm: React.FC = () => {
     }
   ]);
 
-  const selectedUserData = users.find(user => user.id === selectedUser);
+  const selectedUserData = users.find(user => user?.id === selectedUser);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -99,10 +99,10 @@ const WalletRechargeForm: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 required
               >
-                <option value="">Choose a user...</option>
+                <option value="">Choose a user?...</option>
                 {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.email}) - Balance: {formatPrice(user.currentBalance)}
+                  <option key={user?.id} value={user?.id}>
+                    {user?.name} ({user?.email}) - Balance: {formatPrice(user?.currentBalance)}
                   </option>
                 ))}
               </select>

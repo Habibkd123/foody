@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import {
   Heart, ShoppingCart, Star, Share2, Zap, CheckCircle, Plus, Minus, TrendingUp,
   Truck, Shield, RotateCcw, Award, ThumbsUp, ThumbsDown, MessageCircle,
@@ -36,6 +36,11 @@ const ProductPage = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewImages, setReviewImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+const [isZoomed, setIsZoomed] = useState(false);
+const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+const [zoomLevel, setZoomLevel] = useState(2); // Configurable zoom level
+const imageContainerRef = useRef<HTMLDivElement>(null);
+
 
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [viewedRecently, setViewedRecently] = useState(true);
@@ -53,33 +58,22 @@ const ProductPage = () => {
   const { dispatch, state } = useOrder();
   const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
   useEffect(() => {
-    if(user._id){
-      getUserWishList(user._id);
-      setIsWishlisted(wishListsData.some((item) => item._id === product_id));
+    if(user?._id){
+      getUserWishList(user?._id);
+      setIsWishlisted(wishListsData&&wishListsData.some((item) => item._id === product_id));
     }
-  }, [user._id]);
+  }, [user?._id]);
 
-  // useEffect(() => {
-  //   if (!user?._id) {
-  //     const existing = typeof window !== 'undefined' ? localStorage.getItem('session-id') : null;
-  //     if (existing) {
-  //       setSessionId(existing);
-  //     } else {
-  //       const sid = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  //       try { localStorage.setItem('session-id', sid); } catch {}
-  //       setSessionId(sid);
-  //     }
-  //   }
-  // }, [user?._id]);
+
 
   useEffect(() => {
     if (user?._id) {
-      fetch(`/api/recommendations/user/${user._id}`)
+      fetch(`/api/recommendations/user/${user?._id}`)
         .then(res => res.json())
         .then(json => setRecommendations(json?.data || []))
         .catch(() => setRecommendations([]));
     }
-  }, [user._id]);
+  }, [user?._id]);
 
   // Load reviews from API when product is available
   useEffect(() => {
@@ -117,17 +111,17 @@ useEffect(() => {
       image: item.images?.[0],
     };
     try {
-      await addToCart(user._id, cartItem1);
+      await addToCart(user?._id, cartItem1);
     } catch {}
   };
 useEffect(() => {
   if (user?._id) {
-    fetch(`/api/recommendations/user/${user._id}`)
+    fetch(`/api/recommendations/user/${user?._id}`)
       .then(res => res.json())
       .then(json => setRecommendations(json?.data || []))
       .catch(() => setRecommendations([]));
   }
-}, [user._id]);
+}, [user?._id]);
 
 console.log("recommendations", recommendations);
   // useCallback hooks
@@ -269,7 +263,6 @@ console.log("recommendations", recommendations);
   const ratingDistribution = getRatingDistribution();
 
 const handleSubmitReview = async () => {
-  console.log("productproductproductproduct", product);
   if (!product?.id || submittingReview) return;
 
   setSubmittingReview(true);
@@ -329,7 +322,33 @@ const handleSubmitReview = async () => {
       e.currentTarget.value = '';
     }
   };
+const zoomStyles = {
+  magnifierContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+    cursor: 'zoom-in',
+    height: '500px',
+    borderRadius: '0.75rem',
+  } as React.CSSProperties,
+  
+  magnifierImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    transition: 'transform 0.1s ease-out',
+  } as React.CSSProperties,
 
+  magnifierGlass: {
+    position: 'absolute',
+    pointerEvents: 'none',
+    width: '150px',
+    height: '150px',
+    border: '2px solid #ffffff',
+    borderRadius: '50%',
+    boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+    zIndex: 1000,
+  } as React.CSSProperties
+};
   return (
     <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100 ">
   <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-400 via-red-500 to-red-600 text-white shadow-md transition-all duration-300">
@@ -420,36 +439,120 @@ const handleSubmitReview = async () => {
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Images */}
-          <div className="space-y-4">
-            <div className="relative group">
-              <img
-                src={product?.images[selectedImage]}
-                alt={product?.name}
-                className="rounded-xl w-full h-96 object-cover"
-              />
-              {product?.discount > 0 && <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                {product?.discount}% OFF
-              </div>}
-              {viewedRecently && (
-                <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-xs flex items-center">
-                  <Eye className="w-3 h-3 mr-1" />
-                  Recently viewed
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2 overflow-x-auto">
-              {product?.images.map((img: any, i: any) => (
-                <img
-                  key={i}
-                  src={img}
-                  alt=""
-                  className={`w-16 h-16 object-cover rounded cursor-pointer border-2 ${selectedImage === i ? 'border-orange-500' : 'border-gray-200'
-                    }`}
-                  onClick={() => setSelectedImage(i)}
-                />
-              ))}
-            </div>
-          </div>
+<div className="space-y-4">
+  <div
+    ref={imageContainerRef}
+    style={zoomStyles.magnifierContainer}
+    onMouseEnter={() => setIsZoomed(true)}
+    onMouseLeave={() => {
+      setIsZoomed(false);
+      setMousePosition({ x: 0, y: 0 });
+    }}
+    onMouseMove={(e) => {
+      if (!imageContainerRef.current) return;
+      
+      const bounds = imageContainerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - bounds.left) / bounds.width) * 100;
+      const y = ((e.clientY - bounds.top) / bounds.height) * 100;
+      
+      // Calculate magnifier glass position
+      const magnifierSize = 150;
+      const magnifierX = e.clientX - bounds.left - magnifierSize / 2;
+      const magnifierY = e.clientY - bounds.top - magnifierSize / 2;
+      
+      setMousePosition({
+        x: Math.min(Math.max(0, x), 100),
+        y: Math.min(Math.max(0, y), 100)
+      });
+      
+      // Update magnifier glass position
+      if (isZoomed) {
+        const glass = document.querySelector('.magnifier-glass') as HTMLElement;
+        if (glass) {
+          glass.style.left = `${magnifierX}px`;
+          glass.style.top = `${magnifierY}px`;
+          glass.style.backgroundImage = `url(${product?.images[selectedImage]})`;
+          glass.style.backgroundPosition = `${x}% ${y}%`;
+          glass.style.backgroundSize = `${zoomLevel * 100}%`;
+        }
+      }
+    }}
+    onClick={() => setZoomLevel(zoomLevel === 2 ? 3 : 2)} // Toggle zoom level
+  >
+    <img
+      src={product?.images[selectedImage]}
+      alt={product?.name}
+      style={{
+        ...zoomStyles.magnifierImage,
+        transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
+        transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+      }}
+    />
+    
+    {isZoomed && (
+      <div
+        className="magnifier-glass"
+        style={{
+          ...zoomStyles.magnifierGlass,
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+    )}
+
+    {/* Zoom level indicator */}
+    {isZoomed && (
+      <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+        {zoomLevel}x Zoom
+      </div>
+    )}
+
+    {/* Zoom instructions */}
+    {!isZoomed && (
+      <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 hover:opacity-100 transition-opacity">
+        <div className="text-center">
+          <p className="text-lg font-semibold">Hover to zoom</p>
+          <p className="text-sm">Click to toggle zoom level</p>
+        </div>
+      </div>
+    )}
+
+    {/* Product badges */}
+    {product?.discount > 0 && (
+      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md">
+        {product.discount}% OFF
+      </div>
+    )}
+    {viewedRecently && (
+      <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md">
+        Recently Viewed
+      </div>
+    )}
+  </div>
+
+  {/* Thumbnails */}
+  <div className="flex gap-2 overflow-x-auto">
+    {product?.images.map((img: string, i: number) => (
+      <div
+        key={i}
+        className="relative group cursor-pointer"
+        onClick={() => setSelectedImage(i)}
+      >
+        <img
+          src={img}
+          alt=""
+          className={`w-16 h-16 object-cover rounded transition-all ${
+            selectedImage === i 
+              ? 'border-2 border-orange-500' 
+              : 'border-2 border-gray-200 filter brightness-90'
+          }`}
+        />
+        <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded ${
+          selectedImage === i ? 'bg-black/10' : ''
+        }`} />
+      </div>
+    ))}
+  </div>
+</div>
 
           {/* Product Details */}
           <div className="space-y-4">

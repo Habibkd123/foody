@@ -28,17 +28,17 @@ const page = () => {
     setShowAdminAuth(false)
     setShowAdminDashboard(true)
   }
- const { user } = useAuthStorage()
- console.log("user", user)
+ const { user, userRole } = useAuthStorage()
+ console.log("user", user, "userRole", userRole)
  
+  // Redirect logic - only run once when component mounts if user is already logged in
   useEffect(() => {
-    if (user && (user._id || user.id)) {
-      const target = "/home";
-      if (pathname !== target) {
-        router.replace(target);
-      }
+    if (user && (user?._id || user?.id) && userRole) {
+      const target = userRole === "admin" ? "/admin" : "/productlist";
+      console.log("Login page: User already logged in, redirecting to", target);
+      router.replace(target);
     }
-  }, [user, pathname, router])
+  }, []) // Empty dependency array - only run once on mount
 
 
   return (
@@ -63,7 +63,7 @@ const page = () => {
          )}  */}
       <div className='mt-4 '>
 
-        <AuthSystem onClose={() => setShowAuth(false)} onLoginSuccess={() => setShowDashboard(true)} />
+        <AuthSystem onClose={() => setShowAuth(false)} userRole1={userRole} onLoginSuccess={() => setShowDashboard(true)} />
       </div>
     </div>
   )

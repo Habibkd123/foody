@@ -102,12 +102,12 @@ const UserAvatar = ({ user }: any) => (
   <div className="flex items-center">
     <div className="flex-shrink-0 h-10 w-10">
       <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-        <span className="text-sm font-medium text-blue-600">{user.avatar}</span>
+        <span className="text-sm font-medium text-blue-600">{user?.avatar}</span>
       </div>
     </div>
     <div className="ml-4">
-      <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
-      <div className="text-sm text-gray-500 dark:text-gray-400">{user.daysAgo}</div>
+      <div className="text-sm font-medium text-gray-900 dark:text-white">{user?.name}</div>
+      <div className="text-sm text-gray-500 dark:text-gray-400">{user?.daysAgo}</div>
     </div>
   </div>
 );
@@ -126,16 +126,16 @@ const TableRow = ({ user }: any) => (
       <UserAvatar user={user} />
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
-      <div className="text-sm text-gray-900 dark:text-white">{user.email}</div>
+      <div className="text-sm text-gray-900 dark:text-white">{user?.email}</div>
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
-      <span className="text-sm text-gray-700 dark:text-gray-300">{user.role}</span>
+      <span className="text-sm text-gray-700 dark:text-gray-300">{user?.role}</span>
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
-      <div className="text-sm text-gray-900 dark:text-white">{user.signupDate}</div>
+      <div className="text-sm text-gray-900 dark:text-white">{user?.signupDate}</div>
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
-      <StatusBadge status={user.status} />
+      <StatusBadge status={user?.status} />
     </td>
   </tr>
 );
@@ -213,7 +213,7 @@ const LatestSignupsTable = () => {
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {recentSignups.map((user) => (
-              <TableRow key={user.id} user={user} />
+              <TableRow key={user?.id} user={user} />
             ))}
           </tbody>
         </table>

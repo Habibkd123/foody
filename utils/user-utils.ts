@@ -69,25 +69,26 @@ export function validateUserObjectId(id: string): boolean {
 
 export function formatUserResponse(user: any, includePrivateInfo = false): UserResponse | UserPublicResponse {
   const baseUser = {
-    _id: user._id.toString(),
-    username: user.username,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    fullName: `${user.firstName} ${user.lastName}`,
-    role: user.role,
-    email: user.email,
-    phone: user.phone,
-    status: user.status,
-    createdAt: user.createdAt.toISOString(),
+    _id: user?._id.toString(),
+    username: user?.username,
+    firstName: user?.firstName,
+    lastName: user?.lastName,
+    fullName: `${user?.firstName} ${user?.lastName}`,
+    image: user?.image,
+    role: user?.role,
+    email: user?.email,
+    phone: user?.phone,
+    status: user?.status,
+    createdAt: user?.createdAt.toISOString(),
   };
 
   if (includePrivateInfo) {
     return {
       ...baseUser,
-      email: user.email,
-      phone: user.phone,
-      addresses: user.addresses || [],
-      updatedAt: user.updatedAt.toISOString(),
+      email: user?.email,
+      phone: user?.phone,
+      addresses: user?.addresses || [],
+      updatedAt: user?.updatedAt.toISOString(),
     } as UserResponse;
   }
 
@@ -182,7 +183,7 @@ export function buildUserSearchQuery(searchTerm: string) {
 
 // Check if user is admin
 export function isAdmin(user: any): boolean {
-  return user && user.role === 'admin';
+  return user && user?.role === 'admin';
 }
 
 // Check if user can access resource
@@ -193,19 +194,19 @@ export function canAccessUser(requestingUser: any, targetUserId: string): boolea
   if (isAdmin(requestingUser)) return true;
 
   // Users can only access their own data
-  return requestingUser._id.toString() === targetUserId;
+  return requestingUser?._id.toString() === targetUserId;
 }
 
 // Sanitize user data (remove sensitive info)
 export function sanitizeUserForPublic(user: any): UserPublicResponse {
   return {
-    _id: user._id.toString(),
-    username: user.username,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    fullName: `${user.firstName} ${user.lastName}`,
-    role: user.role,
-    createdAt: user.createdAt.toISOString(),
+    _id: user?._id.toString(),
+    username: user?.username,
+    firstName: user?.firstName,
+    lastName: user?.lastName,
+    fullName: `${user?.firstName} ${user?.lastName}`,
+    role: user?.role,
+    createdAt: user?.createdAt.toISOString(),
   };
 }
 

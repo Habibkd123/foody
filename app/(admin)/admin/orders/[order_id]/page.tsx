@@ -88,7 +88,7 @@ const SingleOrderPage = () => {
         status: orderData?.status || orderStatus || 'processing',
         customer: {
             name: (orderData?.user?.firstName && orderData?.user?.lastName)
-                ? `${orderData.user.firstName} ${orderData.user.lastName}`
+                ? `${orderData.user?.firstName} ${orderData.user?.lastName}`
                 : 'John Doe',
             email: orderData?.user?.email || 'john.doe@example.com',
             phone: orderData?.user?.phone || '+1 (555) 123-4567',

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import connectDB from '@/lib/mongodb';
 import User from '@/app/models/User';
 import { updateUserSchema } from '@/lib/user-validations';
@@ -113,14 +114,45 @@ export async function PUT(
     ).select('-password');
 
     const formattedUser = formatUserResponse(updatedUser!.toObject(), true);
-    return createUserSuccessResponse(formattedUser, 'User updated successfully');
+    
+    // Create response and update all user cookies
+    const response = createUserSuccessResponse(formattedUser, 'User updated successfully');
+    
+    // Update user-auth cookie with new user data
+    response.cookies.set({
+      name: 'user-auth',
+      value: JSON.stringify(formattedUser),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+
+    // Update user cookie (client-accessible) with basic info
+    response.cookies.set({
+      name: 'user',
+      value: JSON.stringify({
+        firstName: formattedUser.firstName,
+        lastName: formattedUser.lastName,
+        image: formattedUser?.image,
+        role: formattedUser.role
+      }),
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+
+    return response;
   } catch (error) {
     console.error('Error updating user:', error);
     return handleUserError(error);
   }
 }
 
-// DELETE - Delete user by ID
+// DELETE - Delete user by ID (and logout - clear cookies)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { userId: string } }
@@ -148,18 +180,67 @@ export async function DELETE(
       );
     }
 
-    // In a real app, you'd check if the authenticated user has permission to delete this user
-    // For demo purposes, we'll allow deletion of any user
-    
+    // Delete user from database
     await User.findByIdAndDelete(userId);
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'User deleted successfully',
-      },
-      { status: 200 }
-    );
+    // Create response and clear all auth cookies
+    const response = NextResponse.json({
+      success: true,
+      message: 'User deleted successfully and logged out',
+    }, { status: 200 });
+
+    // Clear all auth cookies
+    response.cookies.set({
+      name: 'token',
+      value: '',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0, // Expires immediately
+    });
+
+    response.cookies.set({
+      name: 'user',
+      value: '',
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
+
+    response.cookies.set({
+      name: 'user-role',
+      value: '',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
+
+    response.cookies.set({
+      name: 'user-auth',
+      value: '',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
+
+    response.cookies.set({
+      name: 'user-id',
+      value: '',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
+
+    return response;
   } catch (error) {
     console.error('Error deleting user:', error);
     return handleUserError(error);

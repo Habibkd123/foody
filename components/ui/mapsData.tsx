@@ -38,11 +38,11 @@ function MyMap() {
 
   return (
     <>
-    {/* <LoadScript googleMapsApiKey="AIzaSyAGC7JgkXXAMa8Omh2xrzNZh-ziOjYg4Hk">
+    <LoadScript googleMapsApiKey="AIzaSyAGC7JgkXXAMa8Omh2xrzNZh-ziOjYg4Hk">
       <GoogleMap mapContainerStyle={containerStyle} center={currentLocation || center} zoom={10}>
         {currentLocation && <Marker position={currentLocation} />}
       </GoogleMap>
-    </LoadScript> */}
+    </LoadScript>
     </>
   );
 }

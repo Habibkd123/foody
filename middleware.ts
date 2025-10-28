@@ -78,7 +78,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Publicly accessible routes
+  // Publicly accessible routes (no auth required)
   const publicRoutes = [
     "/",
     "/login",
@@ -91,13 +91,19 @@ export function middleware(request: NextRequest) {
     "/pricing",
   ];
 
+  // Allow public routes without authentication
   if (publicRoutes.some((route) => path === route || path.startsWith(route + "/"))) {
+    // But if user is logged in and tries to access /login, redirect them
+    if ((path === "/login" || path.startsWith("/auth")) && token && userRole) {
+      const redirectPath = userRole === "admin" ? "/admin" : "/productlist";
+      console.log("Redirecting logged-in user from", path, "to", redirectPath);
+      return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
     return NextResponse.next();
   }
 
   // Redirect to /login if not logged in
   if (!token) {
-    if (path === "/login") return NextResponse.next();
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -111,6 +117,7 @@ export function middleware(request: NextRequest) {
       "/admin/products",
       "/admin/settings",
       "/admin/users",
+      "/admin/notifications",
     ],
     user: [
       "/add-address",
@@ -124,21 +131,18 @@ export function middleware(request: NextRequest) {
       "/products",
       "/profile",
       "/wishlist",
+      "/success",
+      "/notifications",
     ],
   };
 
   const allowedRoutes = roleRoutes[userRole || ""] || [];
   const hasAccess = allowedRoutes.some((route) => path.startsWith(route));
-
+  
   // Restrict access for unauthorized roles
   if (!hasAccess) {
+    console.log("Access denied for", userRole, "to", path);
     return NextResponse.rewrite(new URL("/not-found", request.url));
-  }
-
-  // Prevent logged-in users from visiting /login or /auth
-  if ((path.startsWith("/login") || path.startsWith("/auth")) && token && userRole) {
-    const redirectPath = userRole === "admin" ? "/admin" : "/home";
-    return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
   // Optional: auto-redirects for better UX

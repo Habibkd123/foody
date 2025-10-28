@@ -1724,9 +1724,10 @@ import { useRouter } from "next/navigation"
 interface AuthSystemProps {
   onClose: () => void
   onLoginSuccess: () => void
+  userRole1 :string
 }
 
-export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps) {
+export default function AuthSystem({ onClose, onLoginSuccess,userRole1 }: AuthSystemProps) {
   const [currentStep, setCurrentStep] = useState<
     "login" | "signup" | "forgot-password" | "otp-verification" | "profile-setup"
   >("login")
@@ -1825,8 +1826,11 @@ const loginUser = async () => {
       console.log('Login successful, token:', result.token);
 
       // Important: Perform a full reload to ensure middleware sees the cookie
+if(userRole1=="user"){
       window.location.href = '/productlist';
-
+}else{
+  window.location.href = '/admin';
+}
       return result;
     } else {
       throw new Error('Invalid response from server');

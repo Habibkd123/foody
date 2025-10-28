@@ -180,7 +180,7 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
   ]
 
   const hasPermission = (permission: string) => {
-    return user.permissions.includes(permission)
+    return user?.permissions.includes(permission)
   }
 
   const getStatusColor = (status: string) => {
@@ -228,15 +228,15 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
                 <div
-                  className={`w-10 h-10 ${ADMIN_ROLES[user.role]?.color} rounded-full flex items-center justify-center`}
+                  className={`w-10 h-10 ${ADMIN_ROLES[user?.role]?.color} rounded-full flex items-center justify-center`}
                 >
-                  {React.createElement(ADMIN_ROLES[user.role].icon, {
+                  {React.createElement(ADMIN_ROLES[user?.role].icon, {
                     className: "h-5 w-5 text-white",
                   })}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{ADMIN_ROLES[user.role].name}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{ADMIN_ROLES[user?.role].name}</p>
                 </div>
               </div>
             </div>
@@ -303,7 +303,7 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
                 <NotificationSystem adminUser={user} />
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>
-                    {user.name
+                    {user?.name
                       .split(" ")
                       .map((n) => n[0])
                       .join("")}
@@ -432,30 +432,30 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
                       <div className="space-y-4">
                         {recentUsers.map((user) => (
                           <div
-                            key={user.id}
+                            key={user?.id}
                             className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                           >
                             <div className="flex items-center space-x-3">
                               <Avatar className="h-10 w-10">
                                 <AvatarFallback>
-                                  {user.name
+                                  {user?.name
                                     .split(" ")
                                     .map((n) => n[0])
                                     .join("")}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{user?.email}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  Joined {formatDate(user.joinDate)}
+                                  Joined {formatDate(user?.joinDate)}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">{user.orders} orders</p>
-                              <Badge className={`${getStatusColor(user.status)} hover:${getStatusColor(user.status)}`}>
-                                {user.status}
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.orders} orders</p>
+                              <Badge className={`${getStatusColor(user?.status)} hover:${getStatusColor(user?.status)}`}>
+                                {user?.status}
                               </Badge>
                             </div>
                           </div>
@@ -514,35 +514,35 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
                         </thead>
                         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                           {recentUsers.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <tr key={user?.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <Avatar className="h-10 w-10">
                                     <AvatarFallback>
-                                      {user.name
+                                      {user?.name
                                         .split(" ")
                                         .map((n) => n[0])
                                         .join("")}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">{user?.name}</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</div>
                                   </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <Badge
-                                  className={`${getStatusColor(user.status)} hover:${getStatusColor(user.status)}`}
+                                  className={`${getStatusColor(user?.status)} hover:${getStatusColor(user?.status)}`}
                                 >
-                                  {user.status}
+                                  {user?.status}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {user.orders}
+                                {user?.orders}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {formatDate(user.joinDate)}
+                                {formatDate(user?.joinDate)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div className="flex items-center space-x-2">
@@ -552,9 +552,9 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
                                     onClick={() => {
                                       logActivity("view_user", "user", {
                                         title: "User Profile Viewed",
-                                        message: `Viewed profile for ${user.name}`,
+                                        message: `Viewed profile for ${user?.name}`,
                                         priority: "low",
-                                        relatedId: user.id,
+                                        relatedId: user?.id,
                                       })
                                     }}
                                   >
@@ -567,9 +567,9 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
                                       onClick={() => {
                                         logActivity("edit_user", "user", {
                                           title: "User Edit Initiated",
-                                          message: `Started editing user ${user.name}`,
+                                          message: `Started editing user ${user?.name}`,
                                           priority: "medium",
-                                          relatedId: user.id,
+                                          relatedId: user?.id,
                                         })
                                       }}
                                     >
@@ -584,9 +584,9 @@ export default function AdminDashboard({ user=, onClose }: AdminDashboardProps) 
                                       onClick={() => {
                                         logActivity("ban_user", "security", {
                                           title: "User Ban Action",
-                                          message: `Initiated ban action for user ${user.name}`,
+                                          message: `Initiated ban action for user ${user?.name}`,
                                           priority: "high",
-                                          relatedId: user.id,
+                                          relatedId: user?.id,
                                         })
                                       }}
                                     >

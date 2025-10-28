@@ -35,10 +35,27 @@ import { useProductsContext } from "@/context/AllProductContext"
 import { useCartOrder } from "@/context/OrderContext"
 import { useOrder } from "@/context/OrderContext"
 import { useWishListContext } from "@/context/WishListsContext"
+import { useCustomToast } from "@/hooks/useCustomToast"
+import ToastProvider from "@/components/ui/ToastProvider"
+import FlashSales from "@/components/FlashSales"
+import TrendingProducts from "@/components/TrendingProducts"
+import LoyaltyRewards from "@/components/LoyaltyRewards"
+import NotificationBanner from "@/components/NotificationBanner"
+import NotificationCenter from "@/components/NotificationCenter"
 export function Grocery() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
+  const toast = useCustomToast()
+  
+  // Contact form state
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { productsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<Array<any>>([])
@@ -46,21 +63,66 @@ export function Grocery() {
   const [userData, setUserData] = useState<any | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
-  const { token, user, setToken, setUser } = useAuthStorage()
+  const [categories, setCategories] = useState<Array<any>>([])
+  const { token, user, setToken, setUser ,logout} = useAuthStorage()
   const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
   const { wishListsData, addWishList, removeWishList, setWistListsData, getUserWishList } = useWishListContext();
   const { dispatch, state } = useOrder();
   let products = productsData
-  const groceryCategories = [
-    { id: 'all', name: "All Items", icon: "🛒" },
-    { id: 'grocery', name: "Grocery", icon: "🛍️" },
-    { id: 'mix', name: "Mix", icon: "🍞️" },
-    { id: 'bakery', name: "Bakery", icon: "🍞" },
-    { id: 'okoay', name: "Okoay", icon: "🌴" },
-    { id: 'masala', name: "Masala & Spices", icon: "🌶️" },
-    // { id: 'oil', name: "Cooking Oils", icon: "🫒" },
+  
+  // Get fallback icon based on category name
+  const getCategoryIcon = (categoryName: string) => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('grocery') || name.includes('store')) return '🛍️';
+    if (name.includes('bakery') || name.includes('bread')) return '🍞';
+    if (name.includes('masala') || name.includes('spice')) return '🌶️';
+    if (name.includes('fruit') || name.includes('apple')) return '🍎';
+    if (name.includes('vegetable') || name.includes('veggie')) return '🥬';
+    if (name.includes('dairy') || name.includes('milk')) return '🥛';
+    if (name.includes('meat') || name.includes('chicken')) return '🍗';
+    if (name.includes('snack') || name.includes('chips')) return '🍿';
+    if (name.includes('beverage') || name.includes('drink')) return '🥤';
+    if (name.includes('oil') || name.includes('cooking')) return '🫒';
+    if (name.includes('rice') || name.includes('grain')) return '🌾';
+    if (name.includes('sweet') || name.includes('dessert')) return '🍰';
+    return '🏪'; // Default store icon
+  };
 
-  ]
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories/productcategory');
+      const data = await response.json();
+      console.log('Categories response:', data.data);
+
+      if (data.success) {
+        // Add "All Items" as first category with special styling
+        const allCategory = { 
+          _id: 'all', 
+          name: "All Items", 
+          icon: "🛒",
+          isAllCategory: true 
+        };
+        setCategories([allCategory, ...data.data]);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      // Fallback to default categories if API fails
+      setCategories([
+        { _id: 'all', name: "All Items", icon: "🛒", isAllCategory: true },
+        { _id: 'grocery', name: "Grocery", icon: "🛍️" },
+        { _id: 'bakery', name: "Bakery", icon: "🍞" },
+        { _id: 'masala', name: "Masala & Spices", icon: "🌶️" },
+      ]);
+    }
+  };
+
+  // Grocery categories (will be replaced by API data)
+  const groceryCategories = categories
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (user?._id) {
@@ -123,22 +185,28 @@ export function Grocery() {
   const toggleWishlist = async (item: any) => {
     console.log("item", item)
     console.log("wishListsData", wishListsData)
-    const isWishlisted = wishListsData.some((item) => item?._id === item?._id);
+    const isWishlisted = wishListsData&&wishListsData.some((item) => item?._id === item?._id);
     try {
       if (isWishlisted) {
         await removeWishList(user?._id, item?._id);
+        toast.wishlistRemoved(item.name);
       } else {
         await addWishList(user?._id, item?._id);
+        toast.wishlistAdded(item.name);
       }
     } catch (error) {
       console.error("Error toggling wishlist:", error);
+      toast.error("Wishlist Error", "Failed to update wishlist");
     }
   };
 
   // Enhanced add to cart with animation and better state management
   const handleAddToCart = useCallback(async (item: any) => {
     console.log("user", user)
-    if (!user?._id) return;
+    if (!user?._id) {
+      toast.warning("Login Required", "Please login to add items to cart");
+      return;
+    }
     console.log("item", item)
     const cartItem: any = {
       id: item._id,
@@ -148,32 +216,38 @@ export function Grocery() {
       image: item.images[0],
     };
     console.log("cartItem", cartItem)
-    let response = await addToCart(user._id, cartItem);
-    console.log("response", response)
-    // @ts-ignore
-    if (response.success) {
-      alert("Product added to cart successfully");
-    } else {
-      alert(response);
-    }
-  }, [cartItems, dispatch]);
-
-  const removeFromCart1 = useCallback((itemId: any) => {
     try {
-      let response = removeFromCart(user._id, itemId);
+      let response = await addToCart(user?._id, cartItem);
       console.log("response", response)
       // @ts-ignore
       if (response.success) {
-        alert("Product removed from cart successfully");
+        toast.cartAdded(item.name);
       } else {
         // @ts-ignore
-        alert(response.message);
+        toast.error("Cart Error", response?.message || "Failed to add item to cart");
       }
     } catch (error) {
-      console.log(error)
-      alert(error)
+      console.error("Error adding to cart:", error);
+      toast.error("Cart Error", "Failed to add item to cart");
     }
-  }, [cartItems, dispatch]);
+  }, [cartItems, dispatch, user, addToCart]);
+
+  const removeFromCart1 = useCallback(async (itemId: any) => {
+    try {
+      let response = await removeFromCart(user?._id, itemId);
+      console.log("response", response)
+      // @ts-ignore
+      if (response.success) {
+        toast.cartRemoved("Item from cart");
+      } else {
+        // @ts-ignore
+        toast.error("Cart Error", response?.message || "Failed to remove item from cart");
+      }
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      toast.error("Cart Error", "Failed to remove item from cart");
+    }
+  }, [cartItems, dispatch, user, removeFromCart]);
 
   // Enhanced quantity update that syncs with all states
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
@@ -187,14 +261,14 @@ export function Grocery() {
         // Remove item if quantity becomes 0
         setCartItems(cartItems.filter((item: any) => item._id !== productId));
         // dispatch({ type: "REMOVE_ITEM", id: productId });
-        updateQuantity(user._id, productId, newQuantity);
+        updateQuantity(user?._id, productId, newQuantity);
       } else {
         // Update quantity in both local state and global state
         setCartItems(cartItems.map((item: any) =>
           item.id === productId ? { ...item, quantity: newQuantity } : item
         ));
         dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
-        updateQuantity(user._id, productId, newQuantity);
+        updateQuantity(user?._id, productId, newQuantity);
       }
     }
   }, [cartItems, dispatch, state.items]);
@@ -237,7 +311,9 @@ export function Grocery() {
                 Contact
               </a>
               {user?._id ? (
+                <button onClick={() => router.push('/profile')} className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
                 <span className="text-sm text-gray-700 dark:text-gray-300">Hi, {user?.firstName || user?.name || 'User'}</span>
+                </button>
               ) : (
                 <Button
                   className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full"
@@ -250,6 +326,9 @@ export function Grocery() {
 
             {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
+              {/* Notification Center */}
+              {user?._id && <NotificationCenter location="home" />}
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -313,6 +392,11 @@ export function Grocery() {
         </div>
       </header>
 
+      {/* Notification Banner */}
+      <div className="container mx-auto px-4 pt-6">
+        <NotificationBanner location="home" />
+      </div>
+
       {/* Hero Section */}
       <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
@@ -343,7 +427,7 @@ export function Grocery() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={() => router.push("productList")} size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full">
+            <Button onClick={() => router.push("home")} size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full">
               Shop Now
             </Button>
             <Button
@@ -357,33 +441,107 @@ export function Grocery() {
         </div>
       </section>
 
-      {/* Featured Grocery Categories */}
+      {/* Shop by Category - Simple & Clean */}
       <section className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Shop by Category</h2>
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-3 text-gray-900 dark:text-white">
+              Shop by Category
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Browse our fresh products by category
+            </p>
+          </div>
 
-          <div className="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-            {groceryCategories.map((category) => (
-              <div
-                key={category.id}
-                className={`flex-shrink-0 w-32 text-center group cursor-pointer ${selectedCategory === category.id ? 'opacity-100' : 'opacity-70 hover:opacity-100'
+          {/* Categories Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+            {groceryCategories.map((category) => {
+              const categoryId = category._id || category.id;
+              const categoryProducts = products.filter(p => categoryId === 'all' || p.category === categoryId)
+              const productCount = categoryProducts.length
+              const isSelected = selectedCategory === categoryId
+              return (
+                <div
+                  key={categoryId}
+                  onClick={() => setSelectedCategory(categoryId)}
+                  className={`group cursor-pointer transition-all duration-300 ${
+                    isSelected ? 'scale-105' : 'hover:scale-105'
                   }`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                <div className={`w-20 h-20 mx-auto mb-3 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 ${selectedCategory === category.id
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-white/20 dark:bg-gray-700/50'
+                >
+                  <div className={`relative rounded-2xl p-6 text-center transition-all duration-300 ${
+                    isSelected
+                      ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-xl shadow-orange-500/30'
+                      : 'bg-white dark:bg-gray-700 shadow-lg hover:shadow-xl'
                   }`}>
-                  <span className="text-3xl">{category.icon}</span>
+                    {/* Icon */}
+                    <div className={`w-16 h-16 mx-auto mb-3 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 ${
+                      isSelected
+                        ? 'bg-white/20'
+                        : 'bg-orange-100 dark:bg-orange-900/30 group-hover:scale-110'
+                    }`}>
+                      {category?.isAllCategory ? (
+                        // Special icon for "All Items"
+                        <div className="text-4xl animate-pulse">
+                          🛒
+                        </div>
+                      ) : category?.image ? (
+                        // Show category image if available
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                            // Hide image and show fallback icon on error
+                            e.currentTarget.style.display = 'none';
+                            const fallbackIcon = e.currentTarget.nextElementSibling;
+                            if (fallbackIcon) {
+                              (fallbackIcon as HTMLElement).style.display = 'block';
+                            }
+                          }}
+                        />
+                      ) : null}
+                      {/* Fallback icon (hidden by default, shown if image fails) */}
+                      <span 
+                        className="text-4xl transition-transform duration-500 group-hover:scale-110"
+                        style={{ display: category?.image && !category?.isAllCategory ? 'none' : 'block' }}
+                      >
+                        {category?.icon || getCategoryIcon(category?.name || '')}
+                      </span>
+                    </div>
+                    
+                    {/* Category Name */}
+                    <h3 className={`font-semibold mb-2 transition-colors ${
+                      isSelected
+                        ? 'text-white'
+                        : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {category.name}
+                    </h3>
+                    
+                    {/* Product Count */}
+                    <p className={`text-sm ${
+                      isSelected
+                        ? 'text-white/90'
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {productCount} items
+                    </p>
+
+                    {/* Selected Indicator */}
+                    {isSelected && (
+                      <div className="absolute top-3 right-3">
+                        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className={`text-sm font-medium transition-colors ${selectedCategory === category.id
-                  ? 'text-orange-500'
-                  : 'text-gray-700 dark:text-gray-300 group-hover:text-orange-500'
-                  }`}>
-                  {category.name}
-                </p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -414,7 +572,7 @@ export function Grocery() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => 
-           { const isWishlisted = wishListsData.some((item: any) => item._id === product._id); return(
+           { const isWishlisted = wishListsData&&wishListsData.some((item: any) => item._id === product._id); return(
               <Card
                 key={product._id}
                 className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden"
@@ -477,8 +635,24 @@ export function Grocery() {
         </div>
       </section>
 
+      {/* Flash Sales Section */}
+      <FlashSales 
+        products={products}
+        onAddToCart={handleAddToCart}
+        onToggleWishlist={toggleWishlist}
+      />
+
+      {/* Trending Products Section */}
+      <TrendingProducts 
+        onAddToCart={handleAddToCart}
+        onToggleWishlist={toggleWishlist}
+      />
+
+      {/* Loyalty Rewards Section */}
+      <LoyaltyRewards />
+
       {/* Offers and Coupons */}
-      <section id="offers" className="py-16 bg-gray-50 dark:bg-gray-800">
+      {/* <section id="offers" className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Deals & Offers</h2>
 
@@ -509,7 +683,7 @@ export function Grocery() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Why Choose Us */}
       <section className="py-16">
@@ -556,14 +730,94 @@ export function Grocery() {
                 <CardTitle>Send us a Message</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input placeholder="Your Name" />
-                <Input type="email" placeholder="Your Email" />
-                <textarea
-                  placeholder="Your Message"
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-800 dark:text-white"
-                ></textarea>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600">Send Message</Button>
+                <form onSubmit={async (e) => {
+                  e.preventDefault()
+                  
+                  // Validation
+                  if (!contactForm.name || !contactForm.email || !contactForm.message) {
+                    toast.warning('Form Incomplete', 'Please fill in all required fields')
+                    return
+                  }
+                  
+                  setIsSubmitting(true)
+                  
+                  try {
+                    const response = await fetch('/api/contact', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(contactForm),
+                    })
+                    
+                    const data = await response.json()
+                    
+                    if (data.success) {
+                      toast.success('Message Sent!', data.message || 'We will get back to you soon')
+                      // Reset form
+                      setContactForm({
+                        name: '',
+                        email: '',
+                        subject: '',
+                        message: ''
+                      })
+                    } else {
+                      toast.error('Failed to Send', data.error || 'Please try again later')
+                    }
+                  } catch (error) {
+                    console.error('Contact form error:', error)
+                    toast.error('Network Error', 'Failed to send message. Please check your connection.')
+                  } finally {
+                    setIsSubmitting(false)
+                  }
+                }}>
+                  <div className="space-y-4">
+                    <Input 
+                      placeholder="Your Name *" 
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                      required
+                      disabled={isSubmitting}
+                    />
+                    <Input 
+                      type="email" 
+                      placeholder="Your Email *" 
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                      required
+                      disabled={isSubmitting}
+                    />
+                    <Input 
+                      placeholder="Subject (Optional)" 
+                      value={contactForm.subject}
+                      onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
+                      disabled={isSubmitting}
+                    />
+                    <textarea
+                      placeholder="Your Message *"
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                      required
+                      disabled={isSubmitting}
+                    ></textarea>
+                    <Button 
+                      type="submit"
+                      className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Sending...
+                        </>
+                      ) : (
+                        'Send Message'
+                      )}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
 
@@ -697,9 +951,11 @@ export function Grocery() {
 export default function Page() {
 
   return (
-    <main>
-      <Grocery />
-      <SupportChat />
-    </main>
+    <ToastProvider>
+      <main>
+        <Grocery />
+        <SupportChat />
+      </main>
+    </ToastProvider>
   );
 }

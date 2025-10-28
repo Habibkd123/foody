@@ -383,12 +383,12 @@ const UserManagementComponent = () => {
         <>
           <div className="users-list">
             {users.map(user => (
-              <div key={user._id} className="user-card">
-                <h3>{user.fullName}</h3>
-                <p>Email: {user.email}</p>
-                <p>Role: {user.role}</p>
-                <p>Addresses: {user.addresses.length}</p>
-                <p>Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
+              <div key={user?._id} className="user-card">
+                <h3>{user?.fullName}</h3>
+                <p>Email: {user?.email}</p>
+                <p>Role: {user?.role}</p>
+                <p>Addresses: {user?.addresses.length}</p>
+                <p>Joined: {new Date(user?.createdAt).toLocaleDateString()}</p>
               </div>
             ))}
           </div>

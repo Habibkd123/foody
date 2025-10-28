@@ -82,7 +82,7 @@ export default function Users() {
         setTotalPages(Math.ceil(response.data.pagination.total / usersPerPage));
         setError(null);
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error("Error fetching users:", error);
         setError("Failed to fetch users");
         setUsersData([]);
@@ -164,17 +164,17 @@ export default function Users() {
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {usersData.map((user) => (
-                  <TableRow key={user._id}>
+                  <TableRow key={user?._id}>
                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                       <div className="flex items-center gap-3">
-                        {user.avatar && !user.avatar.endsWith("default-avatar.jpg") ? (
+                        {user?.avatar && !user?.avatar.endsWith("default-avatar.jpg") ? (
 
                           <div className="w-10 h-10 overflow-hidden rounded-full">
                             <img
                               width={40}
                               height={40}
-                              src={API_URL + "uploads/profile/" + user.avatar}
-                              alt={user.firstName + " " + user.lastName}
+                              src={API_URL + "uploads/profile/" + user?.avatar}
+                              alt={user?.firstName + " " + user?.lastName}
                               className="w-full h-full object-cover"
                             />
 
@@ -183,46 +183,46 @@ export default function Users() {
                         )}
                         <div>
                           <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                            {user.firstName} {user.lastName}
+                            {user?.firstName} {user?.lastName}
                           </span>
                           <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                            ID: {user._id}
+                            ID: {user?._id}
                           </span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {user.email}
+                      {user?.email}
                     </TableCell>
                     {/* <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {user.role}
+                      {user?.role}
                     </TableCell> */}
                     <TableCell className="px-4 py-3 text-start">
-                      {getStatusBadge(user.isActive ? "Active" : "Inactive")}
+                      {getStatusBadge(user?.isActive ? "Active" : "Inactive")}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-start">
-                      <span className={`font-medium ${user.walletBalance?.balance && user.walletBalance.balance > 0
+                      <span className={`font-medium ${user?.walletBalance?.balance && user?.walletBalance.balance > 0
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-gray-500 dark:text-gray-400'
                         }`}>
-                        ${user.walletBalance?.balance?.toFixed(2) ?? '0.00'}
+                        ${user?.walletBalance?.balance?.toFixed(2) ?? '0.00'}
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-start">
                       <div className="relative">
                         <button
-                          onClick={() => handleActionClick(user._id)}
+                          onClick={() => handleActionClick(user?._id)}
                           className="dropdown-toggle flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300"
                         >
                           <HorizontaLDots className="h-4 w-4" />
                         </button>
                         <Dropdown
-                          isOpen={openDropdown === user._id}
+                          isOpen={openDropdown === user?._id}
                           onClose={() => setOpenDropdown(null)}
                           className="min-w-[120px]"
                         >
                           <DropdownItem
-                            onClick={() => handleEdit(user._id)}
+                            onClick={() => handleEdit(user?._id)}
                             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/[0.05]"
                           >
                             <>
@@ -233,7 +233,7 @@ export default function Users() {
                             </>
                           </DropdownItem>
                           <DropdownItem
-                            onClick={() => handleDelete(user._id)}
+                            onClick={() => handleDelete(user?._id)}
                             className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
                           >
                             <>

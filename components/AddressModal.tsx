@@ -141,7 +141,7 @@
 //     // Load addresses when modal opens
 //     useEffect(() => {
 //         if (addressOpen && user?._id) {
-//             getAddresses(user._id);
+//             getAddresses(user?._id);
 //         }
 //     }, [addressOpen, user?._id, getAddresses]);
 
@@ -165,10 +165,10 @@
 //                 const addressId = editingAddress._id || editingAddress.id;
 //                 if (!addressId) throw new Error("Address ID not found");
                 
-//                 savedAddress = await updateAddress(user._id, addressId, newAddress);
+//                 savedAddress = await updateAddress(user?._id, addressId, newAddress);
 //             } else {
 //                 // Add new address
-//                 savedAddress = await addAddress(user._id, newAddress);
+//                 savedAddress = await addAddress(user?._id, newAddress);
 //             }
 
 //             setShowAddModal(false);
@@ -233,7 +233,7 @@
 //         setIsDeleting(addressId);
         
 //         try {
-//             await deleteAddress(user._id, addressId);
+//             await deleteAddress(user?._id, addressId);
             
 //             // If deleted address was selected, clear selection
 //             if ((selectedAddress?._id || selectedAddress?.id) === addressId) {
@@ -248,7 +248,7 @@
 //     };
 //     const handleGetAllAddress=async()=>{
 //         if (!user?._id) return;
-//        let result= await getAddresses(user._id);
+//        let result= await getAddresses(user?._id);
 //        console.log("result",result)
 //        setAddresses(result);
 //     }
@@ -539,7 +539,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ addressOpen, setAddressOpen
     const handleGetAllAddress = async () => {
         if (!user?._id) return;
         try {
-            let result = await getAddresses(user._id);
+            let result = await getAddresses(user?._id);
             console.log("result", result);
             setAddresses(result !== undefined ? result : []);
         } catch (error) {
@@ -577,11 +577,11 @@ const AddressModal: React.FC<AddressModalProps> = ({ addressOpen, setAddressOpen
                 const addressId = editingAddress._id 
                 if (!addressId) throw new Error("Address ID not found");
                 // @ts-ignore
-                savedAddress = await updateAddress(user._id, addressId, newAddress);
+                savedAddress = await updateAddress(user?._id, addressId, newAddress);
             } else {
                 // Add new address
                 // @ts-ignore
-                savedAddress = await addAddress(user._id, newAddress);
+                savedAddress = await addAddress(user?._id, newAddress);
             }
 
             // Refresh the addresses list
@@ -642,7 +642,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ addressOpen, setAddressOpen
         setIsDeleting(addressId);
         
         try {
-            await deleteAddress(user._id, addressId);
+            await deleteAddress(user?._id, addressId);
             
             // Refresh addresses list
             await handleGetAllAddress();

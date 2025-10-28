@@ -65,10 +65,10 @@ const Wishlist: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
 useEffect(() => {
-  if(user._id){
-    getUserWishList(user._id);
+  if(user?._id){
+    getUserWishList(user?._id);
   }
-}, [user._id]);
+}, [user?._id]);
   // State management
   const [cartOpen, setCartOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
@@ -105,12 +105,12 @@ useEffect(() => {
 
   // Enhanced wishlist operations
   const handleRemove = useCallback((id: any) => {
-    removeWishList(user._id, id);
+    removeWishList(user?._id, id);
   }, [removeWishList]);
 
   const handleBulkRemove = useCallback(() => {
     selectedItems.forEach((itemId) => {
-      removeWishList(user._id, itemId.toString());
+      removeWishList(user?._id, itemId.toString());
     });
     setSelectedItems([]);
   }, [selectedItems, removeWishList]);
@@ -139,7 +139,7 @@ useEffect(() => {
       image: item.images[0],
     };
 
-    let response = await addToCart(user._id, cartItem);
+    let response = await addToCart(user?._id, cartItem);
     console.log("response", response)
   }, [cartItems, addToCart]);
 
@@ -168,14 +168,14 @@ useEffect(() => {
          // Remove item if quantity becomes 0
          setCartItems(cartItems.filter((item: any) => item._id !== productId));
          // dispatch({ type: "REMOVE_ITEM", id: productId });
-         updateQuantity(user._id, productId, newQuantity);
+         updateQuantity(user?._id, productId, newQuantity);
        } else {
          // Update quantity in both local state and global state
          setCartItems(cartItems.map((item: any) =>
            item.id === productId ? { ...item, quantity: newQuantity } : item
          ));
          dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
-         updateQuantity(user._id, productId, newQuantity);
+         updateQuantity(user?._id, productId, newQuantity);
        }
      }
    }, [cartItems, dispatch, state.items]);

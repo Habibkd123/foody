@@ -10,6 +10,8 @@ import LocationSelector from "@/components/LocationSelector";
 import Link from "next/link";
 import NavbarFilter from "@/components/NavbarFilter";
 import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut, ChevronDown, MapPin, ArrowRight, Plus, Minus, Eye, TrendingUp, Clock, Truck } from 'lucide-react';
+import { useAuthStorage } from "@/hooks/useAuth";
+import NotificationCenter from "@/components/NotificationCenter";
 
 
 // types.ts
@@ -75,61 +77,13 @@ const HomePage: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
   const { wishListsData, setWistListsData } = useWishListContext();
-
+  const { user, setUser, updateUser, logout } = useAuthStorage();
   // Enhanced UI states
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [categories, setCategories] = useState<CategorySectionType[]>([]);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-
-  const notificationRef = useRef(null);
-  const mobileFiltersRef = useRef(null);
-
-  // Sample notifications
-  const notifications = [
-    { id: 1, message: 'New order received', time: '2 minutes ago', unread: true },
-    { id: 2, message: 'Product stock running low', time: '1 hour ago', unread: true },
-    { id: 3, message: 'Customer review added', time: '3 hours ago', unread: false },
-    { id: 4, message: 'Monthly report ready', time: '1 day ago', unread: false },
-  ];
-
-  // Close notification menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: any) {
-      // @ts-ignore
-      if (notificationRef.current && !notificationRef.current?.contains(event.target)) {
-        setIsNotificationOpen(false);
-      }
-      // @ts-ignore
-      if (mobileFiltersRef.current && !mobileFiltersRef.current?.contains(event.target)) {
-        setIsMobileFiltersOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Close menus when pressing Escape
-  useEffect(() => {
-    function handleEscape(event: any) {
-      // @ts-ignore
-      if (event.key === 'Escape') {
-        setIsNotificationOpen(false);
-        setIsMobileFiltersOpen(false);
-      }
-    }
-
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -164,15 +118,16 @@ const HomePage: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem("G-user");
     localStorage.removeItem("token");
+    logout();
     window.location.reload();
   };
 console.log("Categories:", categories?.length);
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
-        <div className='sticky top-0 z-40'>
-          <AnnouncementBar />
-        </div>
+        <div className="min-h-screen bg-gray-50">
+        {/* Announcement Bar */}
+        <AnnouncementBar />
 
         <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
           <header className="transition-all duration-300">
@@ -237,67 +192,8 @@ console.log("Categories:", categories?.length);
                 {/* Right side - Actions */}
                 <div className="flex items-center space-x-3">
 
-                  {/* Notification Menu */}
-                  <div className="relative" ref={notificationRef}>
-                    <button
-                      onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                      className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
-                    >
-                      <Bell className="w-6 h-6" />
-                      <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                        2
-                      </span>
-                    </button>
-
-                    {/* Fixed Notification Dropdown */}
-                    {isNotificationOpen && (
-                      <>
-                        {/* Mobile Overlay */}
-                        <div className="fixed inset-0 bg-black bg-opacity-25 z-[100] md:hidden"
-                          onClick={() => setIsNotificationOpen(false)} />
-
-                        {/* Notification Panel */}
-                        <div className="fixed md:absolute z-[101] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 
-                     top-16 md:top-full left-2 right-2 md:left-auto md:right-0 md:w-96 max-h-96 overflow-y-auto">
-                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                              <button
-                                onClick={() => setIsNotificationOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                              >
-                                <X className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="py-2">
-                            {notifications.map((notification) => (
-                              <div
-                                key={notification.id}
-                                className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200 ${notification.unread ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                                  }`}
-                              >
-                                <div className="flex items-start">
-                                  {notification.unread && (
-                                    <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3"></div>
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-900 dark:text-white">{notification.message}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.time}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-b-lg">
-                            <button className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
-                              View all notifications
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  {/* Dynamic Notification Center */}
+                  {user?._id && <NotificationCenter location="home" />}
                   {/* Enhanced Wishlist */}
                   <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
                     <Link href="/wishlist">
@@ -401,8 +297,7 @@ console.log("Categories:", categories?.length);
           )}
         </div>
 
-        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Stats Section */}
+        {/* <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mt-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 text-white">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
@@ -424,7 +319,6 @@ console.log("Categories:", categories?.length);
             </div>
           </div>
 
-          {/* Newsletter Section */}
           <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 text-center">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Stay Updated</h3>
             <p className="text-gray-600 mb-6">Get notified about new products, offers, and more!</p>
@@ -439,7 +333,7 @@ console.log("Categories:", categories?.length);
               </button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Footer */}
         <footer className="bg-gray-900 text-white mt-16">
@@ -502,9 +396,8 @@ console.log("Categories:", categories?.length);
             <ChevronUp className="w-6 h-6" />
           </button>
         )}
-
+        </div>
       </div>
-
     </>
   );
 }

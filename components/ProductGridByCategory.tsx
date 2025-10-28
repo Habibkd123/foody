@@ -183,7 +183,7 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
 
     // Product Card Component
     const ProductCard = ({ product, index }: { product: Product; index: number }) => {
-        const isWishlisted = wishListsData.some((item: any) => item.id === product.id);
+        const isWishlisted = wishListsData&&wishListsData.some((item: any) => item.id === product.id);
         const inCart = isInCart(product);
         const cartQuantity = getCartQuantity?.(product) || 0;
         const currentQuantity = quantities[product.id] || 1;

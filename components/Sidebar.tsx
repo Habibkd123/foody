@@ -189,7 +189,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation"; // ✅ Import for current URL
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Shield, BarChart3, CheckSquare, Users, DollarSign } from "lucide-react";
+import { ChevronDown, ChevronRight, Shield, BarChart3, CheckSquare, Users, DollarSign, Bell } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 
 const NavigationItem = ({ item, activeTab, setActiveTab, expandedMenus, toggleMenu, isCollapsed }: any) => (
@@ -277,6 +277,13 @@ const Sidebar = () => {
       label: "Users",
       icon: Users,
       href: "/admin/users",
+
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      href: "/admin/notifications",
 
     },
     { id: "sales", label: "Sales", icon: DollarSign, href: "/admin/sales" },

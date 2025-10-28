@@ -40,6 +40,7 @@ export interface UserResponse {
   fullName?: string;
   email: string;
   phone: number;
+  image ?: string;
   role: 'user' | 'admin';
   addresses: Array<{
     _id?: string;

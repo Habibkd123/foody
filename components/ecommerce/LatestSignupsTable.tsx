@@ -10,7 +10,7 @@ import {
 import Badge from "../ui/badge";
 import { UserCircleIcon, EnvelopeIcon, CalenderIcon } from "../../icons";
 import { UserCircle2Icon } from "lucide-react";
-
+// import { API_URL } from "@/lib/";
 
 // Helper function to format date
 const formatDate = (dateString: string) => {
@@ -98,18 +98,18 @@ export default function LatestSignupsTable({ data}: any) {
 
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {data&&data?.map((user, index) => (
+            {data&&data?.map((user:any, index:any) => (
               <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                 <TableCell className="px-6 py-4 text-start">
                   <div className="flex items-center gap-3">
-                    {user.avatar && !user.avatar.endsWith("default-avatar.jpg") ? (
+                    {user?.avatar && !user?.avatar.endsWith("default-avatar.jpg") ? (
 
                       <div className="w-10 h-10 overflow-hidden rounded-full">
                         <img
                           width={40}
                           height={40}
-                          src={API_URL + "uploads/profile/" + user.avatar}
-                          alt={user.User}
+                          src={API_URL + "uploads/profile/" + user?.avatar}
+                          alt={user?.User}
                           className="w-full h-full object-cover"
                         />
 
@@ -118,7 +118,7 @@ export default function LatestSignupsTable({ data}: any) {
                     )}
                     <div>
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {user.User}
+                        {user?.User}
                       </span>
                       <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
                         {getTimeAgo(user["Signup Date"])}
@@ -130,13 +130,13 @@ export default function LatestSignupsTable({ data}: any) {
                   <div className="flex items-center gap-2">
                     <EnvelopeIcon className="size-4 text-gray-400" />
                     <span className="text-gray-600 text-theme-sm dark:text-gray-300">
-                      {user.Email}
+                      {user?.Email}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-4 text-start">
                   <span className="text-gray-600 text-theme-sm dark:text-gray-300">
-                    {user.Role}
+                    {user?.Role}
                   </span>
                 </TableCell>
                 <TableCell className="px-4 py-4 text-start">
@@ -151,14 +151,14 @@ export default function LatestSignupsTable({ data}: any) {
                   <Badge
                     size="sm"
                     color={
-                      user.Status === "Active"
+                      user?.Status === "Active"
                         ? "success"
-                        : user.Status === "Verified"
+                        : user?.Status === "Verified"
                           ? "info"
                           : "warning"
                     }
                   >
-                    {user.Status}
+                    {user?.Status}
                   </Badge>
                 </TableCell>
               </TableRow>
