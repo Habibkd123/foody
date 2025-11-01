@@ -1720,14 +1720,18 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
+import { useAuthStorage } from "@/hooks/useAuth"
 
 interface AuthSystemProps {
   onClose: () => void
   onLoginSuccess: () => void
-  userRole1 :string
+  userRole1: string
 }
 
-export default function AuthSystem({ onClose, onLoginSuccess,userRole1 }: AuthSystemProps) {
+export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthSystemProps) {
+  let { userRole } = useAuthStorage();
+  console.log("User Role in AuthSystem:", userRole);
   const [currentStep, setCurrentStep] = useState<
     "login" | "signup" | "forgot-password" | "otp-verification" | "profile-setup"
   >("login")
@@ -1763,7 +1767,7 @@ export default function AuthSystem({ onClose, onLoginSuccess,userRole1 }: AuthSy
 
   // API Functions
   const createUser = async () => {
-   
+
 
     try {
       const payload = {
@@ -1797,67 +1801,56 @@ export default function AuthSystem({ onClose, onLoginSuccess,userRole1 }: AuthSy
     }
   }
 
-const loginUser = async () => {
-  try {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // important for cookies
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-      }),
-    });
-
-    const result = await response.json();
-    console.log('Login response:', result);
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Login failed');
-    }
-
-    if (result.success && result) {
-      // Store token & user info in localStorage if you want quick client access
-      // localStorage.setItem('token', result.token);
-      // localStorage.setItem('G-user', JSON.stringify(result.user));
-
-      console.log('Login successful, token:', result.token);
-
-      // Important: Perform a full reload to ensure middleware sees the cookie
-if(userRole1=="user"){
-      window.location.href = '/productlist';
-}else{
-  window.location.href = '/admin';
-}
-      return result;
-    } else {
-      throw new Error('Invalid response from server');
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    throw error;
-  }
-};
-
-  const getUsers = async (token: string) => {
+  const loginUser = async () => {
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      })
+        credentials: 'include', // important for cookies
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      const result = await response.json()
-      console.log('Users fetched:', result)
-      return result
+      const result = await response.json();
+      console.log('Login response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Login failed');
+      }
+
+      if (result.success && result) {
+        console.log('Login successful, token:', result.token);
+
+        // Important: Perform a full reload to ensure middleware sees the cookie
+        if (userRole == "user") {
+          window.location.href = '/productlist';
+        } else {
+          window.location.href = '/admin';
+        }
+        //       return result;
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (error) {
-      console.error('Error fetching users:', error)
-      throw error
+      console.error('Login error:', error);
+      throw error;
     }
-  }
+  };
 
+
+useEffect(() => {
+     if (userRole == "user") {
+          window.location.href = '/productlist';
+        } else if (userRole == "admin") {
+          window.location.href = '/admin';
+        }else {
+          setCurrentStep("login")
+        }
+  }, [userRole]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -2028,7 +2021,7 @@ if(userRole1=="user"){
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
-  
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900">

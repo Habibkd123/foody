@@ -13,7 +13,7 @@ export function useAuthStorage(result?: AuthResult) {
   const [userRole, setUserRole] = useState<any>(null);
 
   // ✅ Fetch cookie-based auth data
-  const getData = async () => {
+  const checkcookies = async () => {
     try {
       const res = await fetch("/api/auth/set-cookies", {
         method: "GET",
@@ -55,14 +55,14 @@ export function useAuthStorage(result?: AuthResult) {
   };
 
   useEffect(() => {
-    getData();
+    checkcookies();
   }, []);
 
-  // useEffect(() => {
-  //   if (localUserId) {
-  //     getUserData();
-  //   }
-  // }, [localUserId]);
+  useEffect(() => {
+    if (localUserId) {
+      getUserData();
+    }
+  }, [localUserId]);
 
   // ✅ Update user profile
   const updateUser = async (userData: any) => {
@@ -120,5 +120,5 @@ export function useAuthStorage(result?: AuthResult) {
   };
 
   console.log("useAuthStorage userId:", localUserId);
-  return { token, user, setToken, setUser, updateUser, logout ,userRole};
+  return { token, user, setToken, setUser, updateUser, logout ,userRole,checkcookies};
 }

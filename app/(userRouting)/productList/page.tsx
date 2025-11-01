@@ -169,7 +169,7 @@ const ProductGrid: React.FC = () => {
 
   // Enhanced add to cart with animation and better state management
   const handleAddToCart = useCallback(async (item: Product) => {
-    console.log("user",user)
+    console.log("usersssssssssss",user)
     if (!user?._id) {
       alert("please Login First ")
     };
