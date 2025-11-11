@@ -1,18 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    esmExternals: 'loose',
-    serverComponentsExternalPackages: ['mongoose'], // Add other packages if needed
-  },
+  serverExternalPackages: ["mongoose"],
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
+
+  compiler: {
+    removeConsole: {
+      exclude: ["error"],
+    },
+  },
+
   images: {
     unoptimized: true,
   },
+
+  poweredByHeader: false,
 };
 
 export default nextConfig;

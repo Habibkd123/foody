@@ -88,7 +88,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^22",
+    "@types/node": "^20.11.30",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "bcryptjs": "^3.0.2",
