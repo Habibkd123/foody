@@ -206,7 +206,6 @@ const ProductManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.map((product: any, index: any) => {
             const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
-console.log(product)
             return (
               <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md dark:hover:shadow-gray-900/20">
                 {/* Product Image */}

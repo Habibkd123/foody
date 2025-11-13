@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {
   Menu,
   ChevronDown,
@@ -9,6 +9,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useSidebar } from '@/context/SidebarContext';
+import { useAuthStorage } from '@/hooks/useAuth';
 const ThemeToggleButton = () => {
   const [darkMode, setDarkMode] = useState(false);
 
@@ -31,7 +32,7 @@ const ThemeToggleButton = () => {
 // User Dropdown
 const UserDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-
+const {logout}=useAuthStorage();
   return (
     <div className="relative">
       <button
@@ -47,7 +48,7 @@ const UserDropdown = () => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
           <div className="p-2">
-            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center space-x-2">
+            <button onClick={logout} className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center space-x-2">
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </button>

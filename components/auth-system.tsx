@@ -1828,10 +1828,11 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
         // Important: Perform a full reload to ensure middleware sees the cookie
         if (userRole == "user") {
           window.location.href = '/productlist';
-        } else {
+        }  else if (userRole == "admin") {
           window.location.href = '/admin';
         }
-        //       return result;
+        window.location.reload();
+              return result;
       } else {
         throw new Error('Invalid response from server');
       }
@@ -1847,7 +1848,7 @@ useEffect(() => {
           window.location.href = '/productlist';
         } else if (userRole == "admin") {
           window.location.href = '/admin';
-        }else {
+        }else  {
           setCurrentStep("login")
         }
   }, [userRole]);

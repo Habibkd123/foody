@@ -109,6 +109,7 @@ export function useAuthStorage(result?: AuthResult) {
         setUser(null);
         setToken(null);
         setLocalUserId(null);
+        window.location.href = "/login"; // Redirect to login page
         return true;
       } else {
         throw new Error(data.error || "Failed to logout");

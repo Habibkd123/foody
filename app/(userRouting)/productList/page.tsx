@@ -49,12 +49,12 @@ interface Filter {
 const ProductGrid: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
-  const { wishListsData, setWistListsData ,getUserWishList} = useWishListContext();
+  const { wishListsData, setWistListsData, getUserWishList } = useWishListContext();
   const { productsData } = useProductsContext();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const { dispatch, state } = useOrder();
-  const { addToCart, loading, error, removeFromCart,updateQuantity } = useCartOrder();
+  const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
   const { user, logout } = useAuthStorage()
   // Enhanced UI states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -67,7 +67,7 @@ const ProductGrid: React.FC = () => {
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   useEffect(() => {
-    if(user?._id){
+    if (user?._id) {
       getUserWishList(user?._id);
     }
   }, [user?._id]);
@@ -131,11 +131,11 @@ const ProductGrid: React.FC = () => {
 
       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
         const range = priceRangeMap[rangeKey];
-        console.log("rangeKey",rangeKey)
-        console.log("priceRangeMap",priceRangeMap)
-        console.log("range",range)
-        console.log("product.price",product.price)
-        console.log("product.price >= range?.min && product.price <= range?.max",product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity))
+        console.log("rangeKey", rangeKey)
+        console.log("priceRangeMap", priceRangeMap)
+        console.log("range", range)
+        console.log("product.price", product.price)
+        console.log("product.price >= range?.min && product.price <= range?.max", product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity))
         return product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity);
       });
 
@@ -169,11 +169,11 @@ const ProductGrid: React.FC = () => {
 
   // Enhanced add to cart with animation and better state management
   const handleAddToCart = useCallback(async (item: Product) => {
-    console.log("usersssssssssss",user)
+    console.log("usersssssssssss", user)
     if (!user?._id) {
       alert("please Login First ")
     };
-console.log("item",item)
+    console.log("item", item)
     const cartItem: any = {
       id: item._id,
       name: item.name,
@@ -181,7 +181,7 @@ console.log("item",item)
       quantity: 1,
       image: item.images[0],
     };
-console.log("cartItem",cartItem)
+    console.log("cartItem", cartItem)
     let response = await addToCart(user?._id, cartItem);
     console.log("response", response)
     // @ts-ignore
@@ -264,10 +264,7 @@ console.log("cartItem",cartItem)
   };
   const handleLogout = () => {
     try {
-      // Clear user data
-      localStorage.removeItem("G-user");
-      localStorage.removeItem("token");
-logout();
+      logout();
       // Redirect to login page
       router.push("/login");
     } catch (error) {
@@ -352,7 +349,7 @@ logout();
                 <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
                   <Link href="/wishlist">
                     <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
-                    {wishListsData&&wishListsData.length > 0 && (
+                    {wishListsData && wishListsData.length > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
                         {wishListsData.length}
                       </span>
@@ -412,16 +409,20 @@ logout();
                   {profileMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white  shadow-xl rounded-lg border border-orange-200 z-[100] animate-in slide-in-from-top-5 duration-300 ease-in-out text-gray-600">
                       <div className="py-2">
-                        <button className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
-                          <User className="w-4 h-4" />
-                          <span>Profile</span>
-                        </button>
-                        <button onClick={() => router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
-                          <Settings className="w-4 h-4" />
-                          <span>Settings</span>
-                        </button>
+                        <Link href="/profile">
+                          <button className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                            <User className="w-4 h-4" />
+                            <span>Profile</span>
+                          </button>
+                        </Link>
+                        <Link href="/profile">
+                          <button onClick={() => router.push("/profile")} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                            <Settings className="w-4 h-4" />
+                            <span>Settings</span>
+                          </button>
+                        </Link>
                         <hr className="my-2" />
-                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={handleLogout} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
                         </button>
@@ -523,7 +524,7 @@ logout();
               <div className="space-y-2">
                 <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'
                   }`}>
-                  Fresh Groceries 
+                  Fresh Groceries
                   {/* ({filteredProducts.length} products) */}
                 </h2>
                 {filteredProducts.length === 0 && (
@@ -596,7 +597,7 @@ logout();
                 productLists={filteredProducts}
                 onAddToCart={handleAddToCart}
                 onToggleWishlist={toggleWishlist}
-                
+
               />
             </div>
           </div>

@@ -199,7 +199,7 @@ const [geoError, setGeoError] = useState<string | null>(null);
     : displayAddress;
 
   return (
-    <div className="relative z-150">
+    <div className="relative z-150 max-w-2xl">
       {/* Trigger */}
       <button
         onClick={() => setIsOpen(true)}
