@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/app/models/User';
-import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 
 export async function PUT(
   request: NextRequest,
@@ -12,14 +12,14 @@ export async function PUT(
     const addressData = await request.json();
 
     // Validate IDs
-    if (!ObjectId.isValid(userId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid user ID' },
         { status: 400 }
       );
     }
 
-    if (!ObjectId.isValid(addressId)) {
+    if (!mongoose.Types.ObjectId.isValid(addressId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid address ID' },
         { status: 400 }

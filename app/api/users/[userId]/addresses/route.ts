@@ -80,7 +80,8 @@
 
 import { NextResponse ,NextRequest} from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import mongoose from "mongoose";
+
 import User from '@/app/models/User';
 
 export async function POST(
@@ -184,7 +185,7 @@ export async function GET(
   try {
     const { userId } = await context.params;
 
-    if (!ObjectId.isValid(userId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid user ID' },
         { status: 400 }
@@ -244,14 +245,14 @@ export async function PUT(
     const addressData = await request.json();
     let addressId = addressData._id;
     // Validate IDs
-    if (!ObjectId.isValid(userId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid user ID' },
         { status: 400 }
       );
     }
 
-    if (!ObjectId.isValid(addressId)) {
+    if (!mongoose.Types.ObjectId.isValid(addressId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid address ID' },
         { status: 400 }
@@ -384,7 +385,7 @@ export async function DELETE(
     console.log("userId", userId);
     console.log("addressId", addressId);
     
-    if (!ObjectId.isValid(userId) || !ObjectId.isValid(addressId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(addressId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid ID' },
         { status: 400 }
@@ -405,7 +406,7 @@ export async function DELETE(
     // Check if the address exists and find its index
     const addressIndex = user.addresses.findIndex((addr: { _id: any }) => 
       addr._id.toString() === addressId || 
-      (addr._id instanceof ObjectId && addr._id.equals(new ObjectId(addressId)))
+      (addr._id instanceof mongoose.Types.ObjectId && addr._id.equals(new mongoose.Types.ObjectId(addressId)))
     );
     
     if (addressIndex === -1) {
@@ -475,7 +476,7 @@ export async function PATCH(
 
     const updateData = await request.json();
 
-    if (!ObjectId.isValid(userId) || !ObjectId.isValid(updateData.addressId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(updateData.addressId)) {
       return NextResponse.json({ success: false, message: "Invalid user or address ID" }, { status: 400 });
     }
 
@@ -487,8 +488,8 @@ export async function PATCH(
     // Update the embedded address in addresses array
     const result = await User.updateOne(
       {
-        _id: new ObjectId(userId),
-        "addresses._id": new ObjectId(updateData.addressId)
+        _id: new mongoose.Types.ObjectId(userId),
+        "addresses._id": new mongoose.Types.ObjectId(updateData.addressId)
       },
       {
         $set: Object.fromEntries(Object.entries(updateData).map(([key, value]) => [`addresses.$.${key}`, value]))
