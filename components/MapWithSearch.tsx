@@ -14,8 +14,10 @@ const defaultCenter = {
   lng: 77.2090, // New Delhi longitude
 };
 
+type LatLng = { lat: number; lng: number };
+
 export default function LocationSearchMap() {
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
 let apiKey =process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY||"AIzaSyAGC7JgkXXAMa8Omh2xrzNZh-ziOjYg4Hk"
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: apiKey, // 🔥 Replace with your key

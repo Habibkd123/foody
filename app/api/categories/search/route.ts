@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Category from '@/app/models/Category';
+import type { PipelineStage } from 'mongoose';
 import { 
   handleCategoryError, 
   formatCategoryResponse, 
@@ -11,6 +12,7 @@ import {
   createCategoryErrorResponse 
 } from '@/utils/category-utils';
 import { ApiResponse, CategoryResponse } from '@/types/category';
+
 
 // GET - Simple category search
 export async function GET(request: NextRequest) {
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const searchRegex = new RegExp(query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
-    const pipeline = [
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           name: { $regex: searchRegex }
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const pipeline = [
+    const pipeline: PipelineStage[] = [
       { $match: matchConditions },
       {
         $lookup: {

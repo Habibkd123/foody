@@ -228,7 +228,8 @@ const ProductDetailsPage: React.FC = () => {
   const isInWishlist = wishListsData.some((item: any) => item.id === product.id);
 
   const handleQuantityChange = (change: number): void => {
-    setQuantity(prev => Math.max(1, Math.min(prev + change, product.stockCount)));
+    const maxQty = product.stockCount ?? Number.POSITIVE_INFINITY;
+    setQuantity((prev) => Math.max(1, Math.min(prev + change, maxQty)));
   };
 
   const toggleWishlist = (): void => {
@@ -338,7 +339,7 @@ const ProductDetailsPage: React.FC = () => {
                 <span className="px-4 py-3 font-semibold min-w-[60px] text-center">{quantity}</span>
                 <button
                   onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= product.stockCount}
+                  disabled={product.stockCount !== undefined ? quantity >= product.stockCount : false}
                   className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   <Plus size={16} />
@@ -449,7 +450,7 @@ const ProductDetailsPage: React.FC = () => {
 
             {selectedTab === 'reviews' && (
               <ReviewsSection
-                reviews={product.reviews}
+                reviews={product.reviews ?? []}
                 rating={product.rating}
                 totalReviews={product.totalReviews}
               />

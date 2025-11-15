@@ -13,8 +13,19 @@ export async function getAuthUser(request: NextRequest): Promise<{
   isAuthenticated: boolean;
   isAdmin: boolean;
 }> {
-  const token = request.cookies.get('token')?.value || 
-               request.headers.get('authorization')?.replace('Bearer ', '');
+  const cookieToken = request.cookies.get('token')?.value;
+  const headerAuth = request.headers.get('authorization');
+  const headerToken = headerAuth?.startsWith('Bearer ')
+    ? headerAuth.replace('Bearer ', '')
+    : undefined;
+  const token = cookieToken || headerToken;
+  // Debug: presence only, not values
+  try {
+    console.log('[auth] token source', {
+      hasCookieToken: Boolean(cookieToken),
+      hasHeaderBearer: Boolean(headerToken),
+    });
+  } catch {}
 
   if (!token) {
     return {
@@ -26,7 +37,20 @@ export async function getAuthUser(request: NextRequest): Promise<{
   }
 
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const secretEnv = process.env.JWT_SECRET;
+    try {
+      console.log('[auth] has JWT_SECRET:', Boolean(secretEnv));
+    } catch {}
+    if (!secretEnv || secretEnv.length === 0) {
+      // Missing secret; cannot verify tokens safely
+      return {
+        userId: null,
+        role: null,
+        isAuthenticated: false,
+        isAdmin: false,
+      };
+    }
+    const secret = new TextEncoder().encode(secretEnv);
     const { payload } = await jose.jwtVerify(token, secret) as { payload: UserPayload };
     
     return {

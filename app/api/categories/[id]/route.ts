@@ -16,12 +16,12 @@ import Product from '@/app/models/Product';
 // GET - Fetch category by ID with subcategories
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const includeSubcategories = searchParams.get('includeSubcategories') === 'true';
 
@@ -84,11 +84,14 @@ export async function GET(
 }
 
 // PUT - Update category by ID
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!validateCategoryObjectId(id)) {
       return createCategoryErrorResponse('Invalid ID', 'Invalid MongoDB ObjectId', 400);
@@ -158,12 +161,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 // DELETE - Delete category by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const force = searchParams.get('force') === 'true';
 

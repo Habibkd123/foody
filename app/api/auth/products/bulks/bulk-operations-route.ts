@@ -6,7 +6,8 @@ import {
   handleError, 
   formatProductResponse, 
   createSuccessResponse, 
-  createErrorResponse 
+  createErrorResponse,
+  validateObjectId
 } from '@/utils/ProductResponse';
 import { ApiResponse } from '@/types/product';
 
@@ -51,11 +52,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (validationErrors.length > 0) {
-      return NextResponse.json<ApiResponse<null>>({
+      return NextResponse.json({
         success: false,
-        error: 'Validation errors',
         message: `${validationErrors.length} products failed validation`,
-        data: validationErrors
+        errors: validationErrors
       }, { status: 400 });
     }
 
@@ -161,7 +161,7 @@ export async function PUT(request: NextRequest) {
       } catch (error) {
         errors.push({
           product: updateData,
-          error: error.message
+          error: error instanceof Error ? error.message : 'Unknown error occurred'
         });
       }
     }

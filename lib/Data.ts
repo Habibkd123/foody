@@ -1,7 +1,6 @@
 import { Product } from "@/types/global";
 
 export const productData: Product[] = [
-    // Rice & Grains
     {
         id: 15,
         name: 'India Gate Mogra Basmati Rice (Short Grain)',

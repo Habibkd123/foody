@@ -5,6 +5,7 @@ import { Bell, Check, Info, AlertTriangle, AlertCircle, Megaphone, ExternalLink,
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { useRouter } from 'next/navigation'
 
 interface Notification {
   _id: string
@@ -19,6 +20,7 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
@@ -69,6 +71,14 @@ export default function NotificationsPage() {
   const clearNotification = (notificationId: string) => {
     setNotifications(notifications.filter(n => n._id !== notificationId))
     markAsRead(notificationId)
+  }
+
+  const clearAll = () => {
+    // Mark all as read for consistency, then clear list visually
+    const allIds = notifications.map(n => n._id)
+    setReadNotifications(allIds)
+    localStorage.setItem('readNotifications', JSON.stringify(allIds))
+    setNotifications([])
   }
 
   const trackNotification = async (notificationId: string, action: 'view' | 'click') => {
@@ -141,16 +151,21 @@ export default function NotificationsPage() {
                 </p>
               </div>
             </div>
-
-            {unreadCount > 0 && (
-              <Button
-                onClick={markAllAsRead}
-                className="bg-orange-500 hover:bg-orange-600"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Mark all as read
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  onClick={markAllAsRead}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Mark all as read
+                </Button>
+              )}
+              <Button variant="outline" onClick={clearAll}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear all
               </Button>
-            )}
+            </div>
           </div>
 
           {/* Filter Tabs */}
@@ -194,6 +209,13 @@ export default function NotificationsPage() {
           </Card>
         ) : (
           <div className="space-y-4">
+            {/* Quick Navigation */}
+            <div className="flex flex-wrap gap-2 mb-2">
+              <Button variant="outline" onClick={() => router.push('/')}>Home</Button>
+              <Button variant="outline" onClick={() => router.push('/productlist')}>Products</Button>
+              <Button variant="outline" onClick={() => router.push('/checkout')}>Checkout</Button>
+              <Button variant="outline" onClick={() => router.push('/profile')}>Profile</Button>
+            </div>
             {filteredNotifications.map((notification) => {
               const isUnread = !readNotifications.includes(notification._id)
               

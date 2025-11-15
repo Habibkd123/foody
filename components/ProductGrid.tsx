@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import { useWishListContext, WishListContext } from '@/context/WishListsContext';
 import Link from 'next/link';
-import { Product } from '../types/global';
 import "./../components/cards.css"
 import { useAuthStorage } from '@/hooks/useAuth';
+import { Product } from '@/types/global';
 
 interface ProductCardGridProps {
     productLists: Product[];
@@ -61,13 +61,15 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
  
 
     const handleAddToCart = async (product: Product) => {
+        if(product._id==undefined)return
         const quantity = quantities[product._id] || 1;
         setAddingToCart(product._id);
         product.quantity = quantity;
         try {
             await onAddToCart?.(product);
             setJustAdded(product._id);
-            setQuantities((prev) => ({ ...prev, [product._id]: 1 }));
+            
+            setQuantities((prev) => ({ ...prev, [product._id?? String(product.id)]: 1 }));
             setTimeout(() => setJustAdded(null), 2000);
         } catch (error) {
             console.error("Failed to add to cart:", error);
@@ -81,9 +83,9 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
         const isWishlisted = wishListsData.some((item) => item._id === product._id);
         try {
             if (isWishlisted) {
-                await removeWishList(userId, product._id);
+                await removeWishList(userId, product._id?? String(product.id));
             } else {
-                await addWishList(userId, product._id);
+                await addWishList(userId, product._id?? String(product.id));
             }
         } catch (error) {
             console.error("Error toggling wishlist:", error);
@@ -150,7 +152,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                 const isWishlisted = wishListsData&&wishListsData.some((item: any) => item._id === product._id);
                 const inCart = isInCart(product);
                 const cartQuantity = getCartQuantity?.(product) || 0;
-                const currentQuantity = quantities[product._id] || 1;
+                const currentQuantity = quantities[product._id?? String(product.id)] || 1;
                 const savings = calculateSavings(product);
                 const isHovered = hoveredCard === product._id?.toString();
                 const isAdding = addingToCart === product._id?.toString();
@@ -164,7 +166,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                         style={{
                             animationDelay: animationDelay ? `${index * 100}ms` : '0ms'
                         }}
-                        onMouseEnter={() => setHoveredCard(product._id?.toString())}
+                        onMouseEnter={() => setHoveredCard(product._id?.toString()?? String(product.id))}
                         onMouseLeave={() => setHoveredCard(null)}
                     >
                         {/* Image Container with Enhanced Hover Effects */}
@@ -172,7 +174,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                             <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-2 sm:p-3 rounded-t-xl relative overflow-hidden">
                                 <img
                                     ref={(el: HTMLImageElement | null) => {
-                                        if (el) imageRefs.current[product._id] = el;
+                                        if (el) imageRefs.current[product._id?? String(product.id)] = el;
                                     }}
                                     src={product.images[0]}
                                     alt={product.name}
@@ -308,7 +310,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                                     <span className="text-sm font-medium text-gray-700">Quantity:</span>
                                     <div className="flex items-center border border-gray-300 rounded-lg">
                                         <button
-                                            onClick={() => updateQuantity(product._id?.toString(), -1)}
+                                            onClick={() => updateQuantity(product._id?.toString()?? String(product.id), -1)}
                                             className="p-1 hover:bg-gray-100 transition-colors duration-200"
                                             disabled={currentQuantity <= 1}
                                         >
@@ -318,7 +320,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
                                             {currentQuantity}
                                         </span>
                                         <button
-                                            onClick={() => updateQuantity(product._id?.toString(), 1)}
+                                            onClick={() => updateQuantity(product._id?.toString()?? String(product.id), 1)}
                                             className="p-1 hover:bg-gray-100 transition-colors duration-200"
                                         >
                                             <Plus className="w-3 h-3" />

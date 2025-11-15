@@ -6,7 +6,7 @@ export function useOrderSocket(orderId: string) {
     {
       share: true,
       queryParams: { orderId },
-      onOpen: (sock) => sock.sendJsonMessage({ join: orderId }),
+      // onOpen: (sock) => sock.sendJsonMessage({ join: orderId }),
     },
   );
   return lastJsonMessage as

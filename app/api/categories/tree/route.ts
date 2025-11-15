@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Category from '@/app/models/Category';
 import { categoryTreeQuerySchema } from '@/lib/category-validations';
+import type { Types } from 'mongoose';
 import { 
   handleCategoryError, 
   createCategorySuccessResponse,
@@ -58,7 +59,7 @@ async function buildCategoryTree(
   const categories = await Category.find({ parent: parentId })
     .select('name image')
     .sort({ name: 1 })
-    .lean();
+    .lean<Array<{ _id: Types.ObjectId; name: string; image?: string | null }>>();
 
   const tree: CategoryTreeResponse[] = [];
 
@@ -72,7 +73,7 @@ async function buildCategoryTree(
     tree.push({
       _id: category._id.toString(),
       name: category.name,
-      image: category.image,
+      image: category.image ?? undefined,
       children,
       level: currentLevel
     });
@@ -126,7 +127,7 @@ async function getCategoryPath(categoryId: string): Promise<Array<{_id: string, 
   while (currentId) {
     const category = await Category.findById(currentId)
       .select('name parent')
-      .lean();
+      .lean<{ _id: Types.ObjectId; name: string; parent?: Types.ObjectId | null } | null>();
 
     if (!category) break;
 

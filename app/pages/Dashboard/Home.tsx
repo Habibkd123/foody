@@ -1,5 +1,5 @@
-import DashboardMetrics from "@/components/ecommerce/DashboardMetrics";
-import LatestSignupsTable from "@/components/ecommerce/LatestSignupsTable";
+// import DashboardMetrics from "@/components/ecommerce/DashboardMetrics";
+// import LatestSignupsTable from "@/components/ecommerce/LatestSignupsTable";
 import PageMeta from "@/components/common/PageMeta";
 
 export default function Home() {
@@ -13,10 +13,10 @@ export default function Home() {
       <div className="space-y-6">
         
         {/* Dashboard Metrics Cards */}
-        <DashboardMetrics />
+        {/* <DashboardMetrics /> */}
         
         {/* Latest Signups Table */}
-        <LatestSignupsTable />
+        {/* <LatestSignupsTable /> */}
       </div>
     </>
   );

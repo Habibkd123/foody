@@ -7,11 +7,11 @@ import User from '@/app/models/User'; // ✅ Correct import
 // GET: fetch wishlist
 export async function GET(
   request: NextRequest,
-  { params }: { params: { user_id: string } }
+  { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
     await connectDB();
-    const { user_id } = params;
+    const { user_id } = await params;
 
 
     const userData = await User.findById(user_id);

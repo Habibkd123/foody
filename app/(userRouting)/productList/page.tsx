@@ -21,31 +21,13 @@ import { Product } from "@/types/global";
 // import { productData } from "@/lib/Data";
 import { useAuthStorage } from '@/hooks/useAuth';
 import NotificationCenter from '@/components/NotificationCenter';
+import NotificationBanner from '@/components/NotificationBanner';
 
 // Type Definitions
 interface CartItem extends Product {
   quantity: number;
 }
 
-
-
-interface Category {
-  key: string;
-  label: string;
-  icon: string;
-}
-
-interface PriceRange {
-  key: string;
-  label: string;
-  min: number;
-  max: number;
-}
-
-interface Filter {
-  categories: Category[];
-  priceRanges: PriceRange[];
-}
 const ProductGrid: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
@@ -54,9 +36,8 @@ const ProductGrid: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const { dispatch, state } = useOrder();
-  const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
-  const { user, logout } = useAuthStorage()
-  // Enhanced UI states
+  const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
+  const { user, logout } = useAuthStorage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -66,6 +47,7 @@ const ProductGrid: React.FC = () => {
   const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
+
   useEffect(() => {
     if (user?._id) {
       getUserWishList(user?._id);
@@ -81,7 +63,6 @@ const ProductGrid: React.FC = () => {
     }
   }, [user?._id]);
 
-  // Scroll to top functionality
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
@@ -90,35 +71,28 @@ const ProductGrid: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Search suggestions
   useEffect(() => {
     if (filters.searchTerm && filters.searchTerm.length > 1) {
       const suggestions = productsData
-        .filter(product =>
+        .filter((product: Product) =>
           product.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
           product.category.toLowerCase().includes(filters.searchTerm.toLowerCase())
         )
         .slice(0, 5)
-        .map(product => product.name);
+        .map((product: Product) => product.name);
       setSearchSuggestions(suggestions);
     } else {
       setSearchSuggestions([]);
     }
-  }, [filters.searchTerm]);
+  }, [filters.searchTerm, productsData]);
 
-  // Enhanced filtering with animation trigger
   const filteredProducts: Product[] = productsData.filter((product: Product) => {
-    // Search filter
     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
     }
-
-    // Category filter
     if (filters.category !== 'all' && product.category !== filters.category) {
       return false;
     }
-
-    // Price range filter
     if (filters.priceRanges.length > 0) {
       const priceRangeMap: Record<string, { min: number; max: number }> = {
         'under-100': { min: 0, max: 100 },
@@ -128,37 +102,25 @@ const ProductGrid: React.FC = () => {
         '500-1000': { min: 500, max: 1000 },
         'above-1000': { min: 1000, max: Infinity }
       };
-
       const matchesPrice = filters.priceRanges.some((rangeKey: string) => {
         const range = priceRangeMap[rangeKey];
-        console.log("rangeKey", rangeKey)
-        console.log("priceRangeMap", priceRangeMap)
-        console.log("range", range)
-        console.log("product.price", product.price)
-        console.log("product.price >= range?.min && product.price <= range?.max", product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity))
         return product.price >= (range?.min ?? 0) && product.price <= (range?.max ?? Infinity);
       });
-
       if (!matchesPrice) return false;
     }
-
-    // Rating filter
     if (filters.ratings.length > 0) {
       const matchesRating = filters.ratings.some((rating: number) => product.rating >= rating);
       if (!matchesRating) return false;
     }
-
     return true;
   });
 
-  // Enhanced wishlist toggle with animation
   const toggleWishlist = (item: any) => {
     const exists = wishListsData.find((fav: any) => fav.id === item.id);
     if (exists) {
       setWistListsData(wishListsData.filter((fav: any) => fav.id !== item.id));
     } else {
       setWistListsData([...wishListsData, item]);
-      // Add pulse animation to wishlist icon
       const wishlistIcon = document.querySelector(`[data-wishlist-${item.id}]`);
       if (wishlistIcon) {
         wishlistIcon.classList.add('animate-pulse');
@@ -167,13 +129,11 @@ const ProductGrid: React.FC = () => {
     }
   };
 
-  // Enhanced add to cart with animation and better state management
   const handleAddToCart = useCallback(async (item: Product) => {
-    console.log("usersssssssssss", user)
     if (!user?._id) {
-      alert("please Login First ")
-    };
-    console.log("item", item)
+      alert('please Login First ')
+      return;
+    }
     const cartItem: any = {
       id: item._id,
       name: item.name,
@@ -181,64 +141,50 @@ const ProductGrid: React.FC = () => {
       quantity: 1,
       image: item.images[0],
     };
-    console.log("cartItem", cartItem)
     let response = await addToCart(user?._id, cartItem);
-    console.log("response", response)
     // @ts-ignore
     if (response.success) {
-      alert("Product added to cart successfully");
+      alert('Product added to cart successfully');
     } else {
       alert(response);
     }
-  }, [cartItems, dispatch]);
+  }, [addToCart, user?._id]);
 
   const removeFromCart1 = useCallback((itemId: any) => {
     try {
       let response = removeFromCart(user?._id, itemId);
-      console.log("response", response)
       // @ts-ignore
       if (response.success) {
-        alert("Product removed from cart successfully");
+        alert('Product removed from cart successfully');
       } else {
         // @ts-ignore
         alert(response.message);
       }
     } catch (error) {
-      console.log(error)
-      alert(error)
+      alert(error as any)
     }
-  }, [cartItems, dispatch]);
+  }, [removeFromCart, user?._id]);
 
-  // Enhanced quantity update that syncs with all states
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
     const productId = parseInt(itemId);
     const currentItem = state.items.find((item: any) => item._id === productId);
-
     if (currentItem) {
       const newQuantity = Math.max(0, currentItem.quantity + change);
-
       if (newQuantity === 0) {
-        // Remove item if quantity becomes 0
         setCartItems(cartItems.filter((item: any) => item._id !== productId));
-        // dispatch({ type: "REMOVE_ITEM", id: productId });
         updateQuantity(user?._id, productId, newQuantity);
       } else {
-        // Update quantity in both local state and global state
-        setCartItems(cartItems.map((item: any) =>
-          item.id === productId ? { ...item, quantity: newQuantity } : item
-        ));
-        dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
+        setCartItems(cartItems.map((item: any) => item.id === productId ? { ...item, quantity: newQuantity } : item));
+        dispatch({ type: 'UPDATE_QUANTITY', id: productId, qty: newQuantity });
         updateQuantity(user?._id, productId, newQuantity);
       }
     }
-  }, [cartItems, dispatch, state.items]);
+  }, [cartItems, dispatch, state.items, updateQuantity, user?._id]);
 
-  // Check if product is in cart
   const isInCart = useCallback((product: Product) => {
     return state.items.some((item: any) => item.id === product._id);
   }, [state.items]);
 
-  // Get cart quantity for a product
   const getCartQuantity = useCallback((product: Product) => {
     const cartItem = state.items.find((item: any) => item.id === product._id);
     return cartItem ? cartItem.quantity : 0;
@@ -248,12 +194,10 @@ const ProductGrid: React.FC = () => {
     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0);
   };
 
-  // Scroll to top function
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Clear all filters
   const clearAllFilters = () => {
     setFilterAnimation(true);
     updateFilter('category', 'all');
@@ -262,22 +206,18 @@ const ProductGrid: React.FC = () => {
     updateFilter('searchTerm', '');
     setTimeout(() => setFilterAnimation(false), 300);
   };
+
   const handleLogout = () => {
     try {
       logout();
-      // Redirect to login page
-      router.push("/login");
+      router.push('/login');
     } catch (error) {
-      console.error("Error during logout:", error);
-      // Fallback in case of any error
-      window.location.href = "/login";
+      window.location.href = '/login';
     }
   };
 
-
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
+    <div>
       {/* Enhanced Header with animations */}
       <div className='sticky top-0 z-40'>
         <AnnouncementBar />
@@ -285,6 +225,7 @@ const ProductGrid: React.FC = () => {
 
       <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
         <header className="transition-all duration-300">
+
           <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
             <div className="flex items-center justify-between">
               {/* Enhanced Logo with hover animation */}
@@ -457,6 +398,11 @@ const ProductGrid: React.FC = () => {
             </div>
           </div>
         </header>
+
+        {/* Notification Banner for products */}
+        <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+          <NotificationBanner location="products" />
+        </div>
 
         {/* Navigation Filter */}
         <div className="hidden md:block">

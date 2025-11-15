@@ -1,16 +1,22 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+const secretEnv = process.env.JWT_SECRET;
+if (!secretEnv || secretEnv.length === 0) {
+  throw new Error('JWT_SECRET is required');
+}
+const JWT_SECRET = new TextEncoder().encode(secretEnv);
 const TOKEN_EXPIRY = '7d';
 
 type UserPayload = {
   id: string;
+  userId?: string;
   email: string;
   role: 'user' | 'admin';
 };
 
 export async function generateToken(user: UserPayload): Promise<string> {
-  return await new SignJWT({ ...user })
+  const payload = { ...user, userId: user.userId || user.id };
+  return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(TOKEN_EXPIRY)

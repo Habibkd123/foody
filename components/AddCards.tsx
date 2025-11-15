@@ -21,6 +21,7 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, upd
   const { address, items, distance } = state
   const router = useRouter()
   const { user } = useAuthStorage()  // const {  distance } = useAddress();
+  const { defaultAddress: defaultAddr, setCurrentLocation } = useAddress();
    console.log('state', user);
   useEffect(() => {
     const fun = async () => {
@@ -35,14 +36,13 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, upd
     }
     fun()
   }, [user])
-  const handleCheckout = () => {
-    if (!address) {
-      alert("Please enter Address")
-      return
-    } else {
-      router.push('/checkout')
+  const handleCheckout = async () => {
+    if (!address && !defaultAddr) {
+      try {
+        await setCurrentLocation();
+      } catch {}
     }
-
+    router.push('/checkout')
   }
   return (
     <>
@@ -81,15 +81,40 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, upd
                           <MapPin className="h-4 w-4" />
                         </div>
                         <div>
-                          {address && (<>  <h4 className="font-semibold text-sm">Delivering to Home</h4>
-                            <p className="text-xs text-gray-600">{`${address?.name && address?.name}, ${address?.label}`}</p>
-                            <p className="text-xs text-gray-600">{`${distance && distance?.toFixed(2)}`} km</p>
-                          </>)}
+                          {(() => {
+                            const displayAddress = address || defaultAddr;
+                            if (!displayAddress) return null;
+                            const title = displayAddress.label || 'Selected Address';
+                            const nameLine = [displayAddress.name, displayAddress.label]
+                              .filter(Boolean)
+                              .join(', ');
+                            const distText = typeof distance === 'number' && isFinite(distance)
+                              ? `${distance.toFixed(2)} km`
+                              : '';
+                            return (
+                              <>
+                                <h4 className="font-semibold text-sm">Delivering to {title}</h4>
+                                {nameLine && (
+                                  <p className="text-xs text-gray-600">{nameLine}</p>
+                                )}
+                                {distText && (
+                                  <p className="text-xs text-gray-600">{distText}</p>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
-                      <Button onClick={() => setAddressOpen(true)} variant="link" className="text-green-600 text-xs p-0">
-                        {address ? 'Change' : 'Add'} address
-                      </Button>
+                      <div className="flex items-center gap-3">
+                        {!address && !defaultAddr && (
+                          <Button onClick={() => setCurrentLocation()} variant="link" className="text-blue-600 text-xs p-0">
+                            Use current location
+                          </Button>
+                        )}
+                        <Button onClick={() => setAddressOpen(true)} variant="link" className="text-green-600 text-xs p-0">
+                          {address ? 'Change' : 'Add'} address
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   {/* <GoogleMaps/> */}

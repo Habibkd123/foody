@@ -1,33 +1,36 @@
-// import { Server as IOServer } from "socket.io";
-// import type { NextRequest } from "next/server";
-// import { NextResponse } from "next/server";
+import { Server as IOServer } from "socket.io";
+import { NextResponse } from "next/server";
 
-// export async function GET(_req: NextRequest) {
-//   // Needed so Vercel Edge doesn’t swallow the upgrade
-//   return NextResponse.json({ ok: true });
-// }
+declare global {
+  // Global is like a singleton
+  var io: IOServer | undefined;
+}
 
-// // Hack: Next.js exposes the Node HTTP server on res.socket in Pages router.
-// // In App router we rely on a global.
-// declare global {
-//   // eslint-disable-next-line no-var
-//   var io: IOServer | undefined;
-// }
+export const config = {
+  runtime: "nodejs",
+};
 
-// export const config = { runtime: "nodejs" };
+export async function GET() {
+  return NextResponse.json({ ok: true, message: "Socket.io endpoint running" });
+}
 
-// export default function handler(req: any, res: any) {
-//   if (!global.io) {
-//     global.io = new IOServer(res.socket.server, {
-//       path: "/api/socket",
-//       cors: { origin: "*" },
-//     });
-//     global.io.on("connection", (socket) => {
-//       socket.on("join-order", (id: string) => socket.join(`order-${id}`));
-//       socket.on("driver-location", (payload) => {
-//         socket.to(`order-${payload.orderId}`).emit("driver-location", payload);
-//       });
-//     });
-//   }
-//   res.end();
-// }
+export async function POST() {
+  if (!global.io) {
+    const io = new IOServer({
+      cors: { origin: "*" },
+    });
+    global.io = io;
+
+    io.on("connection", (socket) => {
+      console.log("Socket connected:", socket.id);
+      socket.on("message", (msg) => {
+        io.emit("message", msg);
+      });
+      socket.on("disconnect", () => {
+        console.log("Socket disconnected:", socket.id);
+      });
+    });
+  }
+
+  return NextResponse.json({ message: "Socket.io server initialized" });
+}

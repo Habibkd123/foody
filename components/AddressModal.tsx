@@ -146,349 +146,6 @@
 //     }, [addressOpen, user?._id, getAddresses]);
 
 //     // Set selected address from current address
-//     useEffect(() => {
-//         if (address) {
-//             setSelectedAddress(address);
-//         }
-//     }, [address]);
-
-//     const handleAddAddress = async (newAddress: Address) => {
-//         try {
-//             if (!user?._id) {
-//                 throw new Error("User not logged in");
-//             }
-
-//             let savedAddress: Address;
-            
-//             if (editingAddress) {
-//                 // Update existing address
-//                 const addressId = editingAddress._id || editingAddress.id;
-//                 if (!addressId) throw new Error("Address ID not found");
-                
-//                 savedAddress = await updateAddress(user?._id, addressId, newAddress);
-//             } else {
-//                 // Add new address
-//                 savedAddress = await addAddress(user?._id, newAddress);
-//             }
-
-//             setShowAddModal(false);
-//             setEditingAddress(null);
-            
-//             // Auto-select the new/updated address if it's marked as default
-//             if (savedAddress.isDefault) {
-//                 setSelectedAddress(savedAddress);
-//                 setAddressOpen(false);
-//             }
-//         } catch (error) {
-//             console.error('Error saving address:', error);
-//             // Error is handled in the DeliveryAddressPage component
-//         }
-//     };
-
-//     const handleSelectAddress = (address: Address) => {
-//         setSelectedAddress(address);
-        
-//         // Calculate distance if coordinates are available
-//         if (address.lat && address.lng && address?.lat && address?.lng) {
-//             const lat1 = address.lat;
-//             const lon1 = address.lng;
-//             const lat2 = address.lat;
-//             const lon2 = address.lng;
-//             const radius = 6371; // Earth's radius (km)
-
-//             const dLat = deg2rad(lat2-lat1);
-//             const dLon = deg2rad(lon2-lon1);
-
-//             const a = 
-//                 Math.sin(dLat/2) * Math.sin(dLat/2) +
-//                 Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-//                 Math.sin(dLon/2) * Math.sin(dLon/2);
-            
-//             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-//             const distance = radius * c;
-
-//             setDistance(distance);
-//         }
-        
-//         function deg2rad(deg: number) {
-//             return deg * (Math.PI/180);
-//         }
-//         setAddressOpen(false);
-//     };
-
-//     const handleEditAddress = (address: Address) => {
-//         setEditingAddress(address);
-//         setShowAddModal(true);
-//     };
-
-//     const handleDeleteAddress = async (address: Address) => {
-//         if (!user?._id) return;
-        
-//         const addressId = address._id || address.id;
-//         if (!addressId) return;
-
-//         const confirmDelete = window.confirm(`Are you sure you want to delete the address: ${address?.label} - ${address?.name}?`);
-//         if (!confirmDelete) return;
-
-//         setIsDeleting(addressId);
-        
-//         try {
-//             await deleteAddress(user?._id, addressId);
-            
-//             // If deleted address was selected, clear selection
-//             if ((selectedAddress?._id || selectedAddress?.id) === addressId) {
-//                 setSelectedAddress(null);
-//             }
-//         } catch (error) {
-//             console.error('Error deleting address:', error);
-//             alert('Failed to delete address. Please try again.');
-//         } finally {
-//             setIsDeleting(null);
-//         }
-//     };
-//     const handleGetAllAddress=async()=>{
-//         if (!user?._id) return;
-//        let result= await getAddresses(user?._id);
-//        console.log("result",result)
-//        setAddresses(result);
-//     }
-// useEffect(()=>{
-//     handleGetAllAddress();
-// },[])
-//     const handleAddNewAddress = () => {
-//         setEditingAddress(null);
-//         setShowAddModal(true);
-//     };
-// console.log("addresses",address)
-//     return (
-//         <>
-//             <Sheet open={addressOpen} onOpenChange={setAddressOpen}>
-//                 <SheetContent side="right" className="w-full sm:max-w-lg overflow-auto">
-//                     <SheetHeader>
-//                         <SheetTitle>Select delivery address</SheetTitle>
-//                     </SheetHeader>
-                    
-//                     <div className="p-3 space-y-4">
-//                         {/* Add New Address Button */}
-//                         <Button 
-//                             className="w-full bg-green-600 hover:bg-green-700 text-white" 
-//                             onClick={handleAddNewAddress}
-//                             disabled={loading}
-//                         >
-//                             <Plus className="w-4 h-4 mr-2" />
-//                             Add a new address
-//                         </Button>
-
-//                         {/* Loading State */}
-//                         {loading && (
-//                             <div className="flex items-center justify-center py-8">
-//                                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
-//                                 <span>Loading addresses...</span>
-//                             </div>
-//                         )}
-
-//                         {/* No Addresses State */}
-//                         {!loading && address?.length === 0 && (
-//                             <div className="text-center py-8 text-gray-500">
-//                                 <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-//                                 <p className="text-lg font-medium mb-2">No addresses found</p>
-//                                 <p className="text-sm">Add your first delivery address to get started</p>
-//                             </div>
-//                         )}
-
-//                         {/* Address List */}
-//                         <div className="space-y-3">
-//                             {Array.isArray(address)?address.map((address:any) => {
-//                                 const addressId = address._id || address.id || '';
-//                                 const isSelected = (selectedAddress?._id || selectedAddress?.id) === addressId;
-                                
-//                                 return (
-//                                     <div
-//                                         key={addressId}
-//                                         className={`rounded-lg p-4 cursor-pointer transition-all border-2 ${
-//                                             isSelected
-//                                                 ? "border-green-600 bg-green-50"
-//                                                 : "border-gray-200 bg-white hover:border-gray-300"
-//                                         }`}
-//                                     >
-//                                         <div className="flex items-start justify-between">
-//                                             <div 
-//                                                 className="flex-1 mr-3"
-//                                                 onClick={() => handleSelectAddress(address)}
-//                                             >
-//                                                 <div className="flex items-center space-x-2 mb-2">
-//                                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-//                                                         {address?.label}
-//                                                     </span>
-//                                                     {address?.isDefault && (
-//                                                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-//                                                             Default
-//                                                         </span>
-//                                                     )}
-//                                                 </div>
-                                                
-//                                                 <p className="font-semibold text-gray-900">{address?.name}</p>
-                                                
-//                                                 <div className="text-sm text-gray-700 space-y-1">
-//                                                     <p>{address?.flatNumber}{address?.floor && `, Floor ${address.floor}`}</p>
-//                                                     <p>{address?.area}, {address?.city}</p>
-//                                                     <p>{address?.state} {address?.zipCode || address?.pincode}</p>
-//                                                     {address?.landmark && <p>Near {address?.landmark}</p>}
-//                                                 </div>
-                                                
-//                                                 <p className="text-sm text-gray-600 mt-2">📞 {address?.phone}</p>
-                                                
-//                                                 {address?.lat && address?.lng && (
-//                                                     <p className="text-xs text-gray-500 mt-1">
-//                                                         📍 {address?.lat.toFixed(6)}, {address?.lng.toFixed(6)}
-//                                                     </p>
-//                                                 )}
-//                                             </div>
-                                            
-//                                             {/* Action Buttons */}
-//                                             <div className="flex flex-col space-y-2">
-//                                                 <button
-//                                                     onClick={(e) => {
-//                                                         e.stopPropagation();
-//                                                         handleEditAddress(address);
-//                                                     }}
-//                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-//                                                     title="Edit address"
-//                                                 >
-//                                                     <Edit className="w-4 h-4" />
-//                                                 </button>
-                                                
-//                                                 <button
-//                                                     onClick={(e) => {
-//                                                         e.stopPropagation();
-//                                                         handleDeleteAddress(address);
-//                                                     }}
-//                                                     disabled={isDeleting === addressId}
-//                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-//                                                     title="Delete address"
-//                                                 >
-//                                                     {isDeleting === addressId ? (
-//                                                         <Loader2 className="w-4 h-4 animate-spin" />
-//                                                     ) : (
-//                                                         <Trash2 className="w-4 h-4" />
-//                                                     )}
-//                                                 </button>
-//                                             </div>
-//                                         </div>
-//                                     </div>
-//                                 );
-//                             }):<>
-//                              <div
-//                                         className={`rounded-lg p-4 cursor-pointer transition-all border-2 ${
-//                                             "border-gray-200 bg-white hover:border-gray-300"
-//                                         }`}
-//                                     >
-//                                         <div className="flex items-start justify-between">
-//                                             <div 
-//                                                 className="flex-1 mr-3"
-//                                                 onClick={() => handleSelectAddress(address)}
-//                                             >
-//                                                 <div className="flex items-center space-x-2 mb-2">
-//                                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-//                                                         {address?.label}
-//                                                     </span>
-//                                                     {address?.isDefault && (
-//                                                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-//                                                             Default
-//                                                         </span>
-//                                                     )}
-//                                                 </div>
-                                                
-//                                                 <p className="font-semibold text-gray-900">{address?.name}</p>
-                                                
-//                                                 <div className="text-sm text-gray-700 space-y-1">
-//                                                     <p>{address?.flatNumber}{address?.floor && `, Floor ${address.floor}`}</p>
-//                                                     <p>{address?.area}, {address?.city}</p>
-//                                                     <p>{address?.state} {address?.zipCode || address?.pincode}</p>
-//                                                     {address?.landmark && <p>Near {address?.landmark}</p>}
-//                                                 </div>
-                                                
-//                                                 <p className="text-sm text-gray-600 mt-2">📞 {address?.phone}</p>
-                                                
-//                                                 {address?.lat && address?.lng && (
-//                                                     <p className="text-xs text-gray-500 mt-1">
-//                                                         📍 {address?.lat.toFixed(6)}, {address?.lng.toFixed(6)}
-//                                                     </p>
-//                                                 )}
-//                                             </div>
-                                            
-//                                             {/* Action Buttons */}
-//                                             <div className="flex flex-col space-y-2">
-//                                                 <button
-//                                                     onClick={(e) => {
-//                                                         e.stopPropagation();
-//                                                         handleEditAddress(address);
-//                                                     }}
-//                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-//                                                     title="Edit address"
-//                                                 >
-//                                                     <Edit className="w-4 h-4" />
-//                                                 </button>
-                                                
-//                                                 <button
-//                                                     onClick={(e) => {
-//                                                         e.stopPropagation();
-//                                                         handleDeleteAddress(address);
-//                                                     }}
-//                                                     // disabled={isDeleting === addressId}
-//                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
-//                                                     title="Delete address"
-//                                                 >
-//                                                     {isDeleting ? (
-//                                                         <Loader2 className="w-4 h-4 animate-spin" />
-//                                                     ) : (
-//                                                         <Trash2 className="w-4 h-4" />
-//                                                     )}
-//                                                 </button>
-//                                             </div>
-//                                         </div>
-//                                     </div>
-                            
-//                             </>}
-//                         </div>
-
-//                         {/* Selected Address Summary */}
-//                         {selectedAddress && (
-//                             <div className="mt-6 p-4 border rounded-lg bg-green-50 border-green-200">
-//                                 <p className="font-semibold text-green-900 mb-2">Selected Address:</p>
-//                                 <div className="text-green-800">
-//                                     <p className="font-medium">{selectedAddress?.label} - {selectedAddress?.name}</p>
-//                                     <p className="text-sm">{selectedAddress?.area}, {selectedAddress&&selectedAddress?.city}</p>
-//                                 </div>
-//                             </div>
-//                         )}
-//                     </div>
-//                 </SheetContent>
-//             </Sheet>
-
-//             {/* Add/Edit Address Modal */}
-//             {showAddModal && (
-//                 <DeliveryAddressPage
-//                     open={showAddModal}
-//                     userId={user?.userId}
-//                     onClose={() => {
-//                         setShowAddModal(false);
-//                         setEditingAddress(null);
-//                     }}
-//                     setShowAddModal={setShowAddModal}
-//                     handleAddAddress={handleAddAddress}
-//                     editingAddress={editingAddress || undefined}
-//                 />
-//             )}
-//         </>
-//     );
-// };
-
-// export default AddressModal;
-
-
-
-"use client";
 import React, { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -506,7 +163,7 @@ interface AddressModalProps {
 
 const AddressModal: React.FC<AddressModalProps> = ({ addressOpen, setAddressOpen, type }) => {
     const { 
-        address, // This should be addresses (array)
+        address, 
         setDistance, 
         addAddress, 
         updateAddress, 
@@ -601,26 +258,54 @@ const AddressModal: React.FC<AddressModalProps> = ({ addressOpen, setAddressOpen
         }
     };
 
-    const handleSelectAddress = (address: Address) => {
-        setSelectedAddress(address);
-        
+    // Minimal update for default flag using PATCH API
+    const patchDefaultFlag = async (userId: string, addressId: string, isDefault: boolean) => {
+        await fetch(`/api/users/${userId}/addresses`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ addressId, isDefault }),
+        });
+    };
+
+    const handleSelectAddress = async (selected: Address) => {
+        setSelectedAddress(selected);
+
+        // Persist selection: make this the only default on server
+        try {
+            if (!user?._id) return;
+            const selectedId = selected._id as string;
+            // Toggle selected as default via PATCH (no required fields needed)
+            await patchDefaultFlag(user._id, selectedId, true);
+
+            // Load all addresses and unset default for others
+            const list: any[] = await getAddresses(user._id);
+            const updates: Promise<any>[] = [];
+            for (const addr of list) {
+                if ((addr._id !== selectedId) && addr.isDefault) {
+                    updates.push(patchDefaultFlag(user._id, addr._id, false));
+                }
+            }
+            if (updates.length) await Promise.allSettled(updates);
+
+            // Refresh local list
+            await handleGetAllAddress();
+        } catch (e) {
+            console.error('Failed to persist selected address', e);
+        }
+
         // Calculate distance if coordinates are available
-        if (address.lat && address.lng) {
-            // You'll need to define your reference point (shop location)
-            // For now, using a default center - replace with actual shop coordinates
-            const shopLat = 26.926; // Replace with actual shop latitude
-            const shopLng = 75.823; // Replace with actual shop longitude
-            
+        if (selected.lat && selected.lng) {
+            const shopLat = 26.926; // TODO: replace with actual shop coordinates
+            const shopLng = 75.823;
             const distance = calculateDistance(
-                address.lat,
-                address.lng,
+                selected.lat,
+                selected.lng,
                 shopLat,
                 shopLng
             );
-            
             setDistance(distance);
         }
-        
+
         setAddressOpen(false);
     };
 

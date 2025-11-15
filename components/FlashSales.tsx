@@ -2,20 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Clock, Zap, TrendingUp, Star, ShoppingCart, Heart, ArrowRight } from "lucide-react"
+import { Product } from "@/types/global"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-
-interface Product {
-  _id: string
-  name: string
-  price: number
-  originalPrice?: number
-  images: string[]
-  rating?: number
-  reviews?: any[]
-  discount?: number
-}
 
 interface FlashSaleProps {
   products: Product[]
@@ -104,7 +94,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {flashSaleProducts.map((product, index) => (
             <Card 
-              key={product._id} 
+              key={product._id ?? String(product.id)} 
               className="group hover:shadow-2xl transition-all duration-300 overflow-hidden border-red-200 dark:border-red-800 hover:scale-105"
               style={{ animationDelay: `${index * 100}ms` }}
             >

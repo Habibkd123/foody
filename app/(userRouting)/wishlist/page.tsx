@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -117,12 +116,12 @@ useEffect(() => {
 
   const handleSelectAll = useCallback(() => {
     console.log("wishListsData", wishListsData)
-    if (selectedItems.length === wishListsData.products.length) {
+    if (selectedItems.length === wishListsData.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(wishListsData.products.map((item: Product) => parseInt(item._id, 10) as number));
+      setSelectedItems(wishListsData.map((item: any) => parseInt(item._id, 10) as number));
     }
-  }, [selectedItems.length, wishListsData.products]);
+  }, [selectedItems.length, wishListsData]);
 
   const isInCart = useCallback((id: number) => {
     return state.items.some((item: CartLine) => item.id === id);
@@ -146,16 +145,16 @@ useEffect(() => {
   const addAllToCart = useCallback(() => {
     setIsLoading(true);
     selectedItems.forEach((itemId) => {
-      const item = wishListsData.products.find((w: any) => parseInt(w._id, 10) === itemId);
+      const item = wishListsData.find((w: any) => parseInt(w._id, 10) === itemId);
       if (item && !isInCart(itemId)) {
-        addToCart1(item as Product);
+        addToCart1(item as any);
       }
     });
     setTimeout(() => {
       setIsLoading(false);
       setSelectedItems([]);
     }, 1000);
-  }, [selectedItems, wishListsData, isInCart, addToCart]);
+  }, [selectedItems, wishListsData, isInCart, addToCart1]);
 
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
      const productId = parseInt(itemId);
@@ -186,7 +185,7 @@ useEffect(() => {
 
   // Enhanced sorting and filtering
   const sortedAndFilteredProducts = useMemo(() => {
-    if (!wishListsData || !Array.isArray(wishListsData) || wishListsData.length === 0) {
+    if (!wishListsData || wishListsData.length === 0) {
       return [];
     }
     console.log("wishListsData", wishListsData)

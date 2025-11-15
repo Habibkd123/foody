@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -42,7 +41,8 @@ import TrendingProducts from "@/components/TrendingProducts"
 import LoyaltyRewards from "@/components/LoyaltyRewards"
 import NotificationBanner from "@/components/NotificationBanner"
 import NotificationCenter from "@/components/NotificationCenter"
-export function Grocery() {
+
+function GroceryApp() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
@@ -329,14 +329,14 @@ export function Grocery() {
               {/* Notification Center */}
               {user?._id && <NotificationCenter location="home" />}
               
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
                 className="text-gray-700 dark:text-gray-300"
               >
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
+              </Button> */}
 
 
               <div className="flex items-center space-x-2 relative z-[120px]">
@@ -949,11 +949,10 @@ export function Grocery() {
 }
 
 export default function Page() {
-
   return (
     <ToastProvider>
       <main>
-        <Grocery />
+        <GroceryApp />
         <SupportChat />
       </main>
     </ToastProvider>

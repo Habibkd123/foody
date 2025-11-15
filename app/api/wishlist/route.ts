@@ -1,26 +1,37 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Wishlist from '@/app/models/WishList'; // Your existing model
+import Wishlist from '@/app/models/WishList';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await connectDB();
-
-  if (req.method === 'GET') {
+export async function GET(request: NextRequest) {
+  try {
+    await connectDB();
+    
     // Get all wishlists (optional: you can add query by user_id)
-    const wishlists = await Wishlist.find().populate('user_id').populate('products');
-    return res.status(200).json(wishlists);
+    const wishlists = await Wishlist.find()
+      .populate('user_id')
+      .populate('products');
+    
+    return NextResponse.json(wishlists, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Error fetching wishlists', error },
+      { status: 500 }
+    );
   }
+}
 
-  if (req.method === 'POST') {
-    try {
-      // Create a new wishlist
-      const wishlist = await Wishlist.create(req.body);
-      return res.status(201).json(wishlist);
-    } catch (error) {
-      return res.status(400).json({ message: 'Error creating wishlist', error });
-    }
+export async function POST(request: NextRequest) {
+  try {
+    await connectDB();
+    
+    const body = await request.json();
+    const wishlist = await Wishlist.create(body);
+    
+    return NextResponse.json(wishlist, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Error creating wishlist', error },
+      { status: 400 }
+    );
   }
-
-  res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

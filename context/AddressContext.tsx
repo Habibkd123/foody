@@ -107,6 +107,7 @@ type AddressContextType = {
   setDefaultAddress: (addressId: string) => void;
   setDistance: (distance: number) => void;
   clearError: () => void;
+  setCurrentLocation: () => Promise<void>;
 };
 
 const AddressContext = createContext<AddressContextType | undefined>(undefined);
@@ -204,11 +205,11 @@ export const AddressProvider = ({ children }: { children: ReactNode }) => {
   }, [addresses.length]);
 
   // Update existing address
-  const updateAddress = useCallback(async (userId: string, addressId: string, addressUpdates: Partial<Address>) => {
+  const updateAddress = useCallback(async (userId: string, addressId: string, address: Partial<Address>) => {
     try {
       const data = await apiCall(`/api/users/${userId}/addresses/${addressId}`, {
         method: 'PUT',
-        body: JSON.stringify(addressUpdates),
+        body: JSON.stringify(address),
       });
 
       if (data.success && data.address) {
@@ -287,6 +288,47 @@ export const AddressProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [addresses]);
 
+  // Set current location as a temporary default (local only, not persisted)
+  const setCurrentLocation = useCallback(async () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) return;
+    try {
+      await new Promise<void>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            const current: Address = {
+              name: 'Current Location',
+              phone: '',
+              city: 'Current',
+              state: '',
+              label: 'Current',
+              lat: latitude,
+              lng: longitude,
+              isDefault: true,
+            };
+            // local-only default
+            setDefault(current);
+            resolve();
+          },
+          (err) => {
+            console.warn('Geolocation error:', err);
+            resolve();
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      });
+    } catch (e) {
+      console.warn('Failed to set current location');
+    }
+  }, []);
+
+  // If no default address is selected, try to set current location automatically
+  React.useEffect(() => {
+    if (!defaultAddress) {
+      setCurrentLocation();
+    }
+  }, [defaultAddress, setCurrentLocation]);
+
   // Clear error
   const clearError = useCallback(() => {
     setError(null);
@@ -304,7 +346,8 @@ export const AddressProvider = ({ children }: { children: ReactNode }) => {
     loadAddresses,
     setDefaultAddress,
     setDistance,
-    clearError
+    clearError,
+    setCurrentLocation,
   };
 
   return (

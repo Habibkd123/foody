@@ -21,12 +21,12 @@ import { ApiResponse, CartResponse } from '@/types/cart';
 // GET - Get user's cart
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await context.params;
 
     if (!validateCartObjectId(userId)) {
       return createCartErrorResponse(
@@ -88,12 +88,12 @@ export async function GET(
 // POST - Add item to user's cart
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await context.params;
 
     if (!validateCartObjectId(userId)) {
       return createCartErrorResponse(
@@ -204,12 +204,12 @@ export async function POST(
 // PUT - Update item in user's cart
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await context.params;
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || 'updateItem';
 
@@ -305,12 +305,12 @@ async function handleSingleItemUpdate(userId: string, body: any) {
 // DELETE - Clear user's cart or remove specific item
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await context.params;
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
 

@@ -114,9 +114,9 @@ interface CartContextType {
   loadCart: (userId: string) => Promise<void>;
   clearCart: (userId: string) => Promise<void>;
   setDistance: (distance: number) => void;
-  getAddresses: (userId: string) => Promise<void>;
+  getAddresses: (userId: string) => Promise<any[]>;
   deleteAddress: (userId: string, addressId: string) => Promise<void>;
-  updateAddress: (userId: string, addressId: string, address: Address) => Promise<void>;
+  updateAddress: (userId: string, addressId: string, address: Address) => Promise<any>;
 }
 
 const Ctx = createContext<CartContextType | undefined>(undefined);
@@ -264,13 +264,20 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const getAddresses = useCallback(async (userId: string) => {
     try {
       if(!userId){
-        return;
+        return [] as any[];
       }
       const data = await apiCall(`/api/users/${userId}/addresses`, { method: "GET" });
       console.log("Addresses data:", data);
-      if (data.success) dispatch({ type: "SET_ADDRESS", address: data.addresses });
+      if (data.success) {
+        const addrs = Array.isArray(data.addresses) ? data.addresses : [];
+        const preferred = addrs.find((a: any) => a?.isDefault) || addrs[0] || undefined;
+        dispatch({ type: "SET_ADDRESS", address: preferred });
+        return addrs;
+      }
+      return [] as any[];
     } catch (error) {
       console.error("Failed to get addresses:", error);
+      return [] as any[];
     }
   }, []);
 
@@ -308,16 +315,21 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
 
     try {
       if(!userId){
-        return;
+        return undefined as any;
       }
       address._id = addressId;
       const data = await apiCall(`/api/users/${userId}/addresses`, {
         method: "PUT",
         body: JSON.stringify(address),
       });
-      if (data.success) dispatch({ type: "SET_ADDRESS", address: data.address });
+      if (data.success) {
+        dispatch({ type: "SET_ADDRESS", address: data.address });
+        return data.address;
+      }
+      return undefined as any;
     } catch (error) {
       console.error("Failed to update address:", error);
+      return undefined as any;
     }
   }, []);
 

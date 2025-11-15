@@ -7,10 +7,10 @@ import Cart, { ICart } from '@/app/models/Cart'
 import { Types } from 'mongoose'
 import { createErrorResponse, createSuccessResponse, formatProductResponse, validateObjectId } from '@/utils/ProductResponse'
 
-export async function GET(_request: NextRequest, { params }: { params: { userId: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   try {
     await connectDB()
-    const { userId } = params
+    const { userId } = await params
     const { searchParams } = new URL(_request.url)
     const limit = parseInt(searchParams.get('limit') || '12', 10)
 

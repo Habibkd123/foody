@@ -1,28 +1,10 @@
-
 "use client";
 import React, { useState, createContext, useContext } from 'react';
+import { Product } from '@/types/global';
 
 // Type Definitions
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice: number;
-  images: string[];
-  rating: number;
-  reviews: Review[];
-  totalReviews: number;
-  category: string;
-  discount: number;
-  description: string;
-  features: string[];
-  specifications: Record<string, string>;
-  inStock: boolean;
-  stockCount: number;
-  brand: string;
-  sku: string;
-  weight: string;
-  dimensions: string;
+interface CartItem extends Product {
+  quantity: number;
 }
 
 interface Review {
@@ -34,11 +16,6 @@ interface Review {
   verified: boolean;
   helpful: number;
 }
-
-interface CartItem extends Product {
-  quantity: number;
-}
-
 
 interface CartContextType {
   cartItems: CartItem[];

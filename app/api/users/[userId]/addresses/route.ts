@@ -85,10 +85,10 @@ import User from '@/app/models/User';
 
 export async function POST(
   request: Request,
-  context: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = await Promise.resolve(context.params);
+    const { userId } = await context.params;
     const addressData = await request.json();
     
     console.log('Received address data:', addressData);
@@ -179,10 +179,10 @@ export async function POST(
 // GET method to fetch all addresses
 export async function GET(
   request: NextRequest,
-  context: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = await Promise.resolve(context.params);
+    const { userId } = await context.params;
 
     if (!ObjectId.isValid(userId)) {
       return NextResponse.json(
@@ -237,12 +237,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = await Promise.resolve(context.params);
+    const { userId } = await context.params;
     const addressData = await request.json();
-let addressId= addressData._id;
+    let addressId = addressData._id;
     // Validate IDs
     if (!ObjectId.isValid(userId)) {
       return NextResponse.json(
@@ -375,10 +375,10 @@ console.log("result",result);
 }
 export async function DELETE(
   request: NextRequest,
-  context: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = await Promise.resolve(context.params);
+    const { userId } = await context.params;
     const { addressId } = await request.json();
     
     console.log("userId", userId);
@@ -468,10 +468,10 @@ export async function DELETE(
 // PATCH (or PUT): Edit user address by address _id
 export async function PATCH(
   request: Request,
-  { params }: { params: { userId: string, addressId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await context.params;
 
     const updateData = await request.json();
 

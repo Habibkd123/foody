@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
             minCartValue: { $min: '$totalAmount' }
           }
         }
-      ]),
+      ],),
 
       // Top products in carts
       Cart.aggregate([
@@ -390,10 +390,10 @@ export async function POST(request: NextRequest) {
 
     const results = await Promise.all(queries);
 
-    const analytics = {
+    const analytics: any = {
       period: period,
       groupBy: groupBy,
-      metrics: {},
+      metrics: {} as Record<string, any>,
       summary: {
         totalPeriods: 0,
         dateRange: {

@@ -8,7 +8,7 @@ import {
   createSuccessResponse, 
   createErrorResponse 
 } from '@/utils/ProductResponse';
-// import { ApiResponse, ProductResponse } from '@/utlis/ProductResponse';
+import type { PipelineStage } from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const searchRegex = new RegExp(query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
     // Build aggregation pipeline for better search
-    const pipeline = [
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           $or: [
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
           ],
           status: 'active'
         }
-      },
+      } as PipelineStage,
       {
         $lookup: {
           from: 'categories',
@@ -47,25 +47,21 @@ export async function GET(request: NextRequest) {
           foreignField: '_id',
           as: 'category'
         }
-      },
+      } as PipelineStage,
       {
         $unwind: {
           path: '$category',
           preserveNullAndEmptyArrays: true
         }
-      },
+      } as PipelineStage,
       {
         $sort: { 
-          // Prioritize exact matches in name, then partial matches
-          score: { 
-            $meta: 'textScore' 
-          },
           name: 1 
         }
-      },
+      } as PipelineStage,
       {
         $limit: limit
-      }
+      } as PipelineStage
     ];
 
     const products = await Product.aggregate(pipeline);

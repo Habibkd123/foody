@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Bell, X, Check, Info, AlertTriangle, AlertCircle, Megaphone, ExternalLink, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { toast } from '@/hooks/use-toast'
 
 interface Notification {
   _id: string
@@ -15,6 +16,12 @@ interface Notification {
   link?: string
   linkText?: string
   createdAt: string
+  userState?: {
+    read: boolean
+    dismissed: boolean
+    readAt?: string | null
+    dismissedAt?: string | null
+  }
 }
 
 interface NotificationCenterProps {
@@ -25,12 +32,37 @@ export default function NotificationCenter({ location = 'home' }: NotificationCe
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [readNotifications, setReadNotifications] = useState<string[]>([])
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null)
+  const lastIdsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     fetchNotifications()
-    loadReadNotifications()
+    // SSE for realtime updates
+    const es = new EventSource('/api/notifications/stream')
+    es.onmessage = (evt) => {
+      try {
+        const data = JSON.parse(evt.data)
+        if (data?.type?.startsWith('notification:')) {
+          // Refresh list
+          fetchNotifications().then(() => {
+            // Non-intrusive toast for new items if panel is closed
+            if (!isOpen) {
+              const currentIds = new Set(notifications.map(n => n._id))
+              const lastIds = lastIdsRef.current
+              const newOnes = notifications.find(n => !lastIds.has(n._id))
+              lastIdsRef.current = currentIds
+              if (newOnes) {
+                toast({
+                  title: newOnes.title,
+                  description: newOnes.message,
+                })
+              }
+            }
+          })
+        }
+      } catch {}
+    }
     
     // Close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,59 +72,114 @@ export default function NotificationCenter({ location = 'home' }: NotificationCe
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      es.close()
+    }
   }, [location])
+
+  // When the panel opens, auto-mark the visible (top 5) as read
+  useEffect(() => {
+    if (!isOpen || notifications.length === 0) return
+    const visible = sortForDisplay(notifications).slice(0, 5)
+    const unreadVisible = visible.filter(n => !(n.userState?.read) && !(n.userState?.dismissed))
+    if (unreadVisible.length === 0) return
+    unreadVisible.forEach(n => markAsRead(n._id))
+  }, [isOpen, notifications])
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`/api/notifications?location=${location}`)
+      const response = await fetch(`/api/notifications/user?location=${location}`)
+      if (response.status === 401) {
+        setIsAuthed(false)
+        const pubRes = await fetch(`/api/notifications?location=${location}`)
+        const pubData = await pubRes.json()
+        if (pubData.success) {
+          const list = pubData.data as Notification[]
+          setNotifications(list)
+          calculateUnreadCount(list)
+          lastIdsRef.current = new Set(list.map(n => n._id))
+        }
+        return
+      }
       const data = await response.json()
-      
       if (data.success) {
-        setNotifications(data.data)
-        calculateUnreadCount(data.data)
+        setIsAuthed(true)
+        const list = data.data as Notification[]
+        setNotifications(list)
+        calculateUnreadCount(list)
+        lastIdsRef.current = new Set(list.map((n: Notification) => n._id))
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
     }
   }
 
-  const loadReadNotifications = () => {
-    const read = localStorage.getItem('readNotifications')
-    if (read) {
-      const readIds = JSON.parse(read)
-      setReadNotifications(readIds)
-    }
-  }
-
   const calculateUnreadCount = (notifs: Notification[]) => {
-    const read = JSON.parse(localStorage.getItem('readNotifications') || '[]')
-    const unread = notifs.filter(n => !read.includes(n._id))
+    const unread = notifs.filter(n => !(n.userState?.read) && !(n.userState?.dismissed))
     setUnreadCount(unread.length)
   }
 
-  const markAsRead = (notificationId: string) => {
-    if (!readNotifications.includes(notificationId)) {
-      const newRead = [...readNotifications, notificationId]
-      setReadNotifications(newRead)
-      localStorage.setItem('readNotifications', JSON.stringify(newRead))
-      setUnreadCount(Math.max(0, unreadCount - 1))
-      
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await fetch('/api/notifications/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId, action: 'read' })
+      })
+      setNotifications(prev => prev.map(n => n._id === notificationId ? ({
+        ...n,
+        userState: {
+          read: true,
+          dismissed: n.userState?.dismissed ?? false,
+          readAt: n.userState?.readAt ?? null,
+          dismissedAt: n.userState?.dismissedAt ?? null,
+        }
+      }) : n))
+      setUnreadCount(c => Math.max(0, c - 1))
       // Track view
       trackNotification(notificationId, 'view')
+    } catch (e) {
+      console.error('Failed to mark as read', e)
     }
   }
 
   const markAllAsRead = () => {
-    const allIds = notifications.map(n => n._id)
-    setReadNotifications(allIds)
-    localStorage.setItem('readNotifications', JSON.stringify(allIds))
-    setUnreadCount(0)
+    Promise.all(notifications.map(n => fetch('/api/notifications/user', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationId: n._id, action: 'read' })
+    }))).finally(() => {
+      setNotifications(prev => prev.map(n => ({
+        ...n,
+        userState: {
+          read: true,
+          dismissed: n.userState?.dismissed ?? false,
+          readAt: n.userState?.readAt ?? null,
+          dismissedAt: n.userState?.dismissedAt ?? null,
+        }
+      })))
+      setUnreadCount(0)
+    })
   }
 
   const clearNotification = (notificationId: string) => {
+    // persist dismissal and also mark read
+    fetch('/api/notifications/user', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationId, action: 'dismiss' })
+    }).catch(() => {})
     markAsRead(notificationId)
-    setNotifications(notifications.filter(n => n._id !== notificationId))
+    setNotifications(prev => prev.filter(n => n._id !== notificationId))
+  }
+
+  const sortForDisplay = (list: Notification[]) => {
+    // Unread first, then newest by createdAt desc
+    return [...list].sort((a, b) => {
+      const ar = a.userState?.read ? 1 : 0
+      const br = b.userState?.read ? 1 : 0
+      if (ar !== br) return ar - br
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
   }
 
   const trackNotification = async (notificationId: string, action: 'view' | 'click') => {
@@ -195,8 +282,8 @@ export default function NotificationCenter({ location = 'home' }: NotificationCe
               </div>
             ) : (
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {notifications.map((notification) => {
-                  const isUnread = !readNotifications.includes(notification._id)
+                {sortForDisplay(notifications).slice(0, 5).map((notification) => {
+                  const isUnread = !(notification.userState?.read)
                   
                   return (
                     <div

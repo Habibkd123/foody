@@ -32,8 +32,8 @@ import {
 } from "@/components/APICall/wishlist";
 
 interface WishListContextType {
-  wishListsData:  UserWishList[];
-  setWistListsData: React.Dispatch<React.SetStateAction<UserWishList[]>>;
+  wishListsData: Product[];
+  setWistListsData: React.Dispatch<React.SetStateAction<Product[]>>;
   addWishList: (userId: string, productId: string) => Promise<void>;
   removeWishList: (userId: string, productId: string) => Promise<void>;
   getUserWishList: (userId: string) => Promise<void>;
@@ -57,7 +57,7 @@ const useWishListContext = (): WishListContextType => {
 };
 
 const WishListProvider: React.FC<ProviderProps> = ({ children }) => {
-  const [wishListsData, setWistListsData] = useState<UserWishList[]>([]);
+  const [wishListsData, setWistListsData] = useState<Product[]>([]);
 
   const getUserWishList = async (userId: string) => {
     try {

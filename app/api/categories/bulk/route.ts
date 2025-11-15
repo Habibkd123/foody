@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Category from '@/app/models/Category';
 import { createCategorySchema } from '@/lib/category-validations';
+import { ZodError, type ZodIssue } from 'zod';
 import { 
   handleCategoryError, 
   formatCategoryResponse, 
@@ -14,6 +15,13 @@ import {
   checkCircularReference
 } from '@/utils/category-utils';
 import { ApiResponse } from '@/types/category';
+
+type ValidationProblem = {
+  index: number;
+  category: any;
+  errors: ZodIssue[] | { message: string }[];
+};
+
 
 // POST - Bulk create categories
 export async function POST(request: NextRequest) {
@@ -40,27 +48,35 @@ export async function POST(request: NextRequest) {
 
     // Validate all categories
     const validatedCategories = [];
-    const validationErrors = [];
+    const validationErrors: ValidationProblem[] = [];
 
     for (let i = 0; i < body.length; i++) {
       try {
         const validatedCategory = createCategorySchema.parse(body[i]);
         validatedCategories.push(validatedCategory);
       } catch (error) {
-        validationErrors.push({
-          index: i,
-          category: body[i],
-          errors: error.errors
-        });
+        if (error instanceof ZodError) {
+          validationErrors.push({
+            index: i,
+            category: body[i],
+            errors: error.issues,
+          });
+        } else {
+          validationErrors.push({
+            index: i,
+            category: body[i],
+            errors: [{ message: error instanceof Error ? error.message : 'Unknown validation error' }],
+          });
+        }
       }
     }
 
     if (validationErrors.length > 0) {
-      return NextResponse.json<ApiResponse<null>>({
+      return NextResponse.json<ApiResponse<{ errors: ValidationProblem[] }>>({
         success: false,
         error: 'Validation errors',
         message: `${validationErrors.length} categories failed validation`,
-        data: validationErrors
+        data: { errors: validationErrors },
       }, { status: 400 });
     }
 
@@ -130,7 +146,7 @@ export async function POST(request: NextRequest) {
     // Populate parent information
     await Category.populate(createdCategories, { path: 'parent', select: 'name' });
 
-    const formattedCategories = createdCategories.map(formatCategoryResponse);
+    const formattedCategories = createdCategories.map((c) => formatCategoryResponse(c));
 
     return createCategorySuccessResponse(
       {
@@ -142,7 +158,11 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    return handleCategoryError(error);
+    if (error instanceof Error) {
+      return handleCategoryError(error);
+    } else {
+      return handleCategoryError(new Error('Unknown error'));
+    }
   }
 }
 
@@ -224,10 +244,17 @@ export async function PUT(request: NextRequest) {
           });
         }
       } catch (error) {
-        errors.push({
-          category: updateData,
-          error: error.message
-        });
+        if (error instanceof Error) {
+          errors.push({
+            category: updateData,
+            error: error.message
+          });
+        } else {
+          errors.push({
+            category: updateData,
+            error: 'Unknown error'
+          });
+        }
       }
     }
 

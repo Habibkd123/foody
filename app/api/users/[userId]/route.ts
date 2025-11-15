@@ -17,12 +17,12 @@ import { ApiResponse, UserResponse, UserPublicResponse } from '@/types/user-type
 // GET - Fetch user by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await params;
     console.log("userId",userId);
     const { searchParams } = new URL(request.url);
     const includePrivate = searchParams.get('includePrivate') === 'true';
@@ -60,11 +60,11 @@ export async function GET(
 // PUT - Update user by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
-    const { userId } = await Promise.resolve(params);
+    const { userId } = await params;
     const data = await request.json();
 
     // Validate user ID
@@ -135,7 +135,7 @@ export async function PUT(
       value: JSON.stringify({
         firstName: formattedUser.firstName,
         lastName: formattedUser.lastName,
-        image: formattedUser?.image,
+        image: 'image' in formattedUser ? formattedUser.image || '' : '',
         role: formattedUser.role
       }),
       httpOnly: false,
@@ -155,11 +155,11 @@ export async function PUT(
 // DELETE - Delete user by ID (and logout - clear cookies)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
-    const { userId } = params;
+    const { userId } = await params;
 
     // Validate user ID
     if (!validateUserObjectId(userId)) {

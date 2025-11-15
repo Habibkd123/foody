@@ -12,8 +12,8 @@ import { useEffect, useRef } from 'react';
 export const useClickOutside = <T extends HTMLElement = HTMLDivElement>(
   callback: () => void,
   enabled: boolean = true
-): React.RefObject<T> => {
-  const ref = useRef<T>(null);
+): React.RefObject<T | null> => {
+  const ref = useRef<T | null>(null);
 
   useEffect(() => {
     if (!enabled) return;

@@ -32,13 +32,13 @@ const page = () => {
  console.log("user", user, "userRole", userRole)
  
   // Redirect logic - only run once when component mounts if user is already logged in
-  useEffect(() => {
-    if (user && (user?._id || user?.id) && userRole) {
-      const target = userRole === "admin" ? "/admin" : "/productlist";
-      console.log("Login page: User already logged in, redirecting to", target);
-      router.replace(target);
-    }
-  }, []) // Empty dependency array - only run once on mount
+  // useEffect(() => {
+  //   if (user && (user?._id || user?.id) && userRole) {
+  //     const target = userRole === "admin" ? "/admin" : "/productlist";
+  //     console.log("Login page: User already logged in, redirecting to", target);
+  //     router.replace(target);
+  //   }
+  // }, []) // Empty dependency array - only run once on mount
 
 
   return (

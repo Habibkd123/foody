@@ -69,7 +69,7 @@ export const useCustomToast = () => {
     },
     
     profileUpdated: () => {
-      toast.showUpdateSuccess('Profile', 'Your profile has been updated')
+      toast.showUpdateSuccess('Profile',  )
     },
     
     // General operations
