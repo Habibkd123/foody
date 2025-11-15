@@ -6,9 +6,7 @@
             "use": "@vercel/next"
         }
     ],
-    "env": {
-        "NEXT_PUBLIC_API_URL": "https://hotel-production-cab4.up.railway.app"
-    },
+  
     "images": {
         "sizes": [
             320,
