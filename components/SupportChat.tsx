@@ -45,15 +45,9 @@
 //         </div>
 //       </div>
 
-//       {/* Floating Chat Icon */}
-//       <button
-//         onClick={() => setIsOpen((prev) => !prev)}
-//         className="mt-3 flex items-center justify-center w-14 h-14 bg-white border shadow-lg rounded-full hover:bg-gray-100"
-//       >
-//         <MessageCircle className="w-6 h-6 text-black" />
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react';
 import { MessageCircle, X, Send, RefreshCw } from 'lucide-react';
 
 interface Message {
@@ -69,6 +63,41 @@ interface ChatConfig {
   maxPrice?: number;
   dietary?: string[];
   locale?: string;
+}
+
+function renderMessage(text: string): ReactNode {
+  const lines = (text || '').split(/\r?\n/);
+  const elements: ReactNode[] = [];
+  let listItems: string[] = [];
+  const flushList = () => {
+    if (listItems.length) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc pl-5 space-y-1">
+          {listItems.map((li, i) => (
+            <li key={i}>{li}</li>
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+  lines.forEach((line, idx) => {
+    const m = line.match(/^\s*[-•]\s+(.*)/);
+    if (m) {
+      listItems.push(m[1]);
+    } else {
+      const trimmed = line.trim();
+      if (trimmed.length) {
+        flushList();
+        elements.push(
+          <p key={`p-${idx}`}>{trimmed}</p>
+        );
+      }
+    }
+  });
+  flushList();
+  if (!elements.length) return text;
+  return <>{elements}</>;
 }
 
 const SupportChat = () => {
@@ -280,7 +309,7 @@ const SupportChat = () => {
                         : 'bg-white text-gray-800 rounded-bl-md border border-gray-200'
                     }`}
                   >
-                    {msg.text}
+                    {renderMessage(msg.text)}
                   </div>
                 </div>
               ))}

@@ -87,6 +87,20 @@
   .animate-fade-in-up {
     animation: fadeInUp 1s ease-out;
   }
+
+  /* Slow spin utility for rotating text ring in hero */
+  .animate-spin-slow {
+    animation: spin 6s linear infinite;
+  }
+
+  /* Continuous left-to-right marquee */
+  .animate-marquee-ltr {
+    animation: marquee-ltr 30s linear infinite;
+  }
+  .marquee-mask {
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
 }
 
 @keyframes fadeInUp {
@@ -106,6 +120,12 @@
 }
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
+}
+
+/* Marquee keyframes */
+@keyframes marquee-ltr {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
 }
 
 /* Smooth scrolling */

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Eye, MousePointerClick, Calendar, Bell } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, MousePointerClick, Calendar, Bell, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +35,11 @@ function NotificationsManagement() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const toast = useCustomToast()
+
+  const [reminder, setReminder] = useState<{ subject: string; html: string; sendToAll: boolean; userIds: string }>(
+    { subject: '', html: '', sendToAll: true, userIds: '' }
+  )
+  const [sendingReminder, setSendingReminder] = useState(false)
 
   type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'announcement';
   type NotificationStatus = 'draft' | 'scheduled' | 'active' | 'expired';
@@ -221,6 +226,93 @@ function NotificationsManagement() {
           {showForm ? 'Cancel' : 'New Notification'}
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Send Email Reminder</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2">Subject *</label>
+              <Input
+                value={reminder.subject}
+                onChange={(e) => setReminder({ ...reminder, subject: e.target.value })}
+                placeholder="Subject"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2">Message (HTML allowed) *</label>
+              <textarea
+                value={reminder.html}
+                onChange={(e) => setReminder({ ...reminder, html: e.target.value })}
+                rows={6}
+                className="w-full px-3 py-2 border rounded-md dark:bg-gray-800"
+                placeholder="<p>Your reminder message...</p>"
+              />
+            </div>
+            <div>
+              <label className="inline-flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={reminder.sendToAll}
+                  onChange={(e) => setReminder({ ...reminder, sendToAll: e.target.checked })}
+                />
+                Send to all users
+              </label>
+            </div>
+            {!reminder.sendToAll && (
+              <div>
+                <label className="block text-sm font-medium mb-2">User IDs (comma separated)</label>
+                <textarea
+                  value={reminder.userIds}
+                  onChange={(e) => setReminder({ ...reminder, userIds: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border rounded-md dark:bg-gray-800"
+                  placeholder="663a...,663b..."
+                />
+              </div>
+            )}
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Button
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={async () => {
+                if (!reminder.subject || !reminder.html) { toast.error('Subject and message are required'); return; }
+                setSendingReminder(true)
+                try {
+                  const payload: any = { subject: reminder.subject, html: reminder.html, sendToAll: reminder.sendToAll }
+                  if (!reminder.sendToAll) {
+                    const ids = reminder.userIds.split(',').map(s => s.trim()).filter(Boolean)
+                    if (ids.length === 0) { toast.error('Provide at least one user ID'); setSendingReminder(false); return }
+                    payload.userIds = ids
+                  }
+                  const res = await fetch('/api/admin/reminders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  })
+                  const data = await res.json()
+                  if (res.ok && data.success) {
+                    toast.success(`Sent: ${data.sent}, Failed: ${data.failed}`)
+                    setReminder({ subject: '', html: '', sendToAll: true, userIds: '' })
+                  } else {
+                    toast.error(data.message || 'Failed to send')
+                  }
+                } catch {
+                  toast.error('Failed to send')
+                } finally {
+                  setSendingReminder(false)
+                }
+              }}
+              disabled={sendingReminder}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {sendingReminder ? 'Sending...' : 'Send Reminder'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -397,46 +397,129 @@ function GroceryApp() {
         <NotificationBanner location="home" />
       </div>
 
-      {/* Hero Section */}
-      <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        >
+      {/* Hero Section — Minimal Milkshake Landing */}
+      <section id="home" className="relative overflow-hidden">
+        {/* Soft abstract shapes */}
+        <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-gray-100 dark:bg-gray-800 blur-3xl opacity-70" />
+        <div className="pointer-events-none absolute -bottom-32 -right-24 h-[28rem] w-[28rem] rounded-full bg-gray-100 dark:bg-gray-800 blur-3xl opacity-70" />
 
-          <HeroSlider type="LandInding" />
-        </div>
-        <div className="relative z-20 text-center text-white px-4 max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in-up">
-            Fresh Groceries delivered to your doorstep
-          </h1>
-          <p className="text-xl mb-8 opacity-90">
-            Quality products, unbeatable prices, lightning-fast delivery
-          </p>
+        <div className="container mx-auto px-4 py-20 md:py-28">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            {/* Copy */}
+            <div className="relative z-10">
+              <Badge className="mb-6 bg-black/90 text-white dark:bg-white/10 dark:text-white rounded-full px-4 py-1">New</Badge>
+              <h1 className="font-serif tracking-tight text-gray-900 dark:text-white text-4xl md:text-6xl leading-tight">
+                Indulge in<br />
+                <span className="whitespace-nowrap">Modern Milkshakes</span>
+              </h1>
+              <p className="mt-5 text-gray-600 dark:text-gray-300 text-lg max-w-md">
+                Small-batch, creamy perfection. Fresh fruits, real chocolate, and artisanal toppings.
+              </p>
 
-          <div className="max-w-md mx-auto mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Search for groceries..."
-                className="pl-10 py-3 text-gray-900 bg-white/90 backdrop-blur-sm border-0 rounded-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              {/* Rating and CTA */}
+              <div className="mt-8 flex items-center gap-6">
+                {/* Star rating */}
+                <div className="flex items-center gap-2">
+                  {[0,1,2,3,4].map((i) => (
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">4.9/5 • 2k+ reviews</span>
+                </div>
+
+                {/* Circular Order button with rotating text */}
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('products');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="relative group inline-flex items-center justify-center"
+                  aria-label="Order Now"
+                >
+                  <span className="relative z-10 h-14 w-14 rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 flex items-center justify-center shadow-xl">
+                    Order
+                  </span>
+                  {/* Rotating text ring */}
+                  <span className="absolute inset-0 -m-5 flex items-center justify-center">
+                    <svg className="h-24 w-24 animate-spin-slow" viewBox="0 0 100 100" fill="none">
+                      <defs>
+                        <path id="circlePath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0" />
+                      </defs>
+                      <text className="text-[8px] tracking-[3px] uppercase" fill="currentColor">
+                        <textPath href="#circlePath"> Order Now • Fresh • Creamy • Crafted • </textPath>
+                      </text>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+
+              {/* Search (optional, minimal) */}
+              <div className="mt-8 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    placeholder="Find your flavor (e.g., strawberry, chocolate)"
+                    className="pl-10 py-3 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 rounded-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={() => router.push("home")} size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full">
-              Shop Now
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-gray-900 px-8 py-3 rounded-full bg-transparent"
-            >
-              View Offers
-            </Button>
+            {/* Images — Continuous LTR Marquee */}
+            <div className="relative z-10">
+              <div className="overflow-hidden rounded-3xl marquee-mask">
+                <div className="flex gap-6 w-[200%] animate-marquee-ltr">
+                  {/* Track A */}
+                  <div className="flex gap-6 w-1/2 py-2">
+                    <img
+                      src="https://images.unsplash.com/photo-1542444459-db63c9f0ae30?q=80&w=1400&auto=format&fit=crop"
+                      alt="Strawberry milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                    <img
+                      src="https://images.unsplash.com/photo-1527169402691-feff5539e52c?q=80&w=1200&auto=format&fit=crop"
+                      alt="Chocolate milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                    <img
+                      src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1200&auto=format&fit=crop"
+                      alt="Vanilla milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                    <img
+                      src="https://images.unsplash.com/photo-1511910849309-0dffb9c9bb40?q=80&w=1200&auto=format&fit=crop"
+                      alt="Berry milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                  </div>
+                  {/* Track B (duplicate for seamless loop) */}
+                  <div className="flex gap-6 w-1/2 py-2">
+                    <img
+                      src="https://images.unsplash.com/photo-1542444459-db63c9f0ae30?q=80&w=1400&auto=format&fit=crop"
+                      alt="Strawberry milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                    <img
+                      src="https://images.unsplash.com/photo-1527169402691-feff5539e52c?q=80&w=1200&auto=format&fit=crop"
+                      alt="Chocolate milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                    <img
+                      src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1200&auto=format&fit=crop"
+                      alt="Vanilla milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                    <img
+                      src="https://images.unsplash.com/photo-1511910849309-0dffb9c9bb40?q=80&w=1200&auto=format&fit=crop"
+                      alt="Berry milkshake"
+                      className="h-64 w-80 object-cover rounded-2xl shadow-2xl bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

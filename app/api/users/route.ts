@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isEmailVerified, clearOTP } from '@/app/api/auth/otpStore';
+
 import connectDB from '@/lib/mongodb';
 import User from '@/app/models/User'; // Your existing model
 import { createUserSchema, userQuerySchema } from '@/lib/user-validations';
@@ -94,73 +96,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Create a new user
-// export async function POST(request: NextRequest) {
-//   try {
-//     await connectDB();
-
-//     const body = await request.json();
-//     const validatedData = createUserSchema.parse(body);
-
-//     // Check if user with same email or phone already exists
-//     const existingUser = await User.findOne({
-//       $or: [
-//         { email: validatedData.email },
-//         // { phone: validatedData.phone }
-//       ]
-//     });
-
-//     if (existingUser) {
-//       const field = existingUser.email === validatedData.email && 'email' 
-//       return createUserErrorResponse(
-//         'User already exists',
-//         `A user with this ${field} already exists`,
-//         409
-//       );
-//     }
-
-//     // Generate username if not provided
-//     if (!validatedData.username) {
-//       validatedData.username = generateUsername(validatedData.firstName, validatedData.lastName);
-
-//       // Ensure username is unique
-//       let attempts = 0;
-//       while (attempts < 5) {
-//         const existingUsername = await User.findOne({ username: validatedData.username });
-//         if (!existingUsername) break;
-
-//         validatedData.username = generateUsername(validatedData.firstName, validatedData.lastName);
-//         attempts++;
-//       }
-//     } else {
-//       // Check if provided username is unique
-//       const existingUsername = await User.findOne({ username: validatedData.username });
-//       if (existingUsername) {
-//         return createUserErrorResponse(
-//           'Username already exists',
-//           'A user with this username already exists',
-//           409
-//         );
-//       }
-//     }
-
-//     // Hash password
-//     validatedData.password = await hashPassword(validatedData.password);
-
-//     const user = await User.create(validatedData);
-//     const formattedUser = formatUserResponse(user, true) as UserResponse;
-
-//     return createUserSuccessResponse(
-//       formattedUser,
-//       'User created successfully',
-//       201
-//     );
-
-//   } catch (error) {
-//     return handleUserError(error);
-//   }
-// }
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { firstName, lastName, email, password, phone, username } =
       await request.json();
@@ -183,6 +119,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Require verified email via OTP
+    if (!isEmailVerified(email)) {
+      return NextResponse.json(
+        { success: false, message: 'Please verify your email before signup' },
+        { status: 400 }
+      );
+    }
+
     // Create user (password gets hashed automatically)
     const newUser = await User.create({
       firstName,
@@ -195,10 +139,14 @@ export async function POST(request: Request) {
 
     const { password: _, ...userData } = newUser.toObject();
 
+    // Clear OTP after successful account creation
+    clearOTP(email);
+
     return NextResponse.json(
       { success: true, message: 'User registered successfully', user: userData },
       { status: 201 }
     );
+
   } catch (error) {
     console.error('Signup Error:', error);
     return NextResponse.json(
