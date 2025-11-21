@@ -4,6 +4,12 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
   title: {
     default: 'Gro-Delivery — Modern Milkshakes & Groceries',
     template: '%s | Gro-Delivery',
@@ -54,7 +60,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <head>
+        <link rel="preconnect" href="https://maps.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://maps.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//maps.googleapis.com" />
+        <link rel="dns-prefetch" href="//maps.gstatic.com" />
+        {process.env.NEXT_PUBLIC_WS_URL ? (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_WS_URL} crossOrigin="anonymous" />
+        ) : null}
+      </head>
+      <body suppressHydrationWarning>
         <ClientProviders>
           {children}
         </ClientProviders>

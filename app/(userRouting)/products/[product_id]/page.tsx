@@ -36,10 +36,12 @@ const ProductPage = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewImages, setReviewImages] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
-const [isZoomed, setIsZoomed] = useState(false);
-const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-const [zoomLevel, setZoomLevel] = useState(2); // Configurable zoom level
-const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [replyOpenId, setReplyOpenId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<string>("");
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [zoomLevel, setZoomLevel] = useState(2); // Configurable zoom level
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
 
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -54,15 +56,15 @@ const imageContainerRef = useRef<HTMLDivElement>(null);
 
   // Hook calls
   const { product, loading, error } = useProduct(product_id ? product_id.toString() : '');
-  const { wishListsData, setWistListsData ,getUserWishList} = useWishListContext();
+  const { wishListsData, setWistListsData, getUserWishList } = useWishListContext();
   const { dispatch, state } = useOrder();
   const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
   useEffect(() => {
-    if(user?._id){
+    if (user?._id) {
       getUserWishList(user?._id);
-      setIsWishlisted(wishListsData&&wishListsData.some((item) => item._id === product_id));
+      setIsWishlisted(wishListsData && wishListsData.some((item) => item._id === product_id));
     }
-  }, [user?._id, wishListsData, product_id]);
+  }, [user?._id, product_id]);
 
 
 
@@ -79,25 +81,25 @@ const imageContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const load = async () => {
       try {
-        if (!product?._id) return;
-        const res = await fetch(`/api/products/${product._id}/reviews`, { cache: 'no-store' });
+        if (!product_id) return;
+        const res = await fetch(`/api/products/${product_id}/reviews`, { cache: 'no-store' });
         const data = await res.json();
         if (res.ok && data.success) {
           setRemoteReviews(Array.isArray(data.data) ? data.data : []);
         }
-      } catch {}
+      } catch { }
     };
 
     load();
-  }, [product?._id]);
+  }, [product_id]);
 
-useEffect(() => {
-  if (!product?._id || !Array.isArray(product?.relatedProducts)) {
-    setRelatedProducts([]);
-    return;
-  }
-  setRelatedProducts(product.relatedProducts);
-}, [product?._id, product?.relatedProducts]);
+  useEffect(() => {
+    if (!product_id || !Array.isArray(product?.relatedProducts)) {
+      setRelatedProducts([]);
+      return;
+    }
+    setRelatedProducts(product.relatedProducts);
+  }, [product_id, product?.relatedProducts]);
 
 
 
@@ -112,18 +114,55 @@ useEffect(() => {
     };
     try {
       await addToCart(user?._id, cartItem1);
-    } catch {}
+    } catch { }
   };
 
   // useCallback hooks
   const isInCart = useCallback((product: Product) => {
-    return state.items.some((item: any) => item.id === product._id);
+    return state.items.some((item: any) => item.id === product_id);
   }, [state.items]);
 
   const getCartQuantity = useCallback((product: Product) => {
-    const cartItem = state.items.find((item: any) => item.id === product._id);
+    const cartItem = state.items.find((item: any) => item.id === product_id);
     return cartItem ? cartItem.quantity : 0;
   }, [state.items]);
+
+  const handleReviewAction = async (reviewId: string, action: 'helpful' | 'notHelpful') => {
+    try {
+      const res = await fetch(`/api/products/${product_id}/reviews`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId, action, user: user?._id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRemoteReviews(Array.isArray(data.data) ? data.data : []);
+      }
+    } catch {}
+  };
+
+  const handleToggleReply = (id: string) => {
+    setReplyOpenId(prev => (prev === id ? null : id));
+    setReplyText('');
+  };
+
+  const handleSubmitReply = async (reviewId: string) => {
+    const text = replyText.trim();
+    if (!text) return;
+    try {
+      const res = await fetch(`/api/products/${product_id}/reviews`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId, action: 'reply', comment: text, user: user?._id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRemoteReviews(Array.isArray(data.data) ? data.data : []);
+        setReplyOpenId(null);
+        setReplyText('');
+      }
+    } catch {}
+  };
 
   // NOW we can do conditional returns AFTER all hooks are declared
   if (loading) {
@@ -183,20 +222,20 @@ useEffect(() => {
   };
 
   const handleAddToCart = async () => {
-    console.log("useruseruser",product)
-    if(!user?._id){
+    console.log("useruseruser", product)
+    if (!user?._id) {
       alert('Please login to add to cart');
     }
-    if(!product){
+    if (!product) {
       alert('Please select a product to add to cart');
     }
-    
-    if (!product ||!user?._id) return;
+
+    if (!product || !user?._id) return;
 
     setAdding(true);
     try {
       const cartItem1: any = {
-        id: product._id||product?.id,
+        id: product_id || product?.id,
         name: product.name,
         price: product.price,
         quantity: quantity,
@@ -218,10 +257,10 @@ useEffect(() => {
       await navigator.share({
         title: product.name,
         text: product.description,
-        url: `/products/${product._id}`,
+        url: `/products/${product_id}`,
       });
     } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(`${window.location.origin}/products/${product._id}`);
+      navigator.clipboard.writeText(`${window.location.origin}/products/${product_id}`);
     }
   };
 
@@ -253,43 +292,43 @@ useEffect(() => {
 
   const ratingDistribution = getRatingDistribution();
 
-const handleSubmitReview = async () => {
-  if (!product?._id || submittingReview) return;
+  const handleSubmitReview = async () => {
+    if (!product_id || submittingReview) return;
 
-  setSubmittingReview(true);
+    setSubmittingReview(true);
 
-  try {
-    const res = await fetch(`/api/products/${product._id}/reviews`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user: user?._id,
-        rating: Number(reviewForm.rating),
-        comment: reviewForm.comment,
-        images: reviewImages,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/products/${product_id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: user?._id,
+          rating: Number(reviewForm.rating),
+          comment: reviewForm.comment,
+          images: reviewImages,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok && data.success) {
-      setReviewForm({ rating: 5, comment: '' });
-      setReviewImages([]);
+      if (res.ok && data.success) {
+        setReviewForm({ rating: 5, comment: '' });
+        setReviewImages([]);
 
-      // ✅ Use product._id again here
-      const r = await fetch(`/api/products/${product._id}/reviews`, { cache: 'no-store' });
-      const dj = await r.json();
+        // ✅ Use product_id again here
+        const r = await fetch(`/api/products/${product_id}/reviews`, { cache: 'no-store' });
+        const dj = await r.json();
 
-      if (r.ok && dj.success) {
-        setRemoteReviews(Array.isArray(dj.data) ? dj.data : []);
+        if (r.ok && dj.success) {
+          setRemoteReviews(Array.isArray(dj.data) ? dj.data : []);
+        }
       }
+    } catch (err) {
+      console.error("Failed to submit review:", err);
+    } finally {
+      setSubmittingReview(false);
     }
-  } catch (err) {
-    console.error("Failed to submit review:", err);
-  } finally {
-    setSubmittingReview(false);
-  }
-};
+  };
 
   const handleReviewImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -306,244 +345,239 @@ const handleSubmitReview = async () => {
       if (res.ok && data.success && Array.isArray(data.imagesAdded)) {
         setReviewImages((prev) => [...prev, ...data.imagesAdded].slice(0, 6));
       }
-    } catch {}
+    } catch { }
     finally {
       setUploadingImages(false);
       // reset input so same files can be reselected if needed
       e.currentTarget.value = '';
     }
   };
-const zoomStyles = {
-  magnifierContainer: {
-    position: 'relative',
-    overflow: 'hidden',
-    cursor: 'zoom-in',
-    height: '500px',
-    borderRadius: '0.75rem',
-  } as React.CSSProperties,
-  
-  magnifierImage: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    transition: 'transform 0.1s ease-out',
-  } as React.CSSProperties,
+  const zoomStyles = {
+    magnifierContainer: {
+      position: 'relative',
+      overflow: 'hidden',
+      cursor: 'zoom-in',
+      height: '500px',
+      borderRadius: '0.75rem',
+    } as React.CSSProperties,
 
-  magnifierGlass: {
-    position: 'absolute',
-    pointerEvents: 'none',
-    width: '150px',
-    height: '150px',
-    border: '2px solid #ffffff',
-    borderRadius: '50%',
-    boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-    zIndex: 1000,
-  } as React.CSSProperties
-};
+    magnifierImage: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      transition: 'transform 0.1s ease-out',
+    } as React.CSSProperties,
+
+    magnifierGlass: {
+      position: 'absolute',
+      pointerEvents: 'none',
+      width: '150px',
+      height: '150px',
+      border: '2px solid #ffffff',
+      borderRadius: '50%',
+      boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+      zIndex: 1000,
+    } as React.CSSProperties
+  };
   return (
     <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100 ">
-  <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-400 via-red-500 to-red-600 text-white shadow-md transition-all duration-300">
-  <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-    <div className="flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-400 via-red-500 to-red-600 text-white shadow-md transition-all duration-300">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between">
 
-      {/* --- LOGO --- */}
-      <div className="flex items-center gap-3 group cursor-pointer">
-        <img
-          src="/logoGro.png"
-          alt="Gro Delivery Logo"
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-        />
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight group-hover:text-white transition-colors duration-300">
-          Gro-Delivery
-        </h1>
-      </div>
+            {/* --- LOGO --- */}
+            <div className="flex items-center gap-3 group cursor-pointer">
+              <img
+                src="/logoGro.png"
+                alt="Gro Delivery Logo"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+              />
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight group-hover:text-white transition-colors duration-300">
+                Gro-Delivery
+              </h1>
+            </div>
 
-      {/* --- RIGHT ICONS --- */}
-      <div className="flex items-center space-x-3 sm:space-x-5">
+            {/* --- RIGHT ICONS --- */}
+            <div className="flex items-center space-x-3 sm:space-x-5">
 
-        {/* Wishlist */}
-        <Link
-          href="/wishlist"
-          className="relative bg-white/10 backdrop-blur-md p-2 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-110"
-        >
-          <Heart className="w-6 h-6 text-white" />
-          {wishListsData&&wishListsData.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
-              {wishListsData.length}
-            </span>
-          )}
-        </Link>
+              {/* Wishlist */}
+              <Link
+                href="/wishlist"
+                className="relative bg-white/10 backdrop-blur-md p-2 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-110"
+              >
+                <Heart className="w-6 h-6 text-white" />
+                {wishListsData && wishListsData.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
+                    {wishListsData.length}
+                  </span>
+                )}
+              </Link>
 
-        {/* Cart */}
-        <div className="relative">
-          <div
-            className={`transition-transform duration-300 ${
-              cartAnimation ? "scale-110" : "scale-100"
-            }`}
-          >
-            <AddCardList
-              cartItems={cartItems}
-              removeFromCart={removeFromCart}
-              updateQuantity={(itemId: any, newQuantity: any) => {
-                if (newQuantity === 0) {
-                  removeFromCart(user?._id, itemId);
-                } else {
-                  const change =
-                    newQuantity - getCartQuantity({ id: itemId } as Product);
-                  updateQuantity(user?._id, itemId?.toString(), change);
-                }
-              }}
-              getTotalPrice={getTotalPrice}
-              setCartItems={setCartItems}
-              cartOpen={cartOpen}
-              setCartOpen={setCartOpen}
-            />
+              {/* Cart */}
+              <div className="relative">
+                <div
+                  className={`transition-transform duration-300 ${cartAnimation ? "scale-110" : "scale-100"
+                    }`}
+                >
+                  <AddCardList
+                    cartItems={cartItems}
+                    removeFromCart={removeFromCart}
+                    updateQuantity={(itemId: any, newQuantity: any) => {
+                      if (newQuantity === 0) {
+                        removeFromCart(user?._id, itemId);
+                      } else {
+                        const change =
+                          newQuantity - getCartQuantity({ id: itemId } as Product);
+                        updateQuantity(user?._id, itemId?.toString(), change);
+                      }
+                    }}
+                    getTotalPrice={getTotalPrice}
+                    setCartItems={setCartItems}
+                    cartOpen={cartOpen}
+                    setCartOpen={setCartOpen}
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-white hover:bg-white/20 transition-all duration-300"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <div className="relative">
+                  <Menu
+                    className={`h-6 w-6 transition-all duration-300 ${mobileMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
+                      }`}
+                  />
+                  <X
+                    className={`h-6 w-6 absolute top-0 left-0 transition-all duration-300 ${mobileMenuOpen ? "rotate-0 opacity-100" : "rotate-90 opacity-0"
+                      }`}
+                  />
+                </div>
+              </Button>
+            </div>
           </div>
         </div>
-
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden text-white hover:bg-white/20 transition-all duration-300"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          <div className="relative">
-            <Menu
-              className={`h-6 w-6 transition-all duration-300 ${
-                mobileMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
-              }`}
-            />
-            <X
-              className={`h-6 w-6 absolute top-0 left-0 transition-all duration-300 ${
-                mobileMenuOpen ? "rotate-0 opacity-100" : "rotate-90 opacity-0"
-              }`}
-            />
-          </div>
-        </Button>
-      </div>
-    </div>
-  </div>
-</header>
+      </header>
 
       <div className="max-w-7xl mx-auto p-4">
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Images */}
-<div className="space-y-4">
-  <div
-    ref={imageContainerRef}
-    style={zoomStyles.magnifierContainer}
-    onMouseEnter={() => setIsZoomed(true)}
-    onMouseLeave={() => {
-      setIsZoomed(false);
-      setMousePosition({ x: 0, y: 0 });
-    }}
-    onMouseMove={(e) => {
-      if (!imageContainerRef.current) return;
-      
-      const bounds = imageContainerRef.current.getBoundingClientRect();
-      const x = ((e.clientX - bounds.left) / bounds.width) * 100;
-      const y = ((e.clientY - bounds.top) / bounds.height) * 100;
-      
-      // Calculate magnifier glass position
-      const magnifierSize = 150;
-      const magnifierX = e.clientX - bounds.left - magnifierSize / 2;
-      const magnifierY = e.clientY - bounds.top - magnifierSize / 2;
-      
-      setMousePosition({
-        x: Math.min(Math.max(0, x), 100),
-        y: Math.min(Math.max(0, y), 100)
-      });
-      
-      // Update magnifier glass position
-      if (isZoomed) {
-        const glass = document.querySelector('.magnifier-glass') as HTMLElement;
-        if (glass) {
-          glass.style.left = `${magnifierX}px`;
-          glass.style.top = `${magnifierY}px`;
-          glass.style.backgroundImage = `url(${product?.images[selectedImage]})`;
-          glass.style.backgroundPosition = `${x}% ${y}%`;
-          glass.style.backgroundSize = `${zoomLevel * 100}%`;
-        }
-      }
-    }}
-    onClick={() => setZoomLevel(zoomLevel === 2 ? 3 : 2)} // Toggle zoom level
-  >
-    <img
-      src={product?.images[selectedImage]}
-      alt={product?.name}
-      style={{
-        ...zoomStyles.magnifierImage,
-        transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
-        transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
-      }}
-    />
-    
-    {isZoomed && (
-      <div
-        className="magnifier-glass"
-        style={{
-          ...zoomStyles.magnifierGlass,
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-    )}
+          <div className="space-y-4">
+            <div
+              ref={imageContainerRef}
+              style={zoomStyles.magnifierContainer}
+              onMouseEnter={() => setIsZoomed(true)}
+              onMouseLeave={() => {
+                setIsZoomed(false);
+                setMousePosition({ x: 0, y: 0 });
+              }}
+              onMouseMove={(e) => {
+                if (!imageContainerRef.current) return;
 
-    {/* Zoom level indicator */}
-    {isZoomed && (
-      <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
-        {zoomLevel}x Zoom
-      </div>
-    )}
+                const bounds = imageContainerRef.current.getBoundingClientRect();
+                const x = ((e.clientX - bounds.left) / bounds.width) * 100;
+                const y = ((e.clientY - bounds.top) / bounds.height) * 100;
 
-    {/* Zoom instructions */}
-    {!isZoomed && (
-      <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 hover:opacity-100 transition-opacity">
-        <div className="text-center">
-          <p className="text-lg font-semibold">Hover to zoom</p>
-          <p className="text-sm">Click to toggle zoom level</p>
-        </div>
-      </div>
-    )}
+                // Calculate magnifier glass position
+                const magnifierSize = 150;
+                const magnifierX = e.clientX - bounds.left - magnifierSize / 2;
+                const magnifierY = e.clientY - bounds.top - magnifierSize / 2;
 
-    {/* Product badges */}
-    {product?.discount > 0 && (
-      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md">
-        {product.discount}% OFF
-      </div>
-    )}
-    {viewedRecently && (
-      <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md">
-        Recently Viewed
-      </div>
-    )}
-  </div>
+                setMousePosition({
+                  x: Math.min(Math.max(0, x), 100),
+                  y: Math.min(Math.max(0, y), 100)
+                });
 
-  {/* Thumbnails */}
-  <div className="flex gap-2 overflow-x-auto">
-    {product?.images.map((img: string, i: number) => (
-      <div
-        key={i}
-        className="relative group cursor-pointer"
-        onClick={() => setSelectedImage(i)}
-      >
-        <img
-          src={img}
-          alt=""
-          className={`w-16 h-16 object-cover rounded transition-all ${
-            selectedImage === i 
-              ? 'border-2 border-orange-500' 
-              : 'border-2 border-gray-200 filter brightness-90'
-          }`}
-        />
-        <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded ${
-          selectedImage === i ? 'bg-black/10' : ''
-        }`} />
-      </div>
-    ))}
-  </div>
-</div>
+                // Update magnifier glass position
+                if (isZoomed) {
+                  const glass = document.querySelector('.magnifier-glass') as HTMLElement;
+                  if (glass) {
+                    glass.style.left = `${magnifierX}px`;
+                    glass.style.top = `${magnifierY}px`;
+                    glass.style.backgroundImage = `url(${product?.images[selectedImage]})`;
+                    glass.style.backgroundPosition = `${x}% ${y}%`;
+                    glass.style.backgroundSize = `${zoomLevel * 100}%`;
+                  }
+                }
+              }}
+              onClick={() => setZoomLevel(zoomLevel === 2 ? 3 : 2)} // Toggle zoom level
+            >
+              <img
+                src={product?.images[selectedImage]}
+                alt={product?.name}
+                style={{
+                  ...zoomStyles.magnifierImage,
+                  transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
+                  transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+                }}
+              />
+
+              {isZoomed && (
+                <div
+                  className="magnifier-glass"
+                  style={{
+                    ...zoomStyles.magnifierGlass,
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                />
+              )}
+
+              {/* Zoom level indicator */}
+              {isZoomed && (
+                <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+                  {zoomLevel}x Zoom
+                </div>
+              )}
+
+              {/* Zoom instructions */}
+              {!isZoomed && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="text-center">
+                    <p className="text-lg font-semibold">Hover to zoom</p>
+                    <p className="text-sm">Click to toggle zoom level</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Product badges */}
+              {product?.discount > 0 && (
+                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md">
+                  {product.discount}% OFF
+                </div>
+              )}
+              {viewedRecently && (
+                <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-md">
+                  Recently Viewed
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnails */}
+            <div className="flex gap-2 overflow-x-auto">
+              {product?.images.map((img: string, i: number) => (
+                <div
+                  key={i}
+                  className="relative group cursor-pointer"
+                  onClick={() => setSelectedImage(i)}
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    className={`w-16 h-16 object-cover rounded transition-all ${selectedImage === i
+                      ? 'border-2 border-orange-500'
+                      : 'border-2 border-gray-200 filter brightness-90'
+                      }`}
+                  />
+                  <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded ${selectedImage === i ? 'bg-black/10' : ''
+                    }`} />
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Product Details */}
           <div className="space-y-4">
@@ -791,105 +825,163 @@ const zoomStyles = {
           )}
 
           {activeTab === 'reviews' && (
-            <div className="space-y-6">
-              {/* Review submission */}
-              <div className="border rounded-lg p-4">
-                <h4 className="font-semibold mb-3">Write a review</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+            <div className="space-y-8">
+
+              {/* Write Review Box */}
+              <div className="border rounded-xl p-5 shadow-sm bg-white">
+                <h4 className="font-semibold mb-4 text-lg">Write a Review</h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                  {/* Rating */}
                   <div>
-                    <label className="block text-sm mb-1">Rating</label>
+                    <label className="block text-sm mb-1 font-medium">Rating</label>
                     <select
                       value={reviewForm.rating}
-                      onChange={(e) => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
-                      className="border rounded px-3 py-2 w-full"
+                      onChange={(e) =>
+                        setReviewForm({ ...reviewForm, rating: Number(e.target.value) })
+                      }
+                      className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-orange-400"
                     >
-                      {[5,4,3,2,1].map(r => (
-                        <option key={r} value={r}>{r} Stars</option>
+                      {[5, 4, 3, 2, 1].map((r) => (
+                        <option key={r} value={r}>
+                          {r} Stars
+                        </option>
                       ))}
                     </select>
                   </div>
+
+                  {/* Comment + Image Upload */}
                   <div className="md:col-span-2">
-                    <label className="block text-sm mb-1">Comment</label>
+                    <label className="block text-sm mb-1 font-medium">Comment</label>
                     <textarea
                       value={reviewForm.comment}
-                      onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                      className="border rounded px-3 py-2 w-full min-h-[80px]"
+                      onChange={(e) =>
+                        setReviewForm({ ...reviewForm, comment: e.target.value })
+                      }
+                      className="border rounded-lg px-3 py-2 w-full min-h-[90px] focus:ring-2 focus:ring-orange-400"
                       placeholder="Share your experience..."
                     />
-                    <div className="mt-3">
-                      <label className="block text-sm mb-1">Add images (max 6)</label>
+
+                    {/* Upload */}
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium mb-2">
+                        Add Images <span className="text-gray-500">(max 6)</span>
+                      </label>
+
+                      <div
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-orange-400 transition"
+                        onClick={() => document.getElementById("reviewImageInput")?.click()}
+                      >
+                        <p className="text-gray-500 text-sm text-center">Click or Drag & Drop Images</p>
+                      </div>
+
                       <input
+                        id="reviewImageInput"
                         type="file"
                         accept="image/*"
                         multiple
                         onChange={handleReviewImagesSelect}
-                        className="block w-full text-sm"
+                        className="hidden"
                       />
-                      {uploadingImages && <p className="text-xs text-gray-500 mt-1">Uploading...</p>}
+
+                      {uploadingImages && (
+                        <p className="text-xs text-gray-500 mt-2">Uploading...</p>
+                      )}
+
+                      {/* Image Preview Grid */}
                       {reviewImages.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-3">
                           {reviewImages.map((url, idx) => (
-                            <img key={idx} src={url} alt="review" className="w-16 h-16 object-cover rounded border" />
+                            <div key={idx} className="relative group">
+                              <img
+                                src={url}
+                                className="w-full h-20 object-cover rounded-lg border"
+                                alt="preview"
+                              />
+                              <button
+                                onClick={() =>
+                                  setReviewImages(reviewImages.filter((_, i) => i !== idx))
+                                }
+                                className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full text-xs px-1 hidden group-hover:block"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           ))}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="mt-3">
-                  <button
-                    onClick={handleSubmitReview}
-                    disabled={submittingReview}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded disabled:opacity-60"
-                  >
-                    {submittingReview ? 'Submitting...' : 'Submit Review'}
-                  </button>
-                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                  className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-60"
+                >
+                  {submittingReview ? "Submitting..." : "Submit Review"}
+                </button>
               </div>
 
+              {/* Reviews Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold">Customer Reviews</h3>
-                <div className="flex items-center space-x-4">
-                  <select
-                    value={reviewFilter}
-                    onChange={(e) => setReviewFilter(e.target.value)}
-                    className="border rounded px-3 py-1"
-                  >
-                    <option value="all">All Reviews</option>
-                    <option value="5">5 Stars</option>
-                    <option value="4">4 Stars</option>
-                    <option value="3">3 Stars</option>
-                    <option value="2">2 Stars</option>
-                    <option value="1">1 Star</option>
-                  </select>
-                </div>
+
+                <select
+                  value={reviewFilter}
+                  onChange={(e) => setReviewFilter(e.target.value)}
+                  className="border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="all">All Reviews</option>
+                  {[5, 4, 3, 2, 1].map((star) => (
+                    <option key={star} value={star}>
+                      {star} Stars
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Rating Overview */}
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Rating Distribution */}
+              <div className="bg-gray-50 p-6 rounded-xl">
+                <div className="grid md:grid-cols-2 gap-6">
+
+                  {/* Average Rating */}
                   <div className="text-center">
                     <div className="text-4xl font-bold text-gray-800">{product?.rating}</div>
                     <div className="flex justify-center my-2">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-5 h-5 ${i < Math.floor(product?.rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${i < Math.floor(product?.rating)
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
+                            }`}
+                        />
                       ))}
                     </div>
-                    <div className="text-gray-600">{sourceReviews.length} total reviews</div>
+                    <div className="text-gray-600 text-sm">
+                      {sourceReviews.length} total reviews
+                    </div>
                   </div>
-                  <div className="space-y-2">
+
+                  {/* Bars */}
+                  <div className="space-y-3">
                     {[5, 4, 3, 2, 1].map((rating) => (
-                      <div key={rating} className="flex items-center">
+                      <div key={rating} className="flex items-center gap-3">
                         <span className="w-8 text-sm">{rating}★</span>
-                        <div className="flex-1 bg-gray-200 rounded-full h-2 mx-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-yellow-400 h-2 rounded-full"
                             style={{
-                              width: `${(ratingDistribution[rating] / sourceReviews.length) * 100}%`
+                              width: `${(ratingDistribution[rating] / sourceReviews.length) * 100}%`,
                             }}
                           ></div>
                         </div>
-                        <span className="w-8 text-sm text-gray-600">{ratingDistribution[rating]}</span>
+                        <span className="w-6 text-sm text-gray-700">
+                          {ratingDistribution[rating]}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -897,64 +989,99 @@ const zoomStyles = {
               </div>
 
               {/* Reviews List */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {reviewsToShow.map((review: any) => (
-                  <div key={review._id || review.id} className="border-b pb-4">
+                  <div key={review._id} className="border-b pb-5">
+
+                    {/* Header */}
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-semibold">{review?.user?.firstName || review?.userName || 'User'}</span>
-                          {review.verified && (
-                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                              Verified Purchase
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center mt-1">
+                        <p className="font-semibold text-gray-800">
+                          {review?.user?.firstName || "User"}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${i < review.rating
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                                }`}
+                            />
                           ))}
-                          <span className="ml-2 text-sm text-gray-500">{review?.date || (review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : '')}</span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(review?.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-gray-700 mb-2">{review.comment}</p>
+
+                    {/* Comment */}
+                    <p className="text-gray-700 mb-3">{review.comment}</p>
+
+                    {/* Review Images */}
                     {review?.images?.length > 0 && (
-                      <div className="flex space-x-2 mb-2">
-                        {review?.images?.map((img: any, i: any) => (
-                          <img key={i} src={img} alt="" className="w-16 h-16 object-cover rounded" />
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
+                        {review.images.map((img: any, i: any) => (
+                          <img
+                            key={i}
+                            src={img}
+                            className="w-full h-20 object-cover rounded-lg"
+                          />
                         ))}
                       </div>
                     )}
-                    <div className="flex items-center space-x-4 text-sm">
-                      <button className="flex items-center text-gray-600 hover:text-green-600">
-                        <ThumbsUp className="w-4 h-4 mr-1" />
+
+                    {/* Buttons */}
+                    <div className="flex items-center gap-6 text-sm text-gray-600">
+                      <button onClick={() => handleReviewAction(review._id, 'helpful')} className="hover:text-green-600 flex items-center gap-1">
+                        <ThumbsUp className="w-4 h-4" />
                         Helpful ({review.helpful || 0})
                       </button>
-                      <button className="flex items-center text-gray-600 hover:text-red-600">
-                        <ThumbsDown className="w-4 h-4 mr-1" />
-                        Not Helpful
+                      <button onClick={() => handleReviewAction(review._id, 'notHelpful')} className="hover:text-red-600 flex items-center gap-1">
+                        <ThumbsDown className="w-4 h-4" />
+                        Not Helpful ({(review as any)?.notHelpful || 0})
                       </button>
-                      <button className="flex items-center text-gray-600 hover:text-blue-600">
-                        <MessageCircle className="w-4 h-4 mr-1" />
+                      <button onClick={() => handleToggleReply(review._id)} className="hover:text-blue-600 flex items-center gap-1">
+                        <MessageCircle className="w-4 h-4" />
                         Reply
                       </button>
                     </div>
+                    {replyOpenId === review._id && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <input
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Write a reply..."
+                          className="flex-1 border rounded px-3 py-2 text-sm"
+                        />
+                        <button
+                          onClick={() => handleSubmitReply(review._id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
+                        >
+                          Send
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
 
+              {/* Show More */}
               {filteredReviews.length > 3 && (
                 <button
                   onClick={() => setShowAllReviews(!showAllReviews)}
-                  className="w-full py-2 text-orange-600 border border-orange-300 rounded hover:bg-orange-50"
+                  className="w-full py-2 border border-orange-300 text-orange-600 rounded-lg mt-4 hover:bg-orange-50 font-medium"
                 >
-                  {showAllReviews ? 'Show Less Reviews' : `Show All ${filteredReviews.length} Reviews`}
+                  {showAllReviews
+                    ? "Show Less Reviews"
+                    : `Show All ${filteredReviews.length} Reviews`}
                 </button>
               )}
             </div>
+
           )}
-  
+
           {/* Related Products */}
           {relatedProducts && relatedProducts.length > 0 && (
             <div className="mt-12">
@@ -969,29 +1096,29 @@ const zoomStyles = {
             </div>
           )}
 
-        {/* FAQ Section */}
-        <div className="mt-12 space-y-4">
-          <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
-          {[{
-            question: "How should I store this rice?",
-            answer: "Store in a cool, dry place away from direct sunlight. Use an airtight container after opening to maintain freshness and prevent pest infestation."
-          },
-          {
-            question: "Is this rice suitable for diabetics?",
-            answer: "While this rice has a lower glycemic index than white rice due to its biofortification, we recommend consulting with your healthcare provider for dietary advice."
-          },
-          {
-            question: "What is the cooking ratio for this rice?",
-            answer: "Use a 1:2 ratio (1 cup rice to 2 cups water). Cook for 15-20 minutes on medium heat until water is absorbed."
-          }
-          ].map((faq, index) => (
-            <details key={index} className="border rounded-lg p-4">
-              <summary className="font-semibold cursor-pointer hover:text-orange-600">
-                {faq.question}
-              </summary>
-              <p className="mt-2 text-gray-700">{faq.answer}</p>
-            </details>
-          ))}
+          {/* FAQ Section */}
+          <div className="mt-12 space-y-4">
+            <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
+            {[{
+              question: "How should I store this rice?",
+              answer: "Store in a cool, dry place away from direct sunlight. Use an airtight container after opening to maintain freshness and prevent pest infestation."
+            },
+            {
+              question: "Is this rice suitable for diabetics?",
+              answer: "While this rice has a lower glycemic index than white rice due to its biofortification, we recommend consulting with your healthcare provider for dietary advice."
+            },
+            {
+              question: "What is the cooking ratio for this rice?",
+              answer: "Use a 1:2 ratio (1 cup rice to 2 cups water). Cook for 15-20 minutes on medium heat until water is absorbed."
+            }
+            ].map((faq, index) => (
+              <details key={index} className="border rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer hover:text-orange-600">
+                  {faq.question}
+                </summary>
+                <p className="mt-2 text-gray-700">{faq.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
 
@@ -1023,44 +1150,44 @@ const zoomStyles = {
         </div>
       </div>
 
-        {/* Trust Badges */}
-        <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-xl font-bold text-center mb-6">Why Shop With Us?</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Truck className="w-8 h-8 text-green-600" />
-              </div>
-              <h4 className="font-semibold mb-1">Free Delivery</h4>
-              <p className="text-sm text-gray-600">On orders above ₹500</p>
+      {/* Trust Badges */}
+      <div className="mt-12 bg-gray-50 p-6 rounded-lg">
+        <h3 className="text-xl font-bold text-center mb-6">Why Shop With Us?</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Truck className="w-8 h-8 text-green-600" />
             </div>
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Shield className="w-8 h-8 text-blue-600" />
-              </div>
-              <h4 className="font-semibold mb-1">Quality Assured</h4>
-              <p className="text-sm text-gray-600">100% authentic products</p>
+            <h4 className="font-semibold mb-1">Free Delivery</h4>
+            <p className="text-sm text-gray-600">On orders above ₹500</p>
+          </div>
+          <div className="text-center">
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Shield className="w-8 h-8 text-blue-600" />
             </div>
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Users className="w-8 h-8 text-purple-600" />
-              </div>
-              <h4 className="font-semibold mb-1">Customer Support</h4>
-              <p className="text-sm text-gray-600">24/7 assistance</p>
+            <h4 className="font-semibold mb-1">Quality Assured</h4>
+            <p className="text-sm text-gray-600">100% authentic products</p>
+          </div>
+          <div className="text-center">
+            <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Users className="w-8 h-8 text-purple-600" />
             </div>
+            <h4 className="font-semibold mb-1">Customer Support</h4>
+            <p className="text-sm text-gray-600">24/7 assistance</p>
           </div>
         </div>
-
-        {/* Floating Action Button */}
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-20 right-4 md:bottom-6 md:right-6 bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors z-40"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </button>
       </div>
 
-    );
+      {/* Floating Action Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors z-40"
+      >
+        <ChevronUp className="w-6 h-6" />
+      </button>
+    </div>
+
+  );
 };
 
 export default ProductPage;

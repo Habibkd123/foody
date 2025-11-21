@@ -1,17 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapPin, Home, Briefcase, LocateIcon } from 'lucide-react';
+import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 
 export default function AddAddressPage() {
   const [house, setHouse] = useState('');
   const [apartment, setApartment] = useState('');
   const [landmark, setLandmark] = useState('');
   const [addressType, setAddressType] = useState<'Home' | 'Work' | 'Other'>('Home');
+  const [pinnedArea, setPinnedArea] = useState('');
+  const [fullAddress, setFullAddress] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const { loaded } = useGoogleMaps();
 
-  // Dummy location props (replace with actual data from context or state)
-  const pinnedArea = 'Suraj Nagar, Jhotwara';
-  const fullAddress = 'Shivaji Nagar, Suraj Nagar, Jhotwara, Jaipur, Rajasthan 302032, India';
+  useEffect(() => {
+    if (!loaded || !inputRef.current) return;
+    const ac = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
+      fields: ['formatted_address', 'name', 'geometry'],
+    });
+    ac.addListener('place_changed', () => {
+      const place = ac.getPlace();
+      const formatted = place.formatted_address || '';
+      const name = place.name || '';
+      const loc = place.geometry?.location;
+      setFullAddress(formatted);
+      setPinnedArea(name || formatted.split(',')[0] || '');
+      if (loc) setCoords({ lat: loc.lat(), lng: loc.lng() });
+    });
+  }, [loaded]);
 
   const handleSubmit = () => {
     if (!house.trim()) {
@@ -26,6 +44,7 @@ export default function AddAddressPage() {
       type: addressType,
       pinnedArea,
       fullAddress,
+      coords,
     };
 
     console.log('Submitting address:', addressPayload);
@@ -55,6 +74,13 @@ export default function AddAddressPage() {
       {/* Input Fields */}
       <div className="space-y-6">
         <input
+          ref={inputRef}
+          placeholder="Search address"
+          className="border-b w-full py-2 focus:outline-none"
+          value={fullAddress}
+          onChange={(e) => setFullAddress(e.target.value)}
+        />
+        <input
           placeholder="House / Flat / Floor No."
           className="border-b w-full py-2 focus:outline-none"
           value={house}
@@ -72,6 +98,28 @@ export default function AddAddressPage() {
           value={landmark}
           onChange={(e) => setLandmark(e.target.value)}
         />
+        <button
+          onClick={async () => {
+            if (!('geolocation' in navigator)) return;
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              setCoords({ lat, lng });
+              if ((window as any).google?.maps) {
+                const geocoder = new (window as any).google.maps.Geocoder();
+                geocoder.geocode({ location: { lat, lng } }, (res: any, status: any) => {
+                  if (status === 'OK' && res?.[0]) {
+                    setFullAddress(res[0].formatted_address);
+                    setPinnedArea(res[0].address_components?.[1]?.long_name || res[0].formatted_address.split(',')[0] || '');
+                  }
+                });
+              }
+            });
+          }}
+          className="w-full border rounded-md py-2 text-sm text-gray-700 flex items-center justify-center gap-2"
+        >
+          <LocateIcon className="w-4 h-4" /> Use my location
+        </button>
       </div>
 
       {/* Address Type Tags */}

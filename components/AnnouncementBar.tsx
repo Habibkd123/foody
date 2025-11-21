@@ -12,14 +12,18 @@ const offers = [
 
 const AnnouncementBar = () => {
   const [index, setIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % offers.length);
     }, 2000); // changes every 2 seconds
 
     return () => clearInterval(interval); // cleanup on unmount
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="bg-gradient-to-r from-orange-500 to-red-700 text-white text-sm font-semibold text-center py-2">

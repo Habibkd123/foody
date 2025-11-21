@@ -62,3 +62,54 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ success: false, error: error.message || 'Failed to create review' }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await connectDB();
+    const { id } = await params;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ success: false, error: 'Invalid product id' }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const { reviewId, action, comment, user } = body || {};
+    if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
+      return NextResponse.json({ success: false, error: 'Invalid review id' }, { status: 400 });
+    }
+
+    const review = await Review.findOne({ _id: reviewId, product: id });
+    if (!review) {
+      return NextResponse.json({ success: false, error: 'Review not found' }, { status: 404 });
+    }
+
+    if (action === 'helpful') {
+      review.helpful = (review.helpful || 0) + 1;
+      await review.save();
+    } else if (action === 'notHelpful') {
+      // @ts-ignore - may be missing on legacy docs
+      review.notHelpful = (review as any).notHelpful ? (review as any).notHelpful + 1 : 1;
+      await review.save();
+    } else if (action === 'reply') {
+      if (!comment || typeof comment !== 'string' || comment.trim().length === 0) {
+        return NextResponse.json({ success: false, error: 'Reply comment required' }, { status: 400 });
+      }
+      const reply: any = { comment: comment.trim(), createdAt: new Date() };
+      if (user && mongoose.Types.ObjectId.isValid(user)) reply.user = user;
+      // @ts-ignore replies may be undefined in legacy docs
+      if (!review.replies) (review as any).replies = [];
+      (review as any).replies.push(reply);
+      await review.save();
+    } else {
+      return NextResponse.json({ success: false, error: 'Unknown action' }, { status: 400 });
+    }
+
+    const reviews = await Review.find({ product: id })
+      .populate('user', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return NextResponse.json({ success: true, data: reviews });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || 'Failed to update review' }, { status: 500 });
+  }
+}

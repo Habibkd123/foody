@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import Order from '@/app/models/Order';
 import { OrderStatus } from '@/app/models/User';
 import mongoose from 'mongoose';
+import { sendOrderStatusEmail } from '@/app/lib/notify';
 
 // GET /api/orders/[id] - Fetch a single order by ID
 export async function GET(
@@ -138,6 +139,26 @@ export async function PUT(
       .populate('items.product',)
       .populate('delivery', 'address status estimatedDelivery trackingNumber');
       console.log("daa",updatedOrder)
+    // Realtime notify (best-effort)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const io = (global as any).io as { emit: (event: string, payload: any) => void } | undefined;
+      if (io) {
+        io.emit('order-status', { orderId: id, status: updatedOrder.status, at: new Date().toISOString() });
+      }
+    } catch {}
+
+    // Email notify (best-effort)
+    try {
+      const email = (updatedOrder as any)?.user?.email || null;
+      const humanOrderId = (updatedOrder as any)?.orderId || id;
+      if (email) {
+        // fire-and-forget
+        // no await needed; but keep await to surface errors in logs
+        await sendOrderStatusEmail({ to: email, orderId: humanOrderId, status: updatedOrder.status });
+      }
+    } catch {}
+
     return NextResponse.json({
       success: true,
       data: updatedOrder,
