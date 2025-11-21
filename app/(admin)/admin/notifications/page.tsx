@@ -40,6 +40,90 @@ function NotificationsManagement() {
     { subject: '', html: '', sendToAll: true, userIds: '' }
   )
   const [sendingReminder, setSendingReminder] = useState(false)
+  const [useTemplate, setUseTemplate] = useState(true)
+  const [templateConfig, setTemplateConfig] = useState<{ preheader: string; ctaText: string; ctaUrl: string; footerNote: string }>(
+    { preheader: 'Exclusive update from Gro-Delivery', ctaText: 'Shop Now', ctaUrl: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') as string, footerNote: 'You are receiving this email because you have an account with Gro-Delivery.' }
+  )
+
+  const [userSearch, setUserSearch] = useState('')
+  const [userOptions, setUserOptions] = useState<any[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [templatePreset, setTemplatePreset] = useState<'promotion' | 'announcement' | 'order'>('promotion')
+  const [themeColor, setThemeColor] = useState('#f97316')
+  const [logoUrl, setLogoUrl] = useState('/logoGro.png')
+
+  const generateBrandedHtml = (
+    subject: string,
+    contentHtml: string,
+    cfg: { preheader: string; ctaText: string; ctaUrl: string; footerNote: string },
+    options?: { themeColor?: string; logoUrl?: string; preset?: 'promotion'|'announcement'|'order' }
+  ) => {
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') as string
+    const color = (options?.themeColor || themeColor || '#f97316').trim()
+    const logo = options?.logoUrl || logoUrl || '/logoGro.png'
+    const preset = options?.preset || templatePreset
+    const presetBadge = preset === 'promotion' ? 'Deal' : preset === 'order' ? 'Order' : 'Notice'
+    return `<!DOCTYPE html>
+  <html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <title>${subject}</title>
+      <style>
+        body{margin:0;padding:0;background:#f5f5f7;color:#111;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;}
+        .preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;mso-hide:all;}
+        a{color:${color};}
+        @media only screen and (max-width:600px){
+          .container{width:100%!important}
+          .content{padding:16px!important}
+        }
+      </style>
+    </head>
+    <body>
+      <span class="preheader">${cfg.preheader}</span>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width:640px;background:#ffffff">
+        <tr>
+          <td style="padding:0">
+            <table role="presentation" width="100%" style="background:${color};color:#fff" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="padding:20px 16px">
+                  <img src="${logo}" alt="Gro-Delivery" width="40" height="40" style="display:block;border:0;border-radius:8px" />
+                  <div style="font-size:22px;font-weight:700;margin-top:8px">Gro-Delivery</div>
+                  <div style="font-size:12px;opacity:0.9;margin-top:6px;padding:2px 8px;border:1px solid rgba(255,255,255,0.5);border-radius:999px;display:inline-block">${presetBadge}</div>
+                  <h1 style="margin:12px 0 0;font-size:20px;line-height:1.3">${subject}</h1>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="content" style="padding:24px">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fafafa;border:1px solid #eee;border-radius:8px">
+              <tr>
+                <td style="padding:20px;font-size:15px;line-height:1.6;color:#111">
+                  ${contentHtml}
+                  ${cfg.ctaText && cfg.ctaUrl ? `
+                  <div style="text-align:center;margin-top:20px">
+                    <a href="${cfg.ctaUrl}" target="_blank" rel="noopener" style="display:inline-block;background:${color};color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600">${cfg.ctaText}</a>
+                  </div>` : ''}
+                </td>
+              </tr>
+            </table>
+            <div style="height:1px;background:#eee;margin:24px 0"></div>
+            <p style="margin:0 0 6px;font-size:13px;color:#444">Need help? Visit our <a href="${appUrl}/help">Help Center</a> or reply to this email.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 24px;background:#fafafa;text-align:center;color:#666;font-size:12px">
+            <p style="margin:0 0 6px">${cfg.footerNote}</p>
+            <p style="margin:0">© ${new Date().getFullYear()} Gro-Delivery • <a href="${appUrl}">${appUrl.replace('https://','').replace('http://','')}</a></p>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`
+  }
 
   type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'announcement';
   type NotificationStatus = 'draft' | 'scheduled' | 'active' | 'expired';
@@ -78,6 +162,25 @@ function NotificationsManagement() {
   useEffect(() => {
     fetchNotifications()
   }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        setLoadingUsers(true)
+        const q = new URLSearchParams({ limit: '20', search: userSearch || '' }).toString()
+        const res = await fetch(`/api/users?${q}`, { signal: controller.signal })
+        const data = await res.json()
+        if (res.ok && data?.success !== false) {
+          const list = data?.users || data?.data?.users || []
+          setUserOptions(Array.isArray(list) ? list : [])
+        }
+      } catch {}
+      finally { setLoadingUsers(false) }
+    }
+    if (!reminder.sendToAll) load()
+    return () => controller.abort()
+  }, [userSearch, reminder.sendToAll])
 
   const fetchNotifications = async () => {
     try {
@@ -241,6 +344,67 @@ function NotificationsManagement() {
                 placeholder="Subject"
               />
             </div>
+            <div>
+              <label className="inline-flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" checked={useTemplate} onChange={(e) => setUseTemplate(e.target.checked)} />
+                Use branded template
+              </label>
+            </div>
+            {useTemplate && (
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium mb-2">Preheader</label>
+                  <Input value={templateConfig.preheader} onChange={(e)=>setTemplateConfig({...templateConfig, preheader: e.target.value})} placeholder="Short preview line" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Preset</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md dark:bg-gray-800"
+                    value={templatePreset}
+                    onChange={(e)=>setTemplatePreset(e.target.value as any)}
+                  >
+                    <option value="promotion">Promotion</option>
+                    <option value="announcement">Announcement</option>
+                    <option value="order">Order</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Theme Color</label>
+                  <Input type="color" value={themeColor} onChange={(e)=>setThemeColor(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Logo URL</label>
+                  <Input value={logoUrl} onChange={(e)=>setLogoUrl(e.target.value)} placeholder="/logo.png or https://..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">CTA Text</label>
+                  <Input value={templateConfig.ctaText} onChange={(e)=>setTemplateConfig({...templateConfig, ctaText: e.target.value})} placeholder="Shop Now" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-2">CTA URL</label>
+                  <Input value={templateConfig.ctaUrl} onChange={(e)=>setTemplateConfig({...templateConfig, ctaUrl: e.target.value})} placeholder="https://..." />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium mb-2">Footer Note</label>
+                  <Input value={templateConfig.footerNote} onChange={(e)=>setTemplateConfig({...templateConfig, footerNote: e.target.value})} placeholder="Reason for receiving email" />
+                </div>
+                <div className="md:col-span-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (!reminder.subject) { toast.error('Enter subject before generating'); return }
+                      if (!reminder.html) { toast.error('Enter message content (HTML or text) before generating'); return }
+                      const generated = generateBrandedHtml(reminder.subject, reminder.html, templateConfig, { themeColor, logoUrl, preset: templatePreset })
+                      setReminder(prev => ({ ...prev, html: generated }))
+                      toast.success('Template applied')
+                    }}
+                  >
+                    Apply Template
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-2">Message (HTML allowed) *</label>
               <textarea
@@ -262,15 +426,48 @@ function NotificationsManagement() {
               </label>
             </div>
             {!reminder.sendToAll && (
-              <div>
-                <label className="block text-sm font-medium mb-2">User IDs (comma separated)</label>
-                <textarea
-                  value={reminder.userIds}
-                  onChange={(e) => setReminder({ ...reminder, userIds: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border rounded-md dark:bg-gray-800"
-                  placeholder="663a...,663b..."
-                />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">Select Users</label>
+                <div className="flex gap-2 mb-2">
+                  <Input value={userSearch} onChange={(e)=>setUserSearch(e.target.value)} placeholder="Search name or email" />
+                </div>
+                <div className="max-h-56 overflow-auto border rounded-md divide-y">
+                  {loadingUsers ? (
+                    <div className="p-3 text-sm text-gray-500">Loading users...</div>
+                  ) : userOptions.length === 0 ? (
+                    <div className="p-3 text-sm text-gray-500">No users</div>
+                  ) : (
+                    userOptions.map((u:any) => {
+                      const id = u?._id || u?.id
+                      const name = u?.fullName || [u?.firstName, u?.lastName].filter(Boolean).join(' ') || u?.username || 'User'
+                      const email = u?.email || ''
+                      const initials = (name || email).split(' ').map((p:string)=>p[0]).join('').slice(0,2).toUpperCase()
+                      const checked = selectedUserIds.includes(String(id))
+                      return (
+                        <label key={String(id)} className="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e)=>{
+                              const v = String(id)
+                              setSelectedUserIds(prev => e.target.checked ? [...prev, v] : prev.filter(x=>x!==v))
+                            }}
+                          />
+                          <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-semibold">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium truncate">{name}</div>
+                            <div className="text-xs text-gray-500 truncate">{email}</div>
+                          </div>
+                        </label>
+                      )
+                    })
+                  )}
+                </div>
+                {selectedUserIds.length > 0 && (
+                  <div className="mt-2 text-xs text-gray-600">Selected: {selectedUserIds.length}</div>
+                )}
               </div>
             )}
           </div>
@@ -283,9 +480,8 @@ function NotificationsManagement() {
                 try {
                   const payload: any = { subject: reminder.subject, html: reminder.html, sendToAll: reminder.sendToAll }
                   if (!reminder.sendToAll) {
-                    const ids = reminder.userIds.split(',').map(s => s.trim()).filter(Boolean)
-                    if (ids.length === 0) { toast.error('Provide at least one user ID'); setSendingReminder(false); return }
-                    payload.userIds = ids
+                    if (selectedUserIds.length === 0) { toast.error('Select at least one user'); setSendingReminder(false); return }
+                    payload.userIds = selectedUserIds
                   }
                   const res = await fetch('/api/admin/reminders', {
                     method: 'POST',
@@ -296,6 +492,8 @@ function NotificationsManagement() {
                   if (res.ok && data.success) {
                     toast.success(`Sent: ${data.sent}, Failed: ${data.failed}`)
                     setReminder({ subject: '', html: '', sendToAll: true, userIds: '' })
+                    setSelectedUserIds([])
+                    setUserSearch('')
                   } else {
                     toast.error(data.message || 'Failed to send')
                   }

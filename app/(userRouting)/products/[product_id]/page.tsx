@@ -62,7 +62,7 @@ const imageContainerRef = useRef<HTMLDivElement>(null);
       getUserWishList(user?._id);
       setIsWishlisted(wishListsData&&wishListsData.some((item) => item._id === product_id));
     }
-  }, [user?._id]);
+  }, [user?._id, wishListsData, product_id]);
 
 
 
@@ -92,12 +92,12 @@ const imageContainerRef = useRef<HTMLDivElement>(null);
   }, [product?._id]);
 
 useEffect(() => {
-  if (!product?.id || !product?.category) {
+  if (!product?._id || !Array.isArray(product?.relatedProducts)) {
     setRelatedProducts([]);
     return;
-  };
+  }
   setRelatedProducts(product.relatedProducts);
-}, [product?.id, product?.category]);
+}, [product?._id, product?.relatedProducts]);
 
 
 
@@ -114,16 +114,7 @@ useEffect(() => {
       await addToCart(user?._id, cartItem1);
     } catch {}
   };
-useEffect(() => {
-  if (user?._id) {
-    fetch(`/api/recommendations/user/${user?._id}`)
-      .then(res => res.json())
-      .then(json => setRecommendations(json?.data || []))
-      .catch(() => setRecommendations([]));
-  }
-}, [user?._id]);
 
-console.log("recommendations", recommendations);
   // useCallback hooks
   const isInCart = useCallback((product: Product) => {
     return state.items.some((item: any) => item.id === product._id);
@@ -263,12 +254,12 @@ console.log("recommendations", recommendations);
   const ratingDistribution = getRatingDistribution();
 
 const handleSubmitReview = async () => {
-  if (!product?.id || submittingReview) return;
+  if (!product?._id || submittingReview) return;
 
   setSubmittingReview(true);
 
   try {
-    const res = await fetch(`/api/products/${product.id}/reviews`, {
+    const res = await fetch(`/api/products/${product._id}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -286,7 +277,7 @@ const handleSubmitReview = async () => {
       setReviewImages([]);
 
       // ✅ Use product._id again here
-      const r = await fetch(`/api/products/${product.id}/reviews`, { cache: 'no-store' });
+      const r = await fetch(`/api/products/${product._id}/reviews`, { cache: 'no-store' });
       const dj = await r.json();
 
       if (r.ok && dj.success) {
