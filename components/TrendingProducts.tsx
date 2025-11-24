@@ -30,10 +30,10 @@ let router = useRouter()
   }, [productsData])
 
   const categories = [
-    { id: 'all', name: 'All Trending', color: 'bg-orange-500' },
+    { id: 'all', name: 'All Trending', color: 'bg-primary' },
     { id: 'grocery', name: 'Grocery', color: 'bg-green-500' },
-    { id: 'bakery', name: 'Bakery', color: 'bg-orange-500' },
-    { id: 'masala', name: 'Spices', color: 'bg-red-500' },
+    { id: 'bakery', name: 'Bakery', color: 'bg-primary' },
+    { id: 'masala', name: 'Spices', color: 'bg-primary' },
   ]
 
   const filteredProducts = selectedCategory === 'all' 
@@ -41,16 +41,16 @@ let router = useRouter()
     : trendingProducts.filter(product => product.category === selectedCategory)
 
   return (
-    <section className="py-12 dark:from-orange-900/20 dark:to-orange-900/20">
+    <section className="py-12">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <TrendingUp className="h-8 w-8 text-orange-600 animate-bounce" />
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-600 bg-clip-text text-transparent">
+            <TrendingUp className="h-8 w-8 text-primary animate-bounce" />
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               Trending Now
             </h2>
-            <TrendingUp className="h-8 w-8 text-orange-600 animate-bounce" />
+            <TrendingUp className="h-8 w-8 text-primary animate-bounce" />
           </div>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             Most popular products this week
@@ -64,8 +64,8 @@ let router = useRouter()
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 className={`rounded-full px-6 py-2 transition-all duration-300 ${
                   selectedCategory === category.id
-                    ? `${category.color} text-white hover:shadow-lg transform scale-105`
-                    : 'hover:bg-orange-100 hover:border-orange-300'
+                    ? `${category.color} text-white hover:shadow-soft-lg transform scale-105`
+                    : 'hover:bg-secondary hover:border-border'
                 }`}
                 onClick={() => setSelectedCategory(category.id)}
               >
@@ -84,7 +84,7 @@ let router = useRouter()
                 className="flex-none w-72 group"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <Card className="h-full hover:shadow-2xl transition-all duration-300 overflow-hidden border-orange-200 dark:border-orange-800 hover:scale-105">
+                <Card className="h-full hover:shadow-soft-lg transition-all duration-300 overflow-hidden border-border hover:scale-105">
                   <CardContent className="p-0">
                     {/* Product Image with trending badge */}
                     <div className="relative">
@@ -97,7 +97,7 @@ let router = useRouter()
                       
                       {/* Trending Badge */}
                       <div className="absolute top-3 left-3 z-20">
-                        <Badge className="bg-gradient-to-r from-orange-500 to-orange-500 text-white px-3 py-1 animate-pulse">
+                        <Badge className="bg-primary hover:bg-primary text-white px-3 py-1 animate-pulse">
                           🔥 Trending
                         </Badge>
                       </div>
@@ -114,14 +114,14 @@ let router = useRouter()
                       <div className="absolute bottom-3 right-3 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                         <Button
                           size="icon"
-                          className="bg-white/90 hover:bg-white text-gray-700 shadow-md w-8 h-8"
+                          className="bg-white/90 hover:bg-white text-gray-700 shadow-soft w-8 h-8"
                           onClick={() => onToggleWishlist(product)}
                         >
                           <Heart className="w-4 h-4" />
                         </Button>
                         <Button
                           size="icon"
-                          className="bg-white/90 hover:bg-white text-gray-700 shadow-md w-8 h-8"
+                          className="bg-white/90 hover:bg-white text-gray-700 shadow-soft w-8 h-8"
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -130,7 +130,7 @@ let router = useRouter()
 
                     {/* Product Details */}
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                      <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                         {product.name}
                       </h3>
                       
@@ -151,7 +151,7 @@ let router = useRouter()
 
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-orange-600">₹{product.price}</span>
+                          <span className="text-2xl font-bold text-primary">₹{product.price}</span>
                           {product.originalPrice > product.price && (
                             <span className="text-sm text-gray-500 line-through">
                               ₹{product.originalPrice}
@@ -160,7 +160,7 @@ let router = useRouter()
                         </div>
                         
                         {product.discount && product.discount > 0 && (
-                          <Badge className="bg-green-500 hover:bg-green-600">
+                          <Badge className="bg-secondary text-foreground">
                             {product.discount}% OFF
                           </Badge>
                         )}
@@ -168,7 +168,7 @@ let router = useRouter()
 
                       {/* Add to Cart Button */}
                       <Button 
-                        className="w-full bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white font-semibold group"
+                        className="w-full bg-primary hover:bg-primary text-white font-semibold group"
                         onClick={() => onAddToCart(product)}
                       >
                         <ShoppingCart className="w-4 h-4 mr-2 group-hover:animate-bounce" />
@@ -207,7 +207,7 @@ let router = useRouter()
           <Button 
             onClick={() => router.push('/productlist')}
             variant="outline" 
-            className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:border-orange-600 group"
+            className="border-border text-primary hover:bg-secondary hover:border-border group"
           >
             View All Trending Products
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

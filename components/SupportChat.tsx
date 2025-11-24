@@ -272,20 +272,20 @@ const SupportChat = () => {
       <div className="fixed bottom-4 right-4 z-50">
         {isOpen && (
           <div 
-            className="bg-white shadow-2xl border border-gray-200 overflow-hidden flex flex-col fixed inset-4 rounded-xl md:relative md:inset-auto md:w-80 lg:w-96 md:max-w-[90vw] md:rounded-xl max-h-[calc(100vh-2rem)] md:max-h-[600px] transition-all duration-200 ease-out animate-slideUp"
+            className="bg-white shadow-soft-lg border border-border overflow-hidden flex flex-col fixed inset-4 rounded-xl md:relative md:inset-auto md:w-80 lg:w-96 md:max-w-[90vw] md:rounded-xl max-h-[calc(100vh-2rem)] md:max-h-[600px] transition-all duration-200 ease-out animate-slideUp"
             role="dialog"
             aria-label="Chat support"
           >
             {/* Header */}
-            <div className="p-3 sm:p-4 flex justify-between items-center border-b bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md">
+            <div className="p-3 sm:p-4 flex justify-between items-center border-b bg-primary text-white shadow-soft">
               <div>
                 <h3 className="text-sm sm:text-base font-bold">AI Chat Support</h3>
-                <p className="text-xs text-orange-100">Online • Avg. response 2s</p>
+                <p className="text-xs text-foreground/80">Online • Avg. response 2s</p>
               </div>
               <button 
                 onClick={toggleChat}
                 aria-label="Close chat"
-                className="text-orange-100 hover:text-white transition-colors p-1 rounded-full hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-white"
+                className="text-white/90 hover:text-white transition-colors p-1 rounded-full hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
@@ -305,7 +305,7 @@ const SupportChat = () => {
                   <div
                     className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl text-sm sm:text-base max-w-[85%] sm:max-w-[80%] shadow-sm break-words transition-all duration-200 hover:shadow-md ${
                       msg.from === 'user' 
-                        ? 'bg-orange-500 text-white rounded-br-md' 
+                        ? 'bg-primary text-white rounded-br-md' 
                         : 'bg-white text-gray-800 rounded-bl-md border border-gray-200'
                     }`}
                   >
@@ -319,9 +319,9 @@ const SupportChat = () => {
                   <div className="px-3 py-2 sm:px-4 sm:py-3 bg-white rounded-2xl rounded-bl-md text-sm sm:text-base border border-gray-200 shadow-sm">
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                       </div>
                       <span className="text-gray-500 text-xs">Thinking...</span>
                     </div>
@@ -333,7 +333,7 @@ const SupportChat = () => {
                 <div className="flex justify-center">
                   <button
                     onClick={handleRetry}
-                    className="text-xs text-orange-600 hover:text-orange-700 underline flex items-center gap-1 transition-colors"
+                    className="text-xs text-primary hover:text-primary underline flex items-center gap-1 transition-colors"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Retry last message
@@ -351,7 +351,7 @@ const SupportChat = () => {
                       </div>
                       <button
                         onClick={() => handleSend(`Add ${s.name} to cart`)}
-                        className="text-xs px-2 py-1 rounded-md bg-orange-500 text-white hover:bg-orange-600"
+                        className="text-xs px-2 py-1 rounded-md bg-primary text-white hover:bg-primary"
                       >
                         Add
                       </button>
@@ -370,7 +370,7 @@ const SupportChat = () => {
                       <button
                         key={`${opt}-${idx}`}
                         onClick={() => handleSend(opt)}
-                        className="px-3 py-1.5 text-xs rounded-full border border-orange-300 text-orange-700 hover:bg-orange-50 shrink-0"
+                        className="px-3 py-1.5 text-xs rounded-full border border-border text-primary hover:bg-secondary shrink-0"
                       >
                         {opt}
                       </button>
@@ -382,7 +382,7 @@ const SupportChat = () => {
                 <div className="flex-1">
                   <textarea
                     ref={textareaRef}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed min-h-[44px] max-h-[120px]"
+                    className="w-full border border-border rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed min-h-[44px] max-h-[120px]"
                     placeholder="Type your message..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -397,7 +397,7 @@ const SupportChat = () => {
                   onClick={() => handleSend()}
                   disabled={loading || !input.trim()}
                   aria-label="Send message"
-                  className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white p-2 sm:p-3 rounded-xl transition-all duration-200 flex-shrink-0 disabled:cursor-not-allowed hover:scale-105 active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+                  className="bg-primary hover:bg-primary disabled:bg-gray-300 text-white p-2 sm:p-3 rounded-xl transition-all duration-200 flex-shrink-0 disabled:cursor-not-allowed hover:scale-105 active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
@@ -417,9 +417,9 @@ const SupportChat = () => {
         <button
           onClick={toggleChat}
           aria-label={isOpen ? "Close chat" : "Open chat"}
-          className={`flex items-center justify-center rounded-full shadow-xl bg-orange-500 text-white hover:bg-orange-600 transition-all duration-300 hover:scale-110 active:scale-95 ${
+          className={`flex items-center justify-center rounded-full shadow-soft bg-primary text-white hover:bg-primary transition-all duration-300 hover:scale-110 active:scale-95 ${
             isOpen ? 'scale-90 rotate-90' : 'scale-100 rotate-0'
-          } w-12 h-12 sm:w-14 sm:h-14 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-orange-300`}
+          } w-12 h-12 sm:w-14 sm:h-14 hover:shadow-soft-lg focus:outline-none focus:ring-4 focus:ring-primary`}
         >
           {isOpen ? (
             <X className="w-5 h-5 sm:w-6 sm:h-6" />

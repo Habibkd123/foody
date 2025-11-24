@@ -258,7 +258,7 @@
 //     <nav className="bg-[#fdfbf5] sticky top-0 z-50 border-b border-gray-200">
 //       {/* Mobile toggle */}
 //       <div className="flex items-center justify-between px-4 py-3 md:hidden">
-//         <span className="text-xl font-bold text-gray-800">Menu</span>
+//         <span className="text-xl font-bold text-foreground">Menu</span>
 //         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
 //           {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
 //         </button>
@@ -395,7 +395,7 @@ const Navbar: React.FC = () => {
   }, [selected, setProductsData]);
 
   return (
-    <nav className="bg-[#fdfbf5] sticky top-0 z-50 border-b border-gray-200">
+    <nav className="bg-secondary sticky top-0 z-50 border-b border-border">
       {/* Mobile toggle */}
       <div className="flex items-center justify-between px-4 py-3 md:hidden">
         <span className="text-xl font-bold text-gray-800">Menu</span>
@@ -427,15 +427,15 @@ const Navbar: React.FC = () => {
                 <div
                   className={clsx(
                     "flex items-center gap-1 cursor-pointer px-2 py-1 rounded-md",
-                    selected === item.label ? "bg-orange-100 text-orange-600" : "text-black"
+                    selected === item.label ? "bg-secondary text-primary" : "text-foreground"
                   )}
                   onClick={() => {
-                    setSelected(item.label); // ✅ update selection on click
+                    setSelected(item.label); // update selection on click
                     if (isMobile && item.hasDropdown) toggleMobileDropdown();
                   }}
                 >
                   <Image src={item.icon} alt={item.label} width={24} height={24} />
-                  <span className="text-sm font-semibold hover:text-orange-500">
+                  <span className="text-sm font-semibold hover:text-primary">
                     {item.label}
                   </span>
                   {item.hasDropdown && (
@@ -453,14 +453,14 @@ const Navbar: React.FC = () => {
                 {item.hasDropdown && isDropdownOpen && item.dropdownItems && (
   <div
     className={clsx(
-      "bg-white border rounded-md shadow-md md:absolute md:top-full md:left-0 md:w-40",
+      "bg-card border border-border rounded-md shadow-soft md:absolute md:top-full md:left-0 md:w-40",
       isMobile ? "mt-2 w-full" : "py-2"
     )}
   >
     {item.dropdownItems.map((dropItem) => (
       <div
         key={dropItem}
-        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+        className="px-4 py-2 text-sm text-foreground hover:bg-secondary cursor-pointer"
         onClick={() => setSelected(dropItem)}
       >
         {dropItem}

@@ -380,8 +380,8 @@ const ProductPage = () => {
     } as React.CSSProperties
   };
   return (
-    <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100 ">
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-orange-400 via-red-500 to-red-600 text-white shadow-md transition-all duration-300">
+    <div className="sticky top-0 z-50 backdrop-blur-md bg-background/90 shadow-soft border-b border-border ">
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/90  border-b border-border transition-all duration-300">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
 
@@ -392,7 +392,7 @@ const ProductPage = () => {
                 alt="Gro Delivery Logo"
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
               />
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight group-hover:text-white transition-colors duration-300">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-dark tracking-tight transition-colors duration-300">
                 Gro-Delivery
               </h1>
             </div>
@@ -403,11 +403,11 @@ const ProductPage = () => {
               {/* Wishlist */}
               <Link
                 href="/wishlist"
-                className="relative bg-white/10 backdrop-blur-md p-2 rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-110"
+                className="relative bg-dark/10 backdrop-blur-md p-2 rounded-xl hover:bg-dark/20 transition-all duration-300 hover:scale-110"
               >
-                <Heart className="w-6 h-6 text-white" />
+                <Heart className="w-6 h-6 text-dark" />
                 {wishListsData && wishListsData.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
+                  <span className="absolute -top-1 -right-1 bg-primary text-dark text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
                     {wishListsData.length}
                   </span>
                 )}
@@ -545,7 +545,7 @@ const ProductPage = () => {
 
               {/* Product badges */}
               {product?.discount > 0 && (
-                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md">
+                <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-md">
                   {product.discount}% OFF
                 </div>
               )}
@@ -568,7 +568,7 @@ const ProductPage = () => {
                     src={img}
                     alt=""
                     className={`w-16 h-16 object-cover rounded transition-all ${selectedImage === i
-                      ? 'border-2 border-orange-500'
+                      ? 'border-2 border-border ring-2 ring-primary'
                       : 'border-2 border-gray-200 filter brightness-90'
                       }`}
                   />
@@ -619,7 +619,7 @@ const ProductPage = () => {
 
             {/* Stock Status */}
             <div className="flex items-center space-x-4">
-              <div className={`flex items-center ${product?.inStock ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`flex items-center ${product?.inStock ? 'text-green-600' : 'text-destructive'}`}>
                 <CheckCircle className="w-4 h-4 mr-1" />
                 <span className="font-semibold">
                   {product?.inStock ? `In Stock (${product?.stockCount} available)` : 'Out of Stock'}
@@ -674,7 +674,7 @@ const ProductPage = () => {
                 className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center text-lg transition-all duration-300 ${justAdded
                   ? "bg-green-500 text-white"
                   : product?.inStock
-                    ? "bg-gradient-to-r from-orange-400 to-red-500 text-white hover:from-orange-500 hover:to-red-600 transform hover:scale-105"
+                    ? "bg-primary text-white hover:bg-primary transform hover:scale-105"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
               >
@@ -701,8 +701,8 @@ const ProductPage = () => {
                 <button
                   onClick={() => toggleWishlist(product)}
                   className={`flex-1 py-3 rounded-xl border-2 font-semibold flex items-center justify-center transition-all ${isWishlisted
-                    ? "bg-red-50 border-red-300 text-red-600"
-                    : "bg-white border-gray-300 text-gray-700 hover:border-red-300"
+                    ? "bg-secondary border-border text-primary"
+                    : "bg-white border-gray-300 text-gray-700 hover:border-border"
                     }`}
                 >
                   <Heart className={`w-5 h-5 mr-2 ${isWishlisted ? "fill-current" : ""}`} />
@@ -756,7 +756,7 @@ const ProductPage = () => {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab
-                  ? 'border-orange-500 text-orange-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
@@ -828,7 +828,7 @@ const ProductPage = () => {
             <div className="space-y-8">
 
               {/* Write Review Box */}
-              <div className="border rounded-xl p-5 shadow-sm bg-white">
+              <div className="border rounded-xl p-5 shadow-soft bg-white">
                 <h4 className="font-semibold mb-4 text-lg">Write a Review</h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -841,7 +841,7 @@ const ProductPage = () => {
                       onChange={(e) =>
                         setReviewForm({ ...reviewForm, rating: Number(e.target.value) })
                       }
-                      className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-orange-400"
+                      className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-primary"
                     >
                       {[5, 4, 3, 2, 1].map((r) => (
                         <option key={r} value={r}>
@@ -859,7 +859,7 @@ const ProductPage = () => {
                       onChange={(e) =>
                         setReviewForm({ ...reviewForm, comment: e.target.value })
                       }
-                      className="border rounded-lg px-3 py-2 w-full min-h-[90px] focus:ring-2 focus:ring-orange-400"
+                      className="border rounded-lg px-3 py-2 w-full min-h-[90px] focus:ring-2 focus:ring-primary"
                       placeholder="Share your experience..."
                     />
 
@@ -870,7 +870,7 @@ const ProductPage = () => {
                       </label>
 
                       <div
-                        className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-orange-400 transition"
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-primary transition"
                         onClick={() => document.getElementById("reviewImageInput")?.click()}
                       >
                         <p className="text-gray-500 text-sm text-center">Click or Drag & Drop Images</p>
@@ -919,7 +919,7 @@ const ProductPage = () => {
                 <button
                   onClick={handleSubmitReview}
                   disabled={submittingReview}
-                  className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg font-medium disabled:opacity-60"
+                  className="mt-4 bg-primary hover:bg-primary text-white px-5 py-2 rounded-lg font-medium disabled:opacity-60"
                 >
                   {submittingReview ? "Submitting..." : "Submit Review"}
                 </button>
@@ -1034,11 +1034,11 @@ const ProductPage = () => {
 
                     {/* Buttons */}
                     <div className="flex items-center gap-6 text-sm text-gray-600">
-                      <button onClick={() => handleReviewAction(review._id, 'helpful')} className="hover:text-green-600 flex items-center gap-1">
+                      <button onClick={() => handleReviewAction(review._id, 'helpful')} className="hover:text-success flex items-center gap-1">
                         <ThumbsUp className="w-4 h-4" />
                         Helpful ({review.helpful || 0})
                       </button>
-                      <button onClick={() => handleReviewAction(review._id, 'notHelpful')} className="hover:text-red-600 flex items-center gap-1">
+                      <button onClick={() => handleReviewAction(review._id, 'notHelpful')} className="hover:text-destructive flex items-center gap-1">
                         <ThumbsDown className="w-4 h-4" />
                         Not Helpful ({(review as any)?.notHelpful || 0})
                       </button>
@@ -1071,7 +1071,7 @@ const ProductPage = () => {
               {filteredReviews.length > 3 && (
                 <button
                   onClick={() => setShowAllReviews(!showAllReviews)}
-                  className="w-full py-2 border border-orange-300 text-orange-600 rounded-lg mt-4 hover:bg-orange-50 font-medium"
+                  className="w-full py-2 border border-border text-primary rounded-lg mt-4 hover:bg-gray-50 font-medium"
                 >
                   {showAllReviews
                     ? "Show Less Reviews"
@@ -1113,7 +1113,7 @@ const ProductPage = () => {
             }
             ].map((faq, index) => (
               <details key={index} className="border rounded-lg p-4">
-                <summary className="font-semibold cursor-pointer hover:text-orange-600">
+                <summary className="font-semibold cursor-pointer hover:text-primary">
                   {faq.question}
                 </summary>
                 <p className="mt-2 text-gray-700">{faq.answer}</p>
@@ -1127,15 +1127,15 @@ const ProductPage = () => {
           <div className="flex space-x-3">
             <button
               onClick={() => setIsWishlisted(!isWishlisted)}
-              className={`p-3 rounded-xl border-2 ${isWishlisted ? "bg-red-50 border-red-300" : "border-gray-300"
+              className={`p-3 rounded-xl border-2 ${isWishlisted ? "bg-secondary border-border" : "border-gray-300"
                 }`}
             >
-              <Heart className={`w-6 h-6 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+              <Heart className={`w-6 h-6 ${isWishlisted ? "text-primary fill-current" : "text-gray-600"}`} />
             </button>
             <button
               onClick={handleAddToCart}
               disabled={adding || !product.inStock}
-              className="flex-1 bg-gradient-to-r from-orange-400 to-red-500 text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center disabled:bg-gray-400"
+              className="flex-1 bg-primary text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center disabled:bg-gray-400"
             >
               {adding ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -1181,10 +1181,11 @@ const ProductPage = () => {
       {/* Floating Action Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 bg-orange-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors z-40"
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 bg-primary text-white p-3 rounded-full shadow-soft hover:bg-primary transition-colors z-40"
       >
         <ChevronUp className="w-6 h-6" />
       </button>
+
     </div>
 
   );

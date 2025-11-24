@@ -48,7 +48,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
   if (flashSaleProducts.length === 0) return null
 
   return (
-    <section className="py-12 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 relative overflow-hidden">
+    <section className="py-12 bg-secondary relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -60,27 +60,27 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
         {/* Header with Countdown */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Zap className="h-8 w-8 text-red-500 animate-pulse" />
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            <Zap className="h-8 w-8 text-primary animate-pulse" />
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               Flash Sale
             </h2>
-            <Zap className="h-8 w-8 text-orange-500 animate-pulse" />
+            <Zap className="h-8 w-8 text-primary animate-pulse" />
           </div>
           
           {/* Countdown Timer */}
           <div className="flex justify-center items-center gap-4 mb-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-md">
-              <span className="text-3xl font-bold text-red-600">{String(timeLeft.hours).padStart(2, '0')}</span>
+            <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-soft">
+              <span className="text-3xl font-bold text-primary">{String(timeLeft.hours).padStart(2, '0')}</span>
               <p className="text-xs text-gray-600 dark:text-gray-400">Hours</p>
             </div>
-            <span className="text-2xl font-bold text-red-600">:</span>
-            <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-md">
-              <span className="text-3xl font-bold text-red-600">{String(timeLeft.minutes).padStart(2, '0')}</span>
+            <span className="text-2xl font-bold text-primary">:</span>
+            <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-soft">
+              <span className="text-3xl font-bold text-primary">{String(timeLeft.minutes).padStart(2, '0')}</span>
               <p className="text-xs text-gray-600 dark:text-gray-400">Minutes</p>
             </div>
-            <span className="text-2xl font-bold text-red-600">:</span>
-            <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-md">
-              <span className="text-3xl font-bold text-red-600">{String(timeLeft.seconds).padStart(2, '0')}</span>
+            <span className="text-2xl font-bold text-primary">:</span>
+            <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 shadow-soft">
+              <span className="text-3xl font-bold text-primary">{String(timeLeft.seconds).padStart(2, '0')}</span>
               <p className="text-xs text-gray-600 dark:text-gray-400">Seconds</p>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
           {flashSaleProducts.map((product, index) => (
             <Card 
               key={product._id ?? String(product.id)} 
-              className="group hover:shadow-2xl transition-all duration-300 overflow-hidden border-red-200 dark:border-red-800 hover:scale-105"
+              className="group hover:shadow-soft-lg transition-all duration-300 overflow-hidden border-border hover:scale-105"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <CardContent className="p-0">
@@ -110,14 +110,14 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
                   
                   {/* Flash Sale Badge */}
                   <div className="absolute top-3 left-3 z-20">
-                    <Badge className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 animate-pulse">
+                    <Badge className="bg-primary hover:bg-primary text-white px-3 py-1 animate-pulse">
                       {product.discount}% OFF
                     </Badge>
                   </div>
                   
                   {/* Urgency Indicator */}
                   <div className="absolute top-3 right-3 z-20">
-                    <div className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                    <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       Limited
                     </div>
@@ -127,7 +127,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
                   <div className="absolute bottom-3 right-3 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <Button
                       size="icon"
-                      className="bg-white/90 hover:bg-white text-gray-700 shadow-md w-8 h-8"
+                      className="bg-white/90 hover:bg-white text-gray-700 shadow-soft w-8 h-8"
                       onClick={() => onToggleWishlist(product)}
                     >
                       <Heart className="w-4 h-4" />
@@ -137,7 +137,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
 
                 {/* Product Details */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {product.name}
                   </h3>
                   
@@ -153,7 +153,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
 
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold text-red-600">₹{product.price}</span>
+                      <span className="text-xl font-bold text-primary">₹{product.price}</span>
                       {product.originalPrice && (
                         <span className="text-sm text-gray-500 line-through">
                           ₹{product.originalPrice}
@@ -165,7 +165,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
                     <div className="flex-1 mx-3">
                       <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
                         <div 
-                          className="bg-gradient-to-r from-red-500 to-orange-500 h-full animate-pulse"
+                          className="bg-primary h-full animate-pulse"
                           style={{ width: `${Math.random() * 30 + 20}%` }}
                         ></div>
                       </div>
@@ -174,7 +174,7 @@ export default function FlashSales({ products, onAddToCart, onToggleWishlist }: 
                   </div>
 
                   <Button 
-                    className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
+                    className="w-full bg-primary hover:bg-primary text-white font-semibold"
                     onClick={() => onAddToCart(product)}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />

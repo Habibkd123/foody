@@ -27,6 +27,34 @@ export interface CategorySectionType {
 
 
 
+const CategorySectionSkeleton = () => {
+  return (
+    <div className="mb-12 animate-pulse">
+      <div className="flex justify-between items-center mb-6">
+        <div className="h-7 w-40 bg-gray-200 rounded shadow-sm" />
+        <div className="h-5 w-24 bg-gray-200 rounded shadow-sm" />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+        {Array.from({ length: 8 }).map((_, idx) => (
+          <div
+            key={idx}
+            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+          >
+            <div className="relative overflow-hidden rounded-lg mb-3">
+              <div className="w-full h-20 sm:h-24 bg-gray-200 rounded-lg shadow-sm" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4 shadow-sm" />
+              <div className="h-4 bg-gray-100 rounded w-1/2 shadow-sm" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const CategorySection = ({ section }: { section: any }) => {
   return (
     <div className="mb-12">
@@ -84,18 +112,29 @@ const HomePage: React.FC = () => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [categories, setCategories] = useState<CategorySectionType[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
+  const [categoriesError, setCategoriesError] = useState<boolean>(false);
 
   const fetchCategories = async () => {
+    setCategoriesLoading(true);
+    setCategoriesError(false);
     try {
       const response = await fetch('/api/categories/productcategory');
       const data = await response.json();
       console.log('Categories response:', data.data);
 
-      if (data.success) {
-        setCategories(data.data);
+      if (data?.success && Array.isArray(data?.data)) {
+        setCategories(data.data as any);
+      } else {
+        setCategories([]);
+        setCategoriesError(true);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
+      setCategoriesError(true);
+    } finally {
+      setCategoriesLoading(false);
     }
   };    // Scroll to top functionality
 
@@ -121,7 +160,7 @@ const HomePage: React.FC = () => {
     logout();
     window.location.reload();
   };
-console.log("Categories:", categories?.length);
+// console.log("Categories:", categories?.length);
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
@@ -129,7 +168,7 @@ console.log("Categories:", categories?.length);
         {/* Announcement Bar */}
         <AnnouncementBar />
 
-        <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
+        <div className="sticky top-0 z-50 backdrop-blur-md bg-background/90 shadow-soft border-b border-border">
           <header className="transition-all duration-300">
             <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
               <div className="flex items-center justify-between">
@@ -140,7 +179,7 @@ console.log("Categories:", categories?.length);
                     className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
                     alt="logo"
                   />
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent hover:from-orange-500 hover:via-red-600 hover:to-pink-600 transition-all duration-300">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary transition-all duration-300">
                     Gro-Delivery
                   </h1>
                 </div>
@@ -148,13 +187,11 @@ console.log("Categories:", categories?.length);
                 {/* Enhanced Search Bar with suggestions */}
                 <div className="hidden md:flex items-center space-x-4 flex-1 max-w-6xl mx-0 relative" style={{ marginLeft: "140px" }}>
                   <div className="relative flex-1 z-50">
-                    <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
-                      }`} />
+                    <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-primary' : 'text-muted-foreground'}` } />
                     <input
                       type="text"
                       placeholder="Search products..."
-                      className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
-                        }`}
+                      className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:outline-none ${searchFocused ? 'border-primary shadow-soft' : 'border-border'}`}
                       value={filters.searchTerm}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         updateFilter('searchTerm', e.target.value)
@@ -165,11 +202,11 @@ console.log("Categories:", categories?.length);
 
                     {/* Search Suggestions */}
                     {searchFocused && searchSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-lg mt-1 border border-orange-200 z-50 max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 right-0 bg-card shadow-soft-lg rounded-lg mt-1 border border-border z-50 max-h-60 overflow-y-auto">
                         {searchSuggestions.map((suggestion, index) => (
                           <div
                             key={index}
-                            className="px-4 py-2 hover:bg-orange-50 cursor-pointer transition-colors duration-200"
+                            className="px-4 py-2 hover:bg-secondary cursor-pointer transition-colors duration-200"
                             onClick={() => {
                               updateFilter('searchTerm', suggestion);
                               setSearchFocused(false);
@@ -195,11 +232,11 @@ console.log("Categories:", categories?.length);
                   {/* Dynamic Notification Center */}
                   {user?._id && <NotificationCenter location="home" />}
                   {/* Enhanced Wishlist */}
-                  <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
+                  <button className="relative p-2 hover:bg-secondary rounded-lg transition-all duration-300 hover:scale-110 group">
                     <Link href="/wishlist">
-                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-primary transition-colors duration-300" />
                       {wishListsData&&wishListsData.length > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
+                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
                           {wishListsData.length}
                         </span>
                       )}
@@ -216,7 +253,7 @@ console.log("Categories:", categories?.length);
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   >
                     <img
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-orange-300 group-hover:border-orange-500 transition-all duration-300 group-hover:scale-110"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-border group-hover:border-primary transition-all duration-300 group-hover:scale-110"
                       src="https://picsum.photos/200"
                       alt="profile"
                     />
@@ -224,18 +261,18 @@ console.log("Categories:", categories?.length);
 
                   {/* Profile Dropdown */}
                   {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-lg border border-orange-200 z-50 animate-in slide-in-from-top-5 duration-300">
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-card shadow-soft-lg rounded-lg border border-border z-50 animate-in slide-in-from-top-5 duration-300">
                       <div className="py-2">
-                        <button className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                        <button className="w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
                           <User className="w-4 h-4" />
                           <span>Profile</span>
                         </button>
-                        <button onClick={() => router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={() => router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
                         </button>
                         <hr className="my-2" />
-                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-secondary text-foreground transition-colors duration-200 flex items-center space-x-2">
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
                         </button>
@@ -287,13 +324,28 @@ console.log("Categories:", categories?.length);
           </div>
         </section>
         <div className="max-w-8xl mx-auto px-6 py-6">
-          {Array.isArray(categories) ?
+          {categoriesLoading ? (
+            <>
+              <CategorySectionSkeleton />
+              <CategorySectionSkeleton />
+              <CategorySectionSkeleton />
+            </>
+          ) : categories && categories.length > 0 ? (
             categories.map((section, idx) => (
               // @ts-ignore
               <CategorySection section={section} key={idx} />
             ))
-          : (
-            <div className="text-center text-gray-400 py-12">Loading categories...</div>
+          ) : (
+            <>
+              {categoriesError ? (
+                <>
+                  <CategorySectionSkeleton />
+                  <div className="text-center text-gray-400 py-6">Unable to load categories right now.</div>
+                </>
+              ) : (
+                <div className="text-center text-gray-400 py-12">No categories available.</div>
+              )}
+            </>
           )}
         </div>
 

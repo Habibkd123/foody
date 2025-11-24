@@ -26,7 +26,7 @@ const AnnouncementBar = () => {
   if (!mounted) return null;
 
   return (
-    <div className="bg-gradient-to-r from-orange-500 to-red-700 text-white text-sm font-semibold text-center py-2">
+    <div className="bg-primary text-primary-foreground text-sm font-semibold text-center py-2">
       <span className="transition-all duration-500 ease-in-out">{offers[index]}</span>
     </div>
   );

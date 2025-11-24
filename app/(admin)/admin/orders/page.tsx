@@ -514,32 +514,32 @@ const OrdersAdminPage = () => {
             value: pagination.totalOrders.toString(),
             change: '+12.5%',
             icon: Package,
-            color: 'bg-orange-500'
+            color: 'bg-primary'
         },
         {
             title: 'Pending',
             value: transformedOrders.filter(o => o.status === 'pending').length.toString(),
             change: '+3.2%',
             icon: Clock,
-            color: 'bg-orange-500'
+            color: 'bg-primary'
         },
         {
             title: 'Processing',
             value: transformedOrders.filter(o => o.status === 'processing').length.toString(),
             change: '+8.1%',
             icon: TrendingUp,
-            color: 'bg-orange-500'
+            color: 'bg-primary'
         },
         {
             title: 'Delivered',
             value: transformedOrders.filter(o => o.status === 'delivered').length.toString(),
             change: '+15.3%',
             icon: CheckCircle,
-            color: 'bg-orange-500'
+            color: 'bg-primary'
         }
     ];
     return (
-        <div className="min-h-screen bg-orange-50 p-6">
+        <div className="min-h-screen bg-secondary p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -548,7 +548,7 @@ const OrdersAdminPage = () => {
                             <h1 className="text-3xl font-bold text-gray-900">Orders Management</h1>
                             <p className="text-gray-500 mt-1">Manage and track all customer orders</p>
                         </div>
-                        <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition">
+                        <button className="bg-primary hover:bg-primary text-white px-6 py-3 rounded-lg flex items-center gap-2 transition">
                             <Plus size={20} />
                             Create Order
                         </button>
@@ -557,12 +557,12 @@ const OrdersAdminPage = () => {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                         {stats.map((stat, index) => (
-                            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
+                            <div key={index} className="bg-white rounded-xl p-6 shadow-soft border border-border">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
                                         <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
-                                        <p className="text-sm text-orange-600 mt-2">{stat.change} from last month</p>
+                                        <p className="text-sm text-primary mt-2">{stat.change} from last month</p>
                                     </div>
                                     <div className={`${stat.color} p-3 rounded-lg`}>
                                         <stat.icon className="text-white" size={24} />
@@ -574,7 +574,7 @@ const OrdersAdminPage = () => {
                 </div>
 
                 {/* Filters and Search */}
-                <div className="bg-white rounded-xl shadow-sm border border-orange-100 mb-6">
+                <div className="bg-white rounded-xl shadow-soft border border-border mb-6">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row gap-4 mb-6">
                             <div className="flex-1 relative">
@@ -584,32 +584,32 @@ const OrdersAdminPage = () => {
                                     placeholder="Search by order number or customer name..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                             </div>
-                            <button className="px-6 py-3 border border-orange-200 rounded-lg flex items-center gap-2 hover:bg-orange-50 transition">
+                            <button className="px-6 py-3 border border-border rounded-lg flex items-center gap-2 hover:bg-secondary transition">
                                 <Filter size={20} />
                                 Filters
                             </button>
-                            <button className="px-6 py-3 border border-orange-200 rounded-lg flex items-center gap-2 hover:bg-orange-50 transition">
+                            <button className="px-6 py-3 border border-border rounded-lg flex items-center gap-2 hover:bg-secondary transition">
                                 <Download size={20} />
                                 Export
                             </button>
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex gap-2 overflow-x-auto border-b border-orange-200">
+                        <div className="flex gap-2 overflow-x-auto border-b border-border">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`px-4 py-3 font-medium whitespace-nowrap border-b-2 transition ${activeTab === tab.id
-                                            ? 'border-orange-600 text-orange-600'
+                                            ? 'border-primary text-primary'
                                             : 'border-transparent text-gray-600 hover:text-gray-900'
                                         }`}
                                 >
                                     {tab.label}
-                                    <span className="ml-2 px-2 py-1 text-xs rounded-full bg-orange-50">
+                                    <span className="ml-2 px-2 py-1 text-xs rounded-full bg-secondary">
                                         {tab.count}
                                     </span>
                                 </button>
@@ -621,23 +621,23 @@ const OrdersAdminPage = () => {
                     {loading && (
                         <div className="flex items-center justify-center py-12">
                             <div className="text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                                 <p className="text-gray-600">Loading orders...</p>
                             </div>
                         </div>
                     )}
 
                     {error && !loading && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <div className="bg-secondary border border-border rounded-lg p-4 mb-6">
                             <div className="flex items-center">
-                                <div className="text-red-600 mr-3">
+                                <div className="text-primary mr-3">
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-medium text-red-800">Error loading orders</h3>
-                                    <p className="text-sm text-red-700 mt-1">{error}</p>
+                                    <h3 className="text-sm font-medium text-foreground">Error loading orders</h3>
+                                    <p className="text-sm text-foreground mt-1">{error}</p>
                                 </div>
                             </div>
                         </div>
@@ -647,7 +647,7 @@ const OrdersAdminPage = () => {
                     {!loading && !error && (
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-orange-50 border-y border-orange-200">
+                                <thead className="bg-secondary border-y border-border">
                                     <tr>
                                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                             <input type="checkbox" className="rounded border-gray-300" />
@@ -664,16 +664,16 @@ const OrdersAdminPage = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredOrders.map((order) => (
-                                        <tr key={order.id} className="hover:bg-orange-50 transition">
+                                        <tr key={order.id} className="hover:bg-secondary transition">
                                             <td className="px-6 py-4">
                                                 <input type="checkbox" className="rounded border-gray-300" />
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="text-sm font-medium text-orange-600">{order.orderNumber}</div>
+                                                <div className="text-sm font-medium text-primary">{order.orderNumber}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
+                                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
                                                         {order.customer.avatar}
                                                     </div>
                                                     <div>

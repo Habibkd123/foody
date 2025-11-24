@@ -291,15 +291,16 @@ useEffect(() => {
               {/* Enhanced Search Bar */}
               <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Search in your wishlist..."
-                    className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+                    className="pl-10 pr-4 w-full py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
                     value={filters.searchTerm}
                     onChange={(e) => updateFilter('searchTerm', e.target.value)}
                   />
                 </div>
+
               </div>
 
               {/* Enhanced Action Buttons */}
@@ -309,7 +310,7 @@ useEffect(() => {
                   variant="ghost"
                   size="icon"
                   onClick={shareWishlist}
-                  className="text-gray-600 hover:text-orange-600"
+                  className="text-gray-600 hover:text-primary"
                 >
                   <Share className="h-5 w-5" />
                 </Button>
@@ -320,48 +321,20 @@ useEffect(() => {
                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
-                    className="rounded-r-none"
+                    className="flex-1 rounded-r-none"
                   >
-                    <Grid className="h-4 w-4" />
+                    <Grid className="h-4 w-4 mr-2" />
+                    Grid
                   </Button>
                   <Button
                     variant={viewMode === 'list' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('list')}
-                    className="rounded-l-none"
+                    className="flex-1 rounded-l-none"
                   >
-                    <List className="h-4 w-4" />
+                    <List className="h-4 w-4 mr-2" />
+                    List
                   </Button>
-                </div>
-
-                {/* Cart */}
-                <AddCardList
-                  cartItems={cartItems}
-                  removeFromCart={removeFromCart}
-                  updateQuantity={updateQuantity1}
-                  getTotalPrice={getTotalPrice}
-                  setCartItems={setCartItems}
-                  cartOpen={cartOpen}
-                  setCartOpen={setCartOpen}
-                />
-
-                {/* Mobile Menu */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
-
-                {/* Profile */}
-                <div className="hidden sm:flex items-center cursor-pointer" onClick={() => router.push('/profile')}>
-                  <img
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
-                    src="https://picsum.photos/200"
-                    alt="profile"
-                  />
                 </div>
               </div>
             </div>
@@ -369,15 +342,16 @@ useEffect(() => {
             {/* Mobile Search */}
             <div className="md:hidden mt-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search in your wishlist..."
-                  className="pl-10 pr-4 w-full py-2 border border-orange-400 rounded-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
+                  className="pl-10 pr-4 w-full py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
                   value={filters.searchTerm}
                   onChange={(e) => updateFilter('searchTerm', e.target.value)}
                 />
               </div>
+
               <div className="mt-2">
                 <LocationSelector />
               </div>
@@ -391,14 +365,14 @@ useEffect(() => {
             <div className="flex items-center space-x-4">
               {/* Bulk Actions */}
               {selectedItems.length > 0 && (
-                <div className="flex items-center space-x-2 bg-orange-50 px-3 py-2 rounded-lg">
+                <div className="flex items-center space-x-2 bg-secondary px-3 py-2 rounded-lg">
                   <span className="text-sm font-medium">{selectedItems.length} selected</span>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={addAllToCart}
                     disabled={isLoading}
-                    className="text-orange-600 border-orange-600"
+                    className="text-primary border-border"
                   >
                     {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
                     Add to Cart
@@ -407,7 +381,7 @@ useEffect(() => {
                     size="sm"
                     variant="outline"
                     onClick={handleBulkRemove}
-                    className="text-red-600 border-red-600"
+                    className="text-primary border-border"
                   >
                     <Trash2 className="h-4 w-4" />
                     Remove
@@ -434,7 +408,7 @@ useEffect(() => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="text-sm border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="text-sm border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="dateAdded">Date Added</option>
                   <option value="name">Name</option>
@@ -538,7 +512,7 @@ useEffect(() => {
             </p>
             <Button
               onClick={() => router.push('/productlist')}
-              className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600"
+              className="bg-primary hover:bg-primary"
             >
               Browse Products
             </Button>
@@ -558,7 +532,7 @@ useEffect(() => {
                 // Grid View
                 <div
                   key={product._id}
-                  className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group relative ${isSelected ? 'ring-2 ring-orange-400' : ''
+                  className={`bg-white border rounded-lg shadow-soft hover:shadow-soft transition-all duration-200 overflow-hidden group relative ${isSelected ? 'ring-2 ring-primary' : ''
                     }`}
                 >
                   {/* Selection Checkbox */}
@@ -573,8 +547,9 @@ useEffect(() => {
                           setSelectedItems(prev => [...prev, product.id]);
                         }
                       }}
-                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
+
                   </div>
 
                   {/* Product Image */}
@@ -587,7 +562,7 @@ useEffect(() => {
                       />
                     </div>
                     {product?.discount && product?.discount > 0 ? (<div className="absolute top-0 right-0">
-                      <div className="bg-[#6e5503] text-white text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-bl-lg custom-corner">
+                      <div className="bg-secondary text-foreground text-xs font-medium px-2 py-1 rounded-bl-lg custom-corner">
                         {product.discount}% OFF
                       </div>
                     </div>) : null}
@@ -598,13 +573,13 @@ useEffect(() => {
                     onClick={() => handleRemove(product._id)}
                     className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
                   >
-                    <Heart className="w-4 h-4 text-red-500 fill-current" />
+                    <Heart className="w-4 h-4 text-primary fill-current" />
                   </button>
 
                   {/* Product Info */}
                   <div className="p-3">
                     <Link href={`/products/${product._id}`}>
-                      <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-orange-600 text-sm">
+                      <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-primary text-sm">
                         {product.name}
                       </h3>
                     </Link>
@@ -643,7 +618,7 @@ useEffect(() => {
 
                     {/* Stock Status */}
                     {product.inStock === false && (
-                      <div className="flex items-center text-red-600 text-sm mb-2">
+                      <div className="flex items-center text-primary text-sm mb-2">
                         <AlertCircle className="h-4 w-4 mr-1" />
                         Out of Stock
                       </div>
@@ -652,7 +627,7 @@ useEffect(() => {
                     {/* Cart Controls */}
                     {inCart ? (
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-md">
+                        <div className="flex items-center gap-2 bg-primary text-white px-3 py-1 rounded-md">
                           <button
                             onClick={() => updateQuantity1(product._id, (cartItem?.quantity || 1) - 1)}
                             className="p-1 rounded bg-white/20 hover:bg-white/30"
@@ -675,7 +650,7 @@ useEffect(() => {
                       <button
                         onClick={() => addToCart1(product as Product)}
                         disabled={product.inStock === false}
-                        className="w-full bg-gradient-to-r from-orange-400 to-red-500 text-white py-2 px-4 rounded-lg font-medium hover:from-orange-500 hover:to-red-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-primary text-white py-2 px-4 rounded-lg font-medium hover:bg-primary transition-all duration-200 transform hover:scale-105 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
                         {product.inStock === false ? 'Out of Stock' : 'Add to Cart'}
@@ -687,7 +662,7 @@ useEffect(() => {
                 // List View
                 <div
                   key={product._id}
-                  className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 ${isSelected ? 'ring-2 ring-orange-400' : ''
+                  className={`bg-white border rounded-lg shadow-soft hover:shadow-soft transition-all duration-200 p-4 ${isSelected ? 'ring-2 ring-primary' : ''
                     }`}
                 >
                   <div className="flex items-center space-x-4">
@@ -702,7 +677,7 @@ useEffect(() => {
                           setSelectedItems(prev => [...prev, product.id]);
                         }
                       }}
-                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
 
                     {/* Product Image */}
@@ -717,7 +692,7 @@ useEffect(() => {
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
                       <Link href={`/products/${product._id}`}>
-                        <h3 className="font-medium text-gray-900 hover:text-orange-600 mb-1">
+                        <h3 className="font-medium text-gray-900 hover:text-primary mb-1">
                           {product.name}
                         </h3>
                       </Link>
@@ -751,7 +726,7 @@ useEffect(() => {
                           </span>
                         )}
                         {product.discount && (
-                          <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
+                          <span className="bg-secondary text-foreground text-xs font-medium px-2 py-1 rounded">
                             {product.discount}% OFF
                           </span>
                         )}
@@ -759,7 +734,7 @@ useEffect(() => {
 
                       {/* Stock Status */}
                       {product.inStock === false && (
-                        <div className="flex items-center text-red-600 text-sm">
+                        <div className="flex items-center text-primary text-sm">
                           <AlertCircle className="h-4 w-4 mr-1" />
                           Out of Stock
                         </div>
@@ -773,14 +748,14 @@ useEffect(() => {
                         variant="ghost"
                         size="icon"
                         onClick={() => router.push(`/products/${product._id}`)}
-                        className="text-gray-600 hover:text-orange-600"
+                        className="text-gray-600 hover:text-primary"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
 
                       {/* Cart Controls */}
                       {inCart ? (
-                        <div className="flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-md">
+                        <div className="flex items-center gap-2 bg-primary text-white px-3 py-1 rounded-md">
                           <button
                             onClick={() => updateQuantity1(product._id, (cartItem?.quantity || 1) - 1)}
                             className="p-1 rounded bg-white/20 hover:bg-white/30"
@@ -802,7 +777,7 @@ useEffect(() => {
                         <Button
                           onClick={() => addToCart1(product as Product)}
                           disabled={product.inStock === false}
-                          className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 disabled:opacity-50"
+                          className="bg-primary hover:bg-primary disabled:opacity-50"
                         >
                           <ShoppingCart className="w-4 h-4 mr-2" />
                           {product.inStock === false ? 'Out of Stock' : 'Add to Cart'}
@@ -814,7 +789,7 @@ useEffect(() => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemove(product._id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-primary hover:text-primary"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

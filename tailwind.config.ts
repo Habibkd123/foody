@@ -20,6 +20,23 @@ const config: Config = {
     },
     extend: {
       scrollBehavior: ['responsive'],
+      fontFamily: {
+        sans: [
+          'Poppins',
+          'Inter',
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'Roboto',
+          'Noto Sans',
+          'Ubuntu',
+          'Cantarell',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -59,6 +76,10 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        soft: '0 10px 25px rgba(0, 0, 0, 0.08)',
+        'soft-lg': '0 20px 40px rgba(0, 0, 0, 0.10)'
       },
       keyframes: {
         "accordion-down": {

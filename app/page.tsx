@@ -290,33 +290,33 @@ function GroceryApp() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">GD</span>
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">GD</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Gro-Delivery</span>
+              <span className="text-xl font-bold text-foreground">Gro-Delivery</span>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="home" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+              <a href="home" className="text-foreground hover:text-primary transition-colors">
                 Home
               </a>
-              <a href="#products" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+              <a href="#products" className="text-foreground hover:text-primary transition-colors">
                 Products
               </a>
-              <a href="#offers" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+              <a href="#offers" className="text-foreground hover:text-primary transition-colors">
                 Offers
               </a>
-              <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+              <a href="#contact" className="text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
               {user?._id ? (
-                <button onClick={() => router.push('/profile')} className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
-                <span className="text-sm text-gray-700 dark:text-gray-300">Hi, {user?.firstName || user?.name || 'User'}</span>
+                <button onClick={() => router.push('/profile')} className="text-foreground hover:text-primary transition-colors">
+                <span className="text-sm text-foreground">Hi, {user?.firstName || user?.name || 'User'}</span>
                 </button>
               ) : (
                 <Button
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full"
+                  className="bg-primary hover:opacity-90 text-primary-foreground px-4 py-2 rounded-full"
                   onClick={() => router.push('/login')}
                 >
                   Login
@@ -367,22 +367,22 @@ function GroceryApp() {
           {mobileMenuOpen && (
             <nav className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-col space-y-3 pt-4">
-                <a href="home" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+                <a href="home" className="text-foreground hover:text-primary transition-colors">
                   Home
                 </a>
-                <a href="#products" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+                <a href="#products" className="text-foreground hover:text-primary transition-colors">
                   Products
                 </a>
-                <a href="#offers" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+                <a href="#offers" className="text-foreground hover:text-primary transition-colors">
                   Offers
                 </a>
-                <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors">
+                <a href="#contact" className="text-foreground hover:text-primary transition-colors">
                   Contact
                 </a>
                 {user?._id ? (
-                  <span className="text-sm text-gray-700 dark:text-gray-300 px-2">Hi, {user?.firstName || user?.name || 'User'}</span>
+                  <span className="text-sm text-foreground px-2">Hi, {user?.firstName || user?.name || 'User'}</span>
                 ) : (
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full" onClick={() => router.push('/login')}>
+                  <Button className="bg-primary hover:opacity-90 text-primary-foreground px-4 py-2 rounded-full" onClick={() => router.push('/login')}>
                     Login
                   </Button>
                 )}
@@ -554,14 +554,14 @@ function GroceryApp() {
                 >
                   <div className={`relative rounded-2xl p-6 text-center transition-all duration-300 ${
                     isSelected
-                      ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-xl shadow-orange-500/30'
-                      : 'bg-white dark:bg-gray-700 shadow-lg hover:shadow-xl'
+                      ? 'bg-primary text-primary-foreground shadow-soft-lg'
+                      : 'bg-card shadow-soft hover:shadow-soft-lg'
                   }`}>
                     {/* Icon */}
                     <div className={`w-16 h-16 mx-auto mb-3 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 ${
                       isSelected
                         ? 'bg-white/20'
-                        : 'bg-orange-100 dark:bg-orange-900/30 group-hover:scale-110'
+                        : 'bg-secondary group-hover:scale-110'
                     }`}>
                       {category?.isAllCategory ? (
                         // Special icon for "All Items"
@@ -615,7 +615,7 @@ function GroceryApp() {
                     {isSelected && (
                       <div className="absolute top-3 right-3">
                         <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
@@ -658,7 +658,7 @@ function GroceryApp() {
            { const isWishlisted = wishListsData&&wishListsData.some((item: any) => item._id === product._id); return(
               <Card
                 key={product._id}
-                className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="group cursor-pointer hover:shadow-soft-lg transition-all duration-300 overflow-hidden"
               >
                 <div className="relative">
                   <img
@@ -667,7 +667,7 @@ function GroceryApp() {
                     className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {product?.discount > 0 && (
-                    <Badge className="absolute top-3 left-3 bg-red-500 hover:bg-red-600">
+                    <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground hover:opacity-90">
                       {product?.discount}% OFF
                     </Badge>
                   )}
@@ -677,8 +677,8 @@ function GroceryApp() {
                   >
                     <Heart
                       className={`w-4 h-4 transition-all duration-300 ${isWishlisted
-                        ? "text-red-500 fill-current scale-110"
-                        : "text-gray-400 hover:text-red-500"
+                        ? "text-primary fill-current scale-110"
+                        : "text-gray-400 hover:text-primary"
                         }`}
                     />
                   </Button>
@@ -695,12 +695,12 @@ function GroceryApp() {
 
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg font-bold text-orange-500">₹{product?.price}</span>
+                      <span className="text-lg font-bold text-primary">₹{product?.price}</span>
                       {product?.originalPrice > product?.price && (
                         <span className="text-sm text-gray-500 line-through">₹{product?.originalPrice}</span>
                       )}
                     </div>
-                    <Button size="sm" className="bg-orange-500 hover:bg-orange-600" onClick={() => handleAddToCart(product)}>
+                    <Button size="sm" className="bg-primary hover:opacity-90 text-primary-foreground" onClick={() => handleAddToCart(product)}>
                       <Plus className="h-4 w-4 mr-1" />
                       Add
                     </Button>
@@ -775,24 +775,24 @@ function GroceryApp() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-orange-500" />
+              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Fast Delivery</h3>
               <p className="text-gray-600 dark:text-gray-400">Get your groceries delivered within 30 minutes</p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-green-500" />
+              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Quality Products</h3>
               <p className="text-gray-600 dark:text-gray-400">Fresh and high-quality groceries every time</p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="h-8 w-8 text-blue-500" />
+              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShoppingCart className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Best Prices</h3>
               <p className="text-gray-600 dark:text-gray-400">Competitive prices with regular discounts</p>
@@ -879,7 +879,7 @@ function GroceryApp() {
                     <textarea
                       placeholder="Your Message *"
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       value={contactForm.message}
                       onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
                       required
@@ -887,7 +887,7 @@ function GroceryApp() {
                     ></textarea>
                     <Button 
                       type="submit"
-                      className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -910,7 +910,7 @@ function GroceryApp() {
                 <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Contact Information</h3>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    <Phone className="h-5 w-5 text-orange-500" />
+                    <Phone className="h-5 w-5 text-primary" />
                     <span className="text-gray-700 dark:text-gray-300">+91 9876543210</span>
                   </div>
                   <div className="flex items-center space-x-3">

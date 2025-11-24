@@ -141,7 +141,7 @@ export default function NotificationsPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                 <Bell className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -155,7 +155,7 @@ export default function NotificationsPage() {
               {unreadCount > 0 && (
                 <Button
                   onClick={markAllAsRead}
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-primary hover:bg-primary"
                 >
                   <Check className="w-4 h-4 mr-2" />
                   Mark all as read
@@ -173,14 +173,14 @@ export default function NotificationsPage() {
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
-              className={filter === 'all' ? 'bg-orange-500 hover:bg-orange-600' : ''}
+              className={filter === 'all' ? 'bg-primary hover:bg-primary' : ''}
             >
               All ({notifications.length})
             </Button>
             <Button
               variant={filter === 'unread' ? 'default' : 'outline'}
               onClick={() => setFilter('unread')}
-              className={filter === 'unread' ? 'bg-orange-500 hover:bg-orange-600' : ''}
+              className={filter === 'unread' ? 'bg-primary hover:bg-primary' : ''}
             >
               Unread ({unreadCount})
             </Button>
@@ -190,7 +190,7 @@ export default function NotificationsPage() {
         {/* Notifications List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
             <p className="text-gray-500 dark:text-gray-400 mt-4">Loading notifications...</p>
           </div>
         ) : filteredNotifications.length === 0 ? (
@@ -223,7 +223,7 @@ export default function NotificationsPage() {
                 <Card
                   key={notification._id}
                   className={`transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                    isUnread ? 'border-l-4 border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/10' : ''
+                    isUnread ? 'border-l-4 border-border bg-secondary' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -248,10 +248,10 @@ export default function NotificationsPage() {
                               {notification.title}
                             </h3>
                             {isUnread && (
-                              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                              <span className="w-2 h-2 bg-primary rounded-full"></span>
                             )}
                             {notification.priority === 'high' && (
-                              <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200">
+                              <Badge className="bg-destructive text-destructive-foreground">
                                 Important
                               </Badge>
                             )}
@@ -285,7 +285,7 @@ export default function NotificationsPage() {
                             <Button
                               variant="link"
                               size="sm"
-                              className="text-orange-600 dark:text-orange-400 font-semibold p-0 h-auto"
+                              className="text-primary font-semibold p-0 h-auto"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleNotificationClick(notification)

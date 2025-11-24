@@ -223,7 +223,7 @@ const ProductGrid: React.FC = () => {
         <AnnouncementBar />
       </div>
 
-      <div className="sticky top-0 z-50 backdrop-blur-md bg-white/90 shadow-lg border-b border-orange-100">
+      <div className="sticky top-0 z-50 backdrop-blur-md bg-background/90 shadow-soft border-b border-border">
         <header className="transition-all duration-300">
 
           <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
@@ -235,21 +235,20 @@ const ProductGrid: React.FC = () => {
                   className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
                   alt="logo"
                 />
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent hover:from-orange-500 hover:via-red-600 hover:to-pink-600 transition-all duration-300">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary transition-all duration-300">
                   Gro-Delivery
                 </h1>
+
               </div>
 
               {/* Enhanced Search Bar with suggestions */}
               <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0 relative" style={{ marginLeft: "140px" }}>
                 <div className="relative flex-1">
-                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
-                    }`} />
+                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-primary' : 'text-muted-foreground'}`} />
                   <input
                     type="text"
                     placeholder="Search products..."
-                    className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
-                      }`}
+                    className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:outline-none ${searchFocused ? 'border-primary shadow-soft' : 'border-border'}`}
                     value={filters.searchTerm}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       updateFilter('searchTerm', e.target.value)
@@ -260,11 +259,11 @@ const ProductGrid: React.FC = () => {
 
                   {/* Search Suggestions */}
                   {searchFocused && searchSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-lg mt-1 border border-orange-200 z-50 max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 bg-card shadow-soft-lg rounded-lg mt-1 border border-border z-50 max-h-60 overflow-y-auto">
                       {searchSuggestions.map((suggestion, index) => (
                         <div
                           key={index}
-                          className="px-4 py-2 hover:bg-orange-50 cursor-pointer transition-colors duration-200"
+                          className="px-4 py-2 hover:bg-secondary cursor-pointer transition-colors duration-200"
                           onClick={() => {
                             updateFilter('searchTerm', suggestion);
                             setSearchFocused(false);
@@ -276,6 +275,7 @@ const ProductGrid: React.FC = () => {
                     </div>
                   )}
                 </div>
+
                 <div className="z-50">
                   <LocationSelector />
                 </div>
@@ -287,11 +287,11 @@ const ProductGrid: React.FC = () => {
                 {user?._id && <NotificationCenter location="products" />}
 
                 {/* Enhanced Wishlist */}
-                <button className="relative p-2 hover:bg-orange-100 rounded-lg transition-all duration-300 hover:scale-110 group">
+                <button className="relative p-2 hover:bg-secondary rounded-lg transition-all duration-300 hover:scale-110 group">
                   <Link href="/wishlist">
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:text-red-500 transition-colors duration-300" />
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-primary transition-colors duration-300" />
                     {wishListsData && wishListsData.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
                         {wishListsData.length}
                       </span>
                     )}
@@ -323,7 +323,7 @@ const ProductGrid: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden text-gray-700 hover:bg-orange-100 transition-all duration-300"
+                    className="md:hidden text-gray-700 hover:bg-secondary transition-all duration-300"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   >
                     <div className="relative">
@@ -340,30 +340,31 @@ const ProductGrid: React.FC = () => {
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   >
                     <img
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-orange-300 group-hover:border-orange-500 transition-all duration-300 group-hover:scale-110"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-border group-hover:border-primary transition-all duration-300 group-hover:scale-110"
                       src="https://picsum.photos/200"
                       alt="profile"
                     />
+
                   </div>
 
                   {/* Profile Dropdown */}
                   {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white  shadow-xl rounded-lg border border-orange-200 z-[100] animate-in slide-in-from-top-5 duration-300 ease-in-out text-gray-600">
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-card shadow-soft-lg rounded-lg border border-border z-[100] animate-in slide-in-from-top-5 duration-300 ease-in-out text-foreground">
                       <div className="py-2">
                         <Link href="/profile">
-                          <button className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                          <button className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
                             <User className="w-4 h-4" />
                             <span>Profile</span>
                           </button>
                         </Link>
                         <Link href="/profile">
-                          <button onClick={() => router.push("/profile")} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-orange-50 transition-colors duration-200 flex items-center space-x-2">
+                          <button onClick={() => router.push("/profile")} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
                             <Settings className="w-4 h-4" />
                             <span>Settings</span>
                           </button>
                         </Link>
                         <hr className="my-2" />
-                        <button onClick={handleLogout} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 transition-colors duration-200 flex items-center space-x-2">
+                        <button onClick={handleLogout} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-secondary text-foreground transition-colors duration-200 flex items-center space-x-2">
                           <LogOut className="w-4 h-4" />
                           <span>Logout</span>
                         </button>
@@ -377,200 +378,198 @@ const ProductGrid: React.FC = () => {
             {/* Enhanced Mobile Search Bar */}
             <div className="md:hidden mt-3">
               <div className="relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
-                  }`} />
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-primary' : 'text-muted-foreground'}`} />
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
-                    }`}
+                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:outline-none ${searchFocused ? 'border-primary shadow-soft' : 'border-border'}`}
                   value={filters.searchTerm}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFilter('searchTerm', e.target.value)
                   }
                   onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
+                  onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
                 />
+
               </div>
               <div className="mt-2">
                 <LocationSelector />
               </div>
             </div>
+            {/* Notification Banner for products */}
+            <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+              <NotificationBanner location="products" />
+            </div>
+
+            {/* Navigation Filter */}
+            <div className="hidden md:block">
+              <NavbarFilter />
+            </div>
           </div>
         </header>
 
-        {/* Notification Banner for products */}
-        <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
-          <NotificationBanner location="products" />
-        </div>
+          {/* Enhanced Mobile Menu Overlay */}
+          {mobileMenuOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden animate-in fade-in duration-300">
+              <div className="fixed right-0 top-0 h-full w-80 bg-card shadow-soft overflow-y-auto animate-in slide-in-from-right duration-400">
+                <div className="p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Menu</h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="hover:bg-secondary transition-colors duration-300"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
 
-        {/* Navigation Filter */}
-        <div className="hidden md:block">
-          <NavbarFilter />
-        </div>
-      </div>
+                  {/* Enhanced Profile in mobile menu */}
+                  <div className="flex items-center space-x-3 mb-6 p-3 bg-secondary rounded-lg shadow-soft hover:shadow-soft-lg transition-shadow duration-300" onClick={() => router.push('/profile')}>
+                    <img className="w-10 h-10 rounded-full border-2 border-border" src="https://picsum.photos/200" alt="profile" />
+                    <div>
+                      <p className="font-medium">Your Account</p>
+                      <p className="text-sm text-gray-600">Manage your profile</p>
+                    </div>
+                  </div>
 
-      {/* Enhanced Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden animate-in fade-in duration-300">
-          <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto animate-in slide-in-from-right duration-400">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Menu</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="hover:bg-orange-100 transition-colors duration-300"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              {/* Enhanced Profile in mobile menu */}
-              <div className="flex items-center space-x-3 mb-6 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg hover:shadow-md transition-shadow duration-300" onClick={() => router.push('/profile')}>
-                <img className="w-10 h-10 rounded-full border-2 border-orange-300" src="https://picsum.photos/200" alt="profile" />
-                <div>
-                  <p className="font-medium">Your Account</p>
-                  <p className="text-sm text-gray-600">Manage your profile</p>
+                  {/* Mobile Filters */}
+                  <div className="mt-6">
+                    <SidebarFilters />
+                  </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Mobile Filters */}
-              <div className="mt-6">
-                <SidebarFilters />
+          {/* Loading Overlay */}
+          {isLoading && (
+            <div className="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading fresh products...</p>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Loading Overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading fresh products...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
-        <div className="flex gap-2 lg:gap-6">
-          {/* Desktop Sidebar Filters */}
-          <div className="hidden lg:block">
-            <SidebarFilters productsData={productsData} />
-          </div>
-
-          {/* Products Grid */}
-          <div className="flex-1">
-            {/* Enhanced Header with animations */}
-            <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="space-y-2">
-                <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'
-                  }`}>
-                  Fresh Groceries
-                  {/* ({filteredProducts.length} products) */}
-                </h2>
-                {filteredProducts.length === 0 && (
-                  <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
-                )}
+          {/* Main Content */}
+          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+            <div className="flex gap-2 lg:gap-6">
+              {/* Desktop Sidebar Filters */}
+              <div className="hidden lg:block">
+                <SidebarFilters productsData={productsData} />
               </div>
 
-              {/* Enhanced Filter tags */}
-              <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                {(filters.category !== 'all' || filters.priceRanges.length > 0 || filters.ratings.length > 0) && (
+              {/* Products Grid */}
+              <div className="flex-1">
+                {/* Enhanced Header with animations */}
+                <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-2">
+                    <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'}`}>
+                      Fresh Groceries
+                      {/* ({filteredProducts.length} products) */}
+                    </h2>
+                    {filteredProducts.length === 0 && (
+                      <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
+                    )}
+                  </div>
+
+                  {/* Enhanced Filter tags */}
+                  <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                    {(filters.category !== 'all' || filters.priceRanges.length > 0 || filters.ratings.length > 0) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearAllFilters}
+                        className="hover:bg-secondary hover:border-primary transition-all duration-300"
+                      >
+                        Clear All
+                      </Button>
+                    )}
+
+                    {filters.category !== 'all' && (
+                      <span className="bg-secondary text-foreground px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300">
+                        Category: {filters.category}
+                      </span>
+                    )}
+                    {filters.priceRanges.length > 0 && (
+                      <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-100">
+                        Price filters applied
+                      </span>
+                    )}
+                    {filters.ratings.length > 0 && (
+                      <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-200">
+                        Rating filters applied
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Enhanced Mobile Filter Button */}
+                <div className="lg:hidden mb-4">
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    className="hover:bg-red-50 hover:border-red-300 transition-all duration-300"
+                    className="w-full sm:w-auto hover:bg-secondary hover:border-primary transition-all duration-300 hover:shadow-md"
+                    onClick={() => setMobileMenuOpen(true)}
                   >
-                    Clear All
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filters & Categories
                   </Button>
-                )}
+                </div>
 
-                {filters.category !== 'all' && (
-                  <span className="bg-orange-100 text-orange-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300">
-                    Category: {filters.category}
-                  </span>
-                )}
-                {filters.priceRanges.length > 0 && (
-                  <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-100">
-                    Price filters applied
-                  </span>
-                )}
-                {filters.ratings.length > 0 && (
-                  <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-200">
-                    Rating filters applied
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Enhanced Mobile Filter Button */}
-            <div className="lg:hidden mb-4">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto hover:bg-orange-50 hover:border-orange-300 transition-all duration-300 hover:shadow-md"
-                onClick={() => setMobileMenuOpen(true)}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters & Categories
-              </Button>
-            </div>
-
-            {/* Product Grid with enhanced loading state */}
-            <div className={`transition-all duration-500 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
-              {user?._id && recommendations.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-3">Recommended for you</h3>
+                {/* Product Grid with enhanced loading state */}
+                <div className={`transition-all duration-500 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+                  {user?._id && recommendations.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg sm:text-xl font-semibold mb-3">Recommended for you</h3>
+                      <ProductCardGrid
+                        isLoading={false}
+                        isInCart={isInCart}
+                        getCartQuantity={getCartQuantity}
+                        productLists={recommendations}
+                        onAddToCart={handleAddToCart}
+                        onToggleWishlist={toggleWishlist}
+                      />
+                    </div>
+                  )}
                   <ProductCardGrid
-                    isLoading={false}
+                    isLoading={isLoading}
                     isInCart={isInCart}
                     getCartQuantity={getCartQuantity}
-                    productLists={recommendations}
+                    productLists={filteredProducts}
                     onAddToCart={handleAddToCart}
                     onToggleWishlist={toggleWishlist}
+
                   />
                 </div>
-              )}
-              <ProductCardGrid
-                isLoading={isLoading}
-                isInCart={isInCart}
-                getCartQuantity={getCartQuantity}
-                productLists={filteredProducts}
-                onAddToCart={handleAddToCart}
-                onToggleWishlist={toggleWishlist}
-
-              />
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-40 animate-in slide-in-from-bottom duration-300"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </button>
-      )}
+          {/* Scroll to Top Button */}
+          {showScrollTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed bottom-6 right-6 bg-primary text-primary-foreground p-3 rounded-full shadow-soft hover:shadow-soft-lg transition-all duration-300 hover:scale-110 z-40 animate-in slide-in-from-bottom duration-300"
+            >
+              <ChevronUp className="w-6 h-6" />
+            </button>
+          )}
 
-      {/* Quick Actions Floating Menu */}
-      <div className="fixed bottom-20 right-6 space-y-3 z-30">
-        {/* Quick Cart Access */}
-        {cartItems.length > 0 && (
-          <button
-            onClick={() => setCartOpen(true)}
-            className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-bounce"
-          >
-            <ShoppingCart className="w-5 h-5" />
-          </button>
-        )}
+          {/* Quick Actions Floating Menu */}
+          <div className="fixed bottom-20 right-6 space-y-3 z-30">
+            {/* Quick Cart Access */}
+            {cartItems.length > 0 && (
+              <button
+                onClick={() => setCartOpen(true)}
+                className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-bounce"
+              >
+                <ShoppingCart className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
       </div>
 
       {/* Background click handler for dropdowns */}

@@ -62,18 +62,18 @@ export default function EnhancedProductCard({
     
     switch (variant) {
       case 'compact':
-        return `${baseStyles} hover:shadow-lg hover:-translate-y-1`
+        return `${baseStyles} hover:shadow-soft hover:-translate-y-1`
       case 'featured':
-        return `${baseStyles} hover:shadow-2xl hover:-translate-y-2 ring-2 ring-orange-200 hover:ring-orange-400`
+        return `${baseStyles} hover:shadow-soft-lg hover:-translate-y-2 ring-2 ring-secondary hover:ring-primary`
       default:
-        return `${baseStyles} hover:shadow-xl hover:-translate-y-1 border border-gray-200 dark:border-gray-700`
+        return `${baseStyles} hover:shadow-soft hover:-translate-y-1 border border-border`
     }
   }
 
   const getBadgeStyles = () => {
-    if (discountPercentage >= 30) return "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-    if (discountPercentage >= 15) return "bg-orange-500 hover:bg-orange-600 text-white"
-    if (stockStatus.status === 'Only Few Left') return "bg-red-500 hover:bg-red-600 text-white"
+    if (discountPercentage >= 30) return "bg-primary hover:opacity-90 text-primary-foreground animate-pulse"
+    if (discountPercentage >= 15) return "bg-primary hover:opacity-90 text-primary-foreground"
+    if (stockStatus.status === 'Only Few Left') return "bg-primary hover:opacity-90 text-primary-foreground"
     return "bg-green-500 hover:bg-green-600 text-white"
   }
 
@@ -113,7 +113,7 @@ export default function EnhancedProductCard({
 
           {/* Badges */}
           <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
-            <Badge className={`${getBadgeStyles()} px-3 py-1 text-xs font-semibold shadow-lg`}>
+            <Badge className={`${getBadgeStyles()} px-3 py-1 text-xs font-semibold shadow-soft`}>
               {getBadgeText()}
             </Badge>
             
@@ -132,18 +132,18 @@ export default function EnhancedProductCard({
             }`}>
               <Button
                 size="icon"
-                className="bg-white/90 hover:bg-white text-gray-700 shadow-md w-8 h-8 backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                className="bg-card/90 hover:bg-card text-foreground shadow-soft w-8 h-8 backdrop-blur-sm transition-all duration-300 hover:scale-110"
                 onClick={() => onToggleWishlist(product)}
               >
                 <Heart className={`w-4 h-4 transition-all duration-300 ${
-                  isInWishlist ? "fill-red-500 text-red-500" : "hover:text-red-500"
+                  isInWishlist ? "fill-primary text-primary" : "hover:text-primary"
                 }`} />
               </Button>
               
               {onQuickView && (
                 <Button
                   size="icon"
-                  className="bg-white/90 hover:bg-white text-gray-700 shadow-md w-8 h-8 backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                  className="bg-card/90 hover:bg-card text-foreground shadow-soft w-8 h-8 backdrop-blur-sm transition-all duration-300 hover:scale-110"
                   onClick={() => onQuickView(product)}
                 >
                   <Eye className="w-4 h-4" />
@@ -166,7 +166,7 @@ export default function EnhancedProductCard({
           {/* Product Name */}
           <h3 className={`font-semibold mb-2 line-clamp-2 transition-colors duration-300 ${
             variant === 'featured' ? 'text-lg' : 'text-base'
-          } text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400`}>
+          } text-foreground group-hover:text-primary`}>
             {product.name}
           </h3>
 
@@ -192,7 +192,7 @@ export default function EnhancedProductCard({
           {/* Price Section */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className={`font-bold text-orange-600 dark:text-orange-400 ${
+              <span className={`font-bold text-primary ${
                 variant === 'featured' ? 'text-2xl' : 'text-xl'
               }`}>
                 ₹{product.price}
@@ -235,7 +235,7 @@ export default function EnhancedProductCard({
                 <Button
                   size="icon"
                   variant="outline"
-                  className="w-8 h-8 hover:bg-orange-50 hover:border-orange-300"
+                  className="w-8 h-8 hover:bg-secondary hover:border-primary"
                   onClick={() => {
                     // Handle quantity decrease
                     onAddToCart(product)
@@ -245,13 +245,13 @@ export default function EnhancedProductCard({
                 </Button>
                 
                 <div className="flex-1 text-center">
-                  <span className="font-semibold text-orange-600">{cartQuantity}</span>
+                  <span className="font-semibold text-primary">{cartQuantity}</span>
                 </div>
                 
                 <Button
                   size="icon"
                   variant="outline"
-                  className="w-8 h-8 hover:bg-orange-50 hover:border-orange-300"
+                  className="w-8 h-8 hover:bg-secondary hover:border-primary"
                   onClick={() => {
                     // Handle quantity increase
                     onAddToCart(product)
@@ -262,7 +262,7 @@ export default function EnhancedProductCard({
               </div>
             ) : (
               <Button 
-                className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 group"
+                className="flex-1 bg-primary text-primary-foreground font-semibold transition-all duration-300 shadow-soft hover:scale-105 group"
                 onClick={() => onAddToCart(product)}
               >
                 <ShoppingCart className="w-4 h-4 mr-2 group-hover:animate-bounce" />
@@ -274,7 +274,7 @@ export default function EnhancedProductCard({
               <Button
                 variant="outline"
                 size="icon"
-                className="w-10 h-10 hover:bg-orange-50 hover:border-orange-300 transition-all duration-300 hover:scale-110"
+                className="w-10 h-10 hover:bg-secondary hover:border-primary transition-all duration-300 hover:scale-110"
                 onClick={() => onQuickView(product)}
               >
                 <Eye className="w-4 h-4" />
