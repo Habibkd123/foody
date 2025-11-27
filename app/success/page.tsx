@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAuthStorage } from "@/hooks/useAuth";
+import { useCartOrder } from "@/context/OrderContext";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -12,6 +14,9 @@ export default function SuccessPage() {
   const [order, setOrder] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [cartCleared, setCartCleared] = useState(false);
+  const { user } = useAuthStorage();
+  const { clearCart } = useCartOrder();
 
   useEffect(() => {
     if (!paymentIntent) return;
@@ -38,6 +43,21 @@ export default function SuccessPage() {
 
     fetchOrder();
   }, [paymentIntent]);
+
+  // Clear the user's cart once after we have a successful order
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (order && user?._id && !cartCleared) {
+          await clearCart(user._id);
+          setCartCleared(true);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    run();
+  }, [order, user?._id, clearCart, cartCleared]);
 
   if (loading)
     return <p className="text-center mt-10 text-gray-600">Loading your order...</p>;
@@ -80,11 +100,17 @@ export default function SuccessPage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-3">Order Summary</h2>
             <p className="text-gray-600">Order ID: <span className="font-medium">{order?.orderId}</span></p>
             <p className="text-gray-600">Total: <span className="font-medium">₹{order?.total}</span></p>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-2">
               <Link href={`/feedback?orderId=${order?.orderId ?? ''}`}>
                 <Button className="bg-orange-500 hover:bg-orange-600">Leave Feedback</Button>
               </Link>
+              <Link href="/profile?tab=orders">
+                <Button variant="outline">View Your Orders</Button>
+              </Link>
             </div>
+            {cartCleared && (
+              <p className="text-xs text-emerald-600 mt-2">Your cart has been cleared.</p>
+            )}
           </div>
         )}
 

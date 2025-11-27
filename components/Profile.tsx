@@ -15,8 +15,10 @@ import { useCartOrder } from "@/context/OrderContext";
 import { Address } from "@/types/global";
 import DeliveryAddressPage from "./AddAddressModal";
 import EditProfileModal from "./EditProfileModal";
+import { useSearchParams } from "next/navigation";
 
 const Profile = () => {
+  const searchParams = useSearchParams();
   const {
     address,
     setDistance,
@@ -36,6 +38,7 @@ const Profile = () => {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [tabValue, setTabValue] = useState<string>('profile');
 
   // Update addresses when context address changes
   useEffect(() => {
@@ -63,6 +66,14 @@ const Profile = () => {
       handleUserOrders();
     }
   }, [user?._id]);
+
+  // Sync tab from query param (?tab=orders)
+  useEffect(() => {
+    const t = searchParams?.get('tab');
+    if (t === 'orders' || t === 'favorites' || t === 'addresses' || t === 'profile') {
+      setTabValue(t);
+    }
+  }, [searchParams]);
 
   // Set loading to false when data is loaded
   useEffect(() => {
@@ -258,7 +269,7 @@ const Profile = () => {
         </div>
         {/* Modern Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
               <TabsTrigger 
                 value="profile" 
@@ -363,11 +374,34 @@ const Profile = () => {
                               <span className={`px-2 py-1 rounded text-xs ${
                                 order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                 order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                order.status === 'out_for_delivery' ? 'bg-blue-100 text-blue-800' :
+                                order.status === 'processing' ? 'bg-purple-100 text-purple-800' :
+                                order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
                                 {order.status}
                               </span>
                             </p>
+                            {/* Tracking Steps */}
+                            <div className="mt-3">
+                              {(() => {
+                                const steps = ['placed','processing','out_for_delivery','completed'];
+                                const status = String(order.status || '').toLowerCase();
+                                const idx = Math.max(0, steps.indexOf(steps.includes(status) ? status : 'processing'));
+                                return (
+                                  <div className="flex items-center gap-2">
+                                    {steps.map((s, i) => (
+                                      <div key={s} className="flex items-center gap-2">
+                                        <div className={`w-2.5 h-2.5 rounded-full ${i <= idx ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                                        {i < steps.length - 1 && (
+                                          <div className={`h-0.5 w-10 ${i < idx ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold text-gray-900 dark:text-white">
