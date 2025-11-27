@@ -25,6 +25,7 @@ import NotificationCenter from '@/components/NotificationCenter';
 import NotificationBanner from '@/components/NotificationBanner';
 import AppHeader from "@/components/ui/AppHeader";
 import { useSearchParams } from "next/navigation";
+import { getCategories } from '@/components/APICall/category';
 
 // Type Definitions
 interface CartItem extends Product {
@@ -52,6 +53,7 @@ const ProductGrid: React.FC = () => {
   const [cartAnimation, setCartAnimation] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [categoriesById, setCategoriesById] = useState<Record<string, string>>({});
 
   // Helper: select a category by id and sync URL
   const handleSelectCategory = useCallback((catId: string) => {
@@ -100,13 +102,18 @@ const ProductGrid: React.FC = () => {
   );
   const categoryLabelMap: Record<string, string> = useMemo(() => {
     const map: Record<string, string> = {};
+    // Prefer fetched categories map first
+    for (const [id, name] of Object.entries(categoriesById)) {
+      if (id && name && !map[id]) map[id] = name;
+    }
+    // Fill remaining from products data fallbacks
     for (const p of productsData as any[]) {
       const id = typeof p.category === 'string' ? p.category : p?.category?._id;
       const label = p?.categoryName || p?.categoryLabel || p?.category?.name || String(id || '');
       if (id && !map[id]) map[id] = label;
     }
     return map;
-  }, [productsData]);
+  }, [productsData, categoriesById]);
 
   const currentCategoryLabel = useMemo(
     () => (filters.category === 'all' ? 'All' : (categoryLabelMap[filters.category] ?? filters.category)),
@@ -148,6 +155,28 @@ const ProductGrid: React.FC = () => {
         .catch(() => setRecommendations([]));
     }
   }, [user?._id]);
+
+  // Load categories for id->name mapping so UI shows names instead of raw ids
+  useEffect(() => {
+    let ignore = false;
+    const load = async () => {
+      try {
+        const data = await getCategories({ limit: 1000 });
+        const items = (data?.data?.categories || data?.data || data?.categories || []) as any[];
+        const map: Record<string, string> = {};
+        for (const c of items) {
+          const id = c?._id || c?.id;
+          const name = c?.name || c?.title || '';
+          if (id && name) map[String(id)] = String(name);
+        }
+        if (!ignore) setCategoriesById(map);
+      } catch {
+        // Ignore failures; UI will fallback to id or embedded name
+      }
+    };
+    load();
+    return () => { ignore = true; };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
