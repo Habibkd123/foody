@@ -116,10 +116,12 @@ useEffect(() => {
 
   const handleSelectAll = useCallback(() => {
     console.log("wishListsData", wishListsData)
-    if (selectedItems.length === wishListsData.length) {
+    const total = (wishListsData?.length || 0);
+    if (selectedItems.length === total) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(wishListsData.map((item: any) => parseInt(item._id, 10) as number));
+      const ids = (wishListsData || []).map((item: any) => parseInt(item._id, 10) as number);
+      setSelectedItems(ids);
     }
   }, [selectedItems.length, wishListsData]);
 
@@ -127,7 +129,7 @@ useEffect(() => {
     return state.items.some((item: CartLine) => item.id === id);
   }, [state.items]);
 
-  const addToCart1 = useCallback(async(item: Product) => {
+  const addToCart1 = useCallback(async (item: Product) => {
     if (!user?._id) return;
 
     const cartItem: any = {
@@ -145,7 +147,7 @@ useEffect(() => {
   const addAllToCart = useCallback(() => {
     setIsLoading(true);
     selectedItems.forEach((itemId) => {
-      const item = wishListsData.find((w: any) => parseInt(w._id, 10) === itemId);
+      const item = wishListsData?.find((w: any) => parseInt(w._id, 10) === itemId);
       if (item && !isInCart(itemId)) {
         addToCart1(item as any);
       }
@@ -157,27 +159,27 @@ useEffect(() => {
   }, [selectedItems, wishListsData, isInCart, addToCart1]);
 
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
-     const productId = parseInt(itemId);
-     const currentItem = state.items.find((item: any) => item._id === productId);
- 
-     if (currentItem) {
-       const newQuantity = Math.max(0, currentItem.quantity + change);
- 
-       if (newQuantity === 0) {
-         // Remove item if quantity becomes 0
-         setCartItems(cartItems.filter((item: any) => item._id !== productId));
-         // dispatch({ type: "REMOVE_ITEM", id: productId });
-         updateQuantity(user?._id, productId, newQuantity);
-       } else {
-         // Update quantity in both local state and global state
-         setCartItems(cartItems.map((item: any) =>
-           item.id === productId ? { ...item, quantity: newQuantity } : item
-         ));
-         dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
-         updateQuantity(user?._id, productId, newQuantity);
-       }
-     }
-   }, [cartItems, dispatch, state.items]);
+    const productId = parseInt(itemId);
+    const currentItem = state.items.find((item: any) => item._id === productId);
+
+    if (currentItem) {
+      const newQuantity = Math.max(0, currentItem.quantity + change);
+
+      if (newQuantity === 0) {
+        // Remove item if quantity becomes 0
+        setCartItems(cartItems.filter((item: any) => item._id !== productId));
+        // dispatch({ type: "REMOVE_ITEM", id: productId });
+        updateQuantity(user?._id, productId, newQuantity);
+      } else {
+        // Update quantity in both local state and global state
+        setCartItems(cartItems.map((item: any) =>
+          item.id === productId ? { ...item, quantity: newQuantity } : item
+        ));
+        dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
+        updateQuantity(user?._id, productId, newQuantity);
+      }
+    }
+  }, [cartItems, dispatch, state.items]);
 
   const getTotalPrice = useCallback(() => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -185,11 +187,11 @@ useEffect(() => {
 
   // Enhanced sorting and filtering
   const sortedAndFilteredProducts = useMemo(() => {
-    if (!wishListsData || wishListsData.length === 0) {
+    if (!wishListsData || wishListsData?.length === 0) {
       return [];
     }
     console.log("wishListsData", wishListsData)
-    let filtered = [...wishListsData];
+    let filtered = [...(wishListsData || [])];
 
     // Apply search filter
     if (filters.searchTerm) {
@@ -259,7 +261,7 @@ useEffect(() => {
     if (navigator.share) {
       navigator.share({
         title: 'My Wishlist',
-        text: `Check out my wishlist with ${wishListsData.length} amazing products!`,
+        text: `Check out my wishlist with ${(wishListsData?.length || 0)} amazing products!`,
         url: window.location.href,
       });
     } else {
@@ -267,7 +269,7 @@ useEffect(() => {
       navigator.clipboard.writeText(window.location.href);
       alert('Wishlist link copied to clipboard!');
     }
-  }, [wishListsData.length]);
+  }, [wishListsData?.length]);
 
   return (
     <div className="p-0 min-h-screen bg-gray-50">
@@ -284,7 +286,7 @@ useEffect(() => {
                 />
                 <div className="hidden sm:block">
                   <h1 className="text-lg font-semibold text-gray-900">My Wishlist</h1>
-                  <p className="text-sm text-gray-600">{wishListsData.length} items</p>
+                  <p className="text-sm text-gray-600">{wishListsData?.length || 0} items</p>
                 </div>
               </div>
 
@@ -397,7 +399,7 @@ useEffect(() => {
                 className="text-gray-600"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                {selectedItems.length === wishListsData.length ? 'Deselect All' : 'Select All'}
+                {selectedItems.length === (wishListsData?.length || 0) ? 'Deselect All' : 'Select All'}
               </Button>
             </div>
 
