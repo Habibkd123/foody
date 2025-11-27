@@ -3,6 +3,15 @@ export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
 export interface Category {
   _id: string;
   name: string;
+  parent?: string | null;
+  image?: string;
+  description?: string;
+  status?: 'active' | 'inactive';
+  slug?: string;
+  type?: "New Arrivals" | "Best Sellers" | "Sweets" | "Snacks" | "Drinks" | "Pantry" | "Groceries" | "Value Packs" | "See All";
+  createdAt?: string;
+  updatedAt?: string;
+  subcategories?: Category[];
 }
 export interface Product {
   _id: string;
@@ -77,7 +86,7 @@ export interface ProductResponse {
   images: string[];
   price: number;
   originalPrice?: number;
-  category: string;
+  category: Category | string;
   stock: number;
   inStock?: boolean;
   status: 'active' | 'inactive';

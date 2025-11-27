@@ -12,6 +12,11 @@ import NavbarFilter from "@/components/NavbarFilter";
 import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut, ChevronDown, MapPin, ArrowRight, Plus, Minus, Eye, TrendingUp, Clock, Truck } from 'lucide-react';
 import { useAuthStorage } from "@/hooks/useAuth";
 import NotificationCenter from "@/components/NotificationCenter";
+import AppHeader from "@/components/ui/AppHeader";
+import NotificationBanner from "@/components/NotificationBanner";
+import AddCardList from "@/components/AddCards";
+import { useCartOrder, useOrder } from "@/context/OrderContext";
+import { Product } from "@/types/global";
 
 
 // types.ts
@@ -60,7 +65,7 @@ const CategorySection = ({ section }: { section: any }) => {
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">{section?.name}</h2>
-        <Link href={`/productlist`} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
+        <Link href={{ pathname: '/productlist', query: { category: section?.name } }} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
           <span>View All</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
@@ -68,7 +73,7 @@ const CategorySection = ({ section }: { section: any }) => {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
         {Array.isArray(section.products) && section.products.length > 0 ? (
-          section.products.map((item:any, idx:any) => (
+          section.products.map((item: any, idx: any) => (
             <div
               key={idx}
               className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200"
@@ -114,6 +119,12 @@ const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<CategorySectionType[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const [categoriesError, setCategoriesError] = useState<boolean>(false);
+  // Cart state (for header dropdown)
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartAnimation, setCartAnimation] = useState(false);
+  const { dispatch, state } = useOrder();
+  const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
 
   const fetchCategories = async () => {
     setCategoriesLoading(true);
@@ -160,196 +171,167 @@ const HomePage: React.FC = () => {
     logout();
     window.location.reload();
   };
-// console.log("Categories:", categories?.length);
+
+  // Cart helpers (match usage from Product List header)
+  const removeFromCart1 = useCallback((itemId: any) => {
+    try {
+      const response: any = removeFromCart(user?._id, itemId);
+      if (response?.success) {
+        // no-op UI
+      }
+    } catch { }
+  }, [removeFromCart, user?._id]);
+
+  const updateQuantity1 = useCallback((itemId: string, change: number) => {
+    const productId = parseInt(itemId);
+    const currentItem = state.items.find((item: any) => item._id === productId || item.id === productId);
+    if (currentItem) {
+      const newQuantity = Math.max(0, (currentItem.quantity || 0) + change);
+      if (newQuantity === 0) {
+        setCartItems((prev) => prev.filter((it: any) => (it._id ?? it.id) !== productId));
+        updateQuantity(user?._id, productId, newQuantity);
+      } else {
+        setCartItems((prev) => prev.map((it: any) => ((it._id ?? it.id) === productId ? { ...it, quantity: newQuantity } : it)));
+        dispatch({ type: 'UPDATE_QUANTITY', id: productId, qty: newQuantity });
+        updateQuantity(user?._id, productId, newQuantity);
+      }
+    }
+  }, [dispatch, state.items, updateQuantity, user?._id]);
+
+  const getCartQuantity = useCallback((product: any) => {
+    const pid = product?._id ?? product?.id;
+    const cartItem = state.items.find((item: any) => (item._id ?? item.id) === pid);
+    return cartItem ? cartItem.quantity : 0;
+  }, [state.items]);
+
+  const getTotalPrice = () => {
+    return cartItems.reduce((total: number, item: any) => total + (item.price || 0) * (item.quantity || 0), 0);
+  };
+  console.log("Categories:",user);
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
         <div className="min-h-screen bg-gray-50">
-        {/* Announcement Bar */}
-        <AnnouncementBar />
+          {/* Announcement Bar */}
+          <AnnouncementBar />
 
-        <div className="sticky top-0 z-50 backdrop-blur-md bg-background/90 shadow-soft border-b border-border">
-          <header className="transition-all duration-300">
-            <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
-              <div className="flex items-center justify-between">
-                {/* Enhanced Logo with hover animation */}
-                <div className="flex items-center gap-2 flex-shrink-0 group max-w-8xl">
+          <AppHeader
+            logoSrc="/logoGro.png"
+            title="Gro-Delivery"
+            showSearch
+            onSearch={(q) => updateFilter('searchTerm', q)}
+            initialSearch={filters.searchTerm}
+            actions={[
+              ...(user?._id ?
+                [
+                  { key: 'location', icon: <div className="hidden md:block"><LocationSelector /></div> },
+                  { key: 'notify', icon: <NotificationCenter location="home" /> }] : []),
+              { key: 'wishlist', href: '/wishlist', icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />, badgeCount: wishListsData ? wishListsData.length : 0 },
+              {
+                key: 'cart', icon: (
+                  <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
+                    <AddCardList
+                      cartItems={cartItems}
+                      removeFromCart={removeFromCart1}
+                      updateQuantity={(itemId: any, newQuantity: any) => {
+                        if (newQuantity === 0) {
+                          removeFromCart1(itemId);
+                        } else {
+                          const change = newQuantity - getCartQuantity({ id: itemId } as Product);
+                          updateQuantity1(itemId?.toString(), change);
+                        }
+                      }}
+                      getTotalPrice={getTotalPrice}
+                      setCartItems={setCartItems}
+                      cartOpen={cartOpen}
+                      setCartOpen={setCartOpen}
+                    />
+                  </div>
+                )
+              },
+              ...(user?._id ? [{
+                key: 'profile',
+                icon: (
                   <img
-                    src="./logoGro.png"
-                    className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                    alt="logo"
+                    src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                    alt="profile"
+                    className="w-8 h-8 rounded-full border border-border"
                   />
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary transition-all duration-300">
-                    Gro-Delivery
-                  </h1>
-                </div>
+                ),
+                onClick: () => setProfileMenuOpen(!profileMenuOpen)
+              }] : [])
+            ]}
+          />
 
-                {/* Enhanced Search Bar with suggestions */}
-                <div className="hidden md:flex items-center space-x-4 flex-1 max-w-6xl mx-0 relative" style={{ marginLeft: "140px" }}>
-                  <div className="relative flex-1 z-50">
-                    <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-primary' : 'text-muted-foreground'}` } />
-                    <input
-                      type="text"
-                      placeholder="Search products..."
-                      className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:outline-none ${searchFocused ? 'border-primary shadow-soft' : 'border-border'}`}
-                      value={filters.searchTerm}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        updateFilter('searchTerm', e.target.value)
-                      }
-                      onFocus={() => setSearchFocused(true)}
-                      onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
-                    />
-
-                    {/* Search Suggestions */}
-                    {searchFocused && searchSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-card shadow-soft-lg rounded-lg mt-1 border border-border z-50 max-h-60 overflow-y-auto">
-                        {searchSuggestions.map((suggestion, index) => (
-                          <div
-                            key={index}
-                            className="px-4 py-2 hover:bg-secondary cursor-pointer transition-colors duration-200"
-                            onClick={() => {
-                              updateFilter('searchTerm', suggestion);
-                              setSearchFocused(false);
-                            }}
-                          >
-                            {suggestion}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="z-50">
-                    <LocationSelector />
+          {/* Profile Dropdown */}
+          {profileMenuOpen && (
+            <div className="fixed right-4 top-16 z-50 bg-card border border-border shadow-soft-lg rounded-lg w-56">
+              <div className="p-3 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                    className="w-10 h-10 rounded-full border"
+                    alt="profile"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{(user as any)?.firstName+ " " +(user as any)?.lastName || 'Your Account'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{(user as any)?.email || ''}</p>
                   </div>
                 </div>
-
-
-
-
-                {/* Right side - Actions */}
-                <div className="flex items-center space-x-3">
-
-                  {/* Dynamic Notification Center */}
-                  {user?._id && <NotificationCenter location="home" />}
-                  {/* Enhanced Wishlist */}
-                  <button className="relative p-2 hover:bg-secondary rounded-lg transition-all duration-300 hover:scale-110 group">
-                    <Link href="/wishlist">
-                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-primary transition-colors duration-300" />
-                      {wishListsData&&wishListsData.length > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
-                          {wishListsData.length}
-                        </span>
-                      )}
-                    </Link>
-                  </button>
-
-
-                </div>
-
-
-                <div className="hidden sm:flex items-center relative">
-                  <div
-                    className="cursor-pointer group"
-                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  >
-                    <img
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-border group-hover:border-primary transition-all duration-300 group-hover:scale-110"
-                      src="https://picsum.photos/200"
-                      alt="profile"
-                    />
-                  </div>
-
-                  {/* Profile Dropdown */}
-                  {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-card shadow-soft-lg rounded-lg border border-border z-50 animate-in slide-in-from-top-5 duration-300">
-                      <div className="py-2">
-                        <button className="w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
-                          <User className="w-4 h-4" />
-                          <span>Profile</span>
-                        </button>
-                        <button onClick={() => router.push("/profile")} className="w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
-                          <Settings className="w-4 h-4" />
-                          <span>Settings</span>
-                        </button>
-                        <hr className="my-2" />
-                        <button onClick={handleLogout} className="w-full px-4 py-2 text-left hover:bg-secondary text-foreground transition-colors duration-200 flex items-center space-x-2">
-                          <LogOut className="w-4 h-4" />
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              </div>
+              <div className="py-1">
+                <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-secondary">Profile</Link>
+                <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm hover:bg-secondary">Logout</button>
               </div>
             </div>
+          )}
 
-            {/* Enhanced Mobile Search Bar */}
-            <div className="md:hidden mt-3">
-              <div className="relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-orange-600' : 'text-orange-400'
-                  }`} />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-orange-400 focus:outline-none ${searchFocused ? 'border-orange-500 shadow-lg' : 'border-orange-400'
-                    }`}
-                  value={filters.searchTerm}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFilter('searchTerm', e.target.value)
-                  }
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                />
-              </div>
-              <div className="mt-2">
-                <LocationSelector />
-              </div>
-            </div>
-          </header>
+          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 ">
+            <NotificationBanner location="home" />
+          </div>
 
-          {/* Navigation Filter */}
-          <div className="hidden md:block">
+          {/* Navigation Filter (sticky under header) */}
+          <div className="hidden md:block sticky top-20 z-40 backdrop-blur-md bg-background/90 border-b border-border">
             <NavbarFilter />
           </div>
-        </div>
 
 
-        <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          >
+          <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            >
 
-            <HeroSlider type="Home" />
+              <HeroSlider type="Home" />
+            </div>
+          </section>
+          <div className="max-w-8xl mx-auto px-6 py-6">
+            {categoriesLoading ? (
+              <>
+                <CategorySectionSkeleton />
+                <CategorySectionSkeleton />
+                <CategorySectionSkeleton />
+              </>
+            ) : categories && categories.length > 0 ? (
+              categories.map((section, idx) => (
+                // @ts-ignore
+                <CategorySection section={section} key={idx} />
+              ))
+            ) : (
+              <>
+                {categoriesError ? (
+                  <>
+                    <CategorySectionSkeleton />
+                    <div className="text-center text-gray-400 py-6">Unable to load categories right now.</div>
+                  </>
+                ) : (
+                  <div className="text-center text-gray-400 py-12">No categories available.</div>
+                )}
+              </>
+            )}
           </div>
-        </section>
-        <div className="max-w-8xl mx-auto px-6 py-6">
-          {categoriesLoading ? (
-            <>
-              <CategorySectionSkeleton />
-              <CategorySectionSkeleton />
-              <CategorySectionSkeleton />
-            </>
-          ) : categories && categories.length > 0 ? (
-            categories.map((section, idx) => (
-              // @ts-ignore
-              <CategorySection section={section} key={idx} />
-            ))
-          ) : (
-            <>
-              {categoriesError ? (
-                <>
-                  <CategorySectionSkeleton />
-                  <div className="text-center text-gray-400 py-6">Unable to load categories right now.</div>
-                </>
-              ) : (
-                <div className="text-center text-gray-400 py-12">No categories available.</div>
-              )}
-            </>
-          )}
-        </div>
 
-        {/* <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mt-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 text-white">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
@@ -387,67 +369,67 @@ const HomePage: React.FC = () => {
           </div>
         </div> */}
 
-        {/* Footer */}
-        <footer className="bg-gray-900 text-white mt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                    G
+          {/* Footer */}
+          <footer className="bg-gray-900 text-white mt-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                      G
+                    </div>
+                    <h3 className="text-xl font-bold">Gro-Delivery</h3>
                   </div>
-                  <h3 className="text-xl font-bold">Gro-Delivery</h3>
+                  <p className="text-gray-400 mb-4">
+                    Fresh groceries delivered to your doorstep. Quality products, quick delivery, happy customers.
+                  </p>
                 </div>
-                <p className="text-gray-400 mb-4">
-                  Fresh groceries delivered to your doorstep. Quality products, quick delivery, happy customers.
-                </p>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+                  <div className="space-y-2">
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">About Us</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Contact</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">FAQs</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Support</a>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Categories</h4>
+                  <div className="space-y-2">
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Fruits & Vegetables</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Dairy Products</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Snacks & Beverages</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Personal Care</a>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
+                  <div className="space-y-2 text-gray-400">
+                    <p>📞 +91 98765 43210</p>
+                    <p>📧 info@gro-delivery.com</p>
+                    <p>📍 Jaipur, Rajasthan</p>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-                <div className="space-y-2">
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">About Us</a>
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">Contact</a>
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">FAQs</a>
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">Support</a>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Categories</h4>
-                <div className="space-y-2">
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">Fruits & Vegetables</a>
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">Dairy Products</a>
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">Snacks & Beverages</a>
-                  <a href="#" className="block text-gray-400 hover:text-white transition-colors">Personal Care</a>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
-                <div className="space-y-2 text-gray-400">
-                  <p>📞 +91 98765 43210</p>
-                  <p>📧 info@gro-delivery.com</p>
-                  <p>📍 Jaipur, Rajasthan</p>
-                </div>
+              <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Gro-Delivery. All rights reserved.</p>
               </div>
             </div>
+          </footer>
 
-            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-              <p>&copy; 2024 Gro-Delivery. All rights reserved.</p>
-            </div>
-          </div>
-        </footer>
-
-        {/* Scroll to Top Button */}
-        {showScrollTop && (
-          <button
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 z-50 animate-bounce"
-          >
-            <ChevronUp className="w-6 h-6" />
-          </button>
-        )}
+          {/* Scroll to Top Button */}
+          {showScrollTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 z-50 animate-bounce"
+            >
+              <ChevronUp className="w-6 h-6" />
+            </button>
+          )}
         </div>
       </div>
     </>

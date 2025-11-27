@@ -120,6 +120,6 @@ export function useAuthStorage(result?: AuthResult) {
     }
   };
 
-  console.log("useAuthStorage userId:", localUserId);
+  console.log("useAuthStorage userId:", user);
   return { token, user, setToken, setUser, updateUser, logout ,userRole,checkcookies};
 }

@@ -107,10 +107,11 @@ export function formatProductResponse(product: any) {
     images: product.images || [],
     price: product.price,
     originalPrice: product.originalPrice || null,
-    category: product.category ? {
-      _id: product.category._id.toString(),
-      name: product.category.name
-    } : null,
+    category: product.category
+      ? (product.category._id
+          ? { ...product.category, _id: product.category._id.toString() }
+          : product.category)
+      : null,
     stock: product.stock || 0,
     inStock: product.inStock || false,
     brand: product.brand || '',
@@ -134,9 +135,6 @@ export function formatProductResponse(product: any) {
     status: product.status || 'active',
     createdAt: product.createdAt ? product.createdAt.toISOString() : new Date().toISOString(),
     updatedAt: product.updatedAt ? product.updatedAt.toISOString() : new Date().toISOString(),
-
-
-    
   };
 }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isEmailVerified, clearOTP } from '@/app/api/auth/otpStore';
+import { isEmailVerified, verifyOTP, clearOTP } from '@/app/api/auth/otpStore';
 
 import connectDB from '@/lib/mongodb';
 import User from '@/app/models/User'; // Your existing model
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 // POST - Create a new user
 export async function POST(request: NextRequest) {
   try {
-    const { firstName, lastName, email, password, phone, username } =
+    const { firstName, lastName, email, password, phone, username, otp } =
       await request.json();
 
     if (!firstName || !lastName || !email || !password) {
@@ -119,12 +119,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Require verified email via OTP
+    // Require verified email via OTP. If not verified yet but OTP provided, try inline verification.
     if (!isEmailVerified(email)) {
-      return NextResponse.json(
-        { success: false, message: 'Please verify your email before signup' },
-        { status: 400 }
-      );
+      const inlineOk = otp ? verifyOTP(email, otp) : false;
+      if (!inlineOk) {
+        return NextResponse.json(
+          { success: false, message: 'Please verify your email with a valid OTP' },
+          { status: 400 }
+        );
+      }
     }
 
     // Create user (password gets hashed automatically)

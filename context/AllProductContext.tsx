@@ -37,6 +37,7 @@ const ProductsProvider: React.FC<ProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (data?.success && data.data.products) {
+        console.log("datadatadatadatadata",data)
         // ✅ If API returns multiple products
         setProductsData(data.data.products);
       } else if (data?.success && data.data.products) {

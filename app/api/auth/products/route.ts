@@ -31,11 +31,11 @@ export async function GET(request: NextRequest) {
     // Execute queries in parallel
     const [products, total] = await Promise.all([
       Product.find(filter)
-        // .populate({ path: "Category", select: "name  _id" })
+        .populate({ path: 'category' })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean({ virtuals: true }),
       Product.countDocuments(filter),
     ]);
     const formattedProducts: ProductResponse[] = products.map((product) => ({
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     const product = await Product.create(validatedData);
-    await product.populate('category', 'name');
+    await product.populate('category');
 
     const formattedProduct = formatProductResponse(product);
     console.log('Formatted Product:', formattedProduct);

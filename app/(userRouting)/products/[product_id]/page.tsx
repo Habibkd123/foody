@@ -19,6 +19,7 @@ import AddCardList from "@/components/AddCards";
 import { CartItem, Product } from "@/types/global";
 import { Button } from "@/components/ui/button";
 import { useAuthStorage } from '@/hooks/useAuth';
+import AppHeader from "@/components/ui/AppHeader";
 
 const ProductPage = () => {
   const { product_id } = useParams();
@@ -380,87 +381,59 @@ const ProductPage = () => {
     } as React.CSSProperties
   };
   return (
-    <div className="sticky top-0 z-50 backdrop-blur-md bg-background/90 shadow-soft border-b border-border ">
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/90  border-b border-border transition-all duration-300">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between">
-
-            {/* --- LOGO --- */}
-            <div className="flex items-center gap-3 group cursor-pointer">
-              <img
-                src="/logoGro.png"
-                alt="Gro Delivery Logo"
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-              />
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-dark tracking-tight transition-colors duration-300">
-                Gro-Delivery
-              </h1>
-            </div>
-
-            {/* --- RIGHT ICONS --- */}
-            <div className="flex items-center space-x-3 sm:space-x-5">
-
-              {/* Wishlist */}
-              <Link
-                href="/wishlist"
-                className="relative bg-dark/10 backdrop-blur-md p-2 rounded-xl hover:bg-dark/20 transition-all duration-300 hover:scale-110"
-              >
-                <Heart className="w-6 h-6 text-dark" />
-                {wishListsData && wishListsData.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-dark text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold animate-bounce">
-                    {wishListsData.length}
-                  </span>
-                )}
-              </Link>
-
-              {/* Cart */}
-              <div className="relative">
-                <div
-                  className={`transition-transform duration-300 ${cartAnimation ? "scale-110" : "scale-100"
-                    }`}
-                >
-                  <AddCardList
-                    cartItems={cartItems}
-                    removeFromCart={removeFromCart}
-                    updateQuantity={(itemId: any, newQuantity: any) => {
-                      if (newQuantity === 0) {
-                        removeFromCart(user?._id, itemId);
-                      } else {
-                        const change =
-                          newQuantity - getCartQuantity({ id: itemId } as Product);
-                        updateQuantity(user?._id, itemId?.toString(), change);
-                      }
-                    }}
-                    getTotalPrice={getTotalPrice}
-                    setCartItems={setCartItems}
-                    cartOpen={cartOpen}
-                    setCartOpen={setCartOpen}
-                  />
-                </div>
+    <div>
+      <AppHeader
+        logoSrc="/logoGro.png"
+        title="Gro-Delivery"
+        onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        actions={[
+          {
+            key: "wishlist",
+            href: "/wishlist",
+            icon: <Heart className="w-6 h-6 text-foreground" />,
+            badgeCount: wishListsData ? wishListsData.length : 0,
+          },
+          {
+            key: "cart",
+            icon: (
+              <div className={`transition-transform duration-300 ${cartAnimation ? "scale-110" : "scale-100"}`}>
+                <AddCardList
+                  cartItems={cartItems}
+                  removeFromCart={removeFromCart}
+                  updateQuantity={(itemId: any, newQuantity: any) => {
+                    if (newQuantity === 0) {
+                      removeFromCart(user?._id, itemId);
+                    } else {
+                      const change = newQuantity - getCartQuantity({ id: itemId } as Product);
+                      updateQuantity(user?._id, itemId?.toString(), change);
+                    }
+                  }}
+                  getTotalPrice={getTotalPrice}
+                  setCartItems={setCartItems}
+                  cartOpen={cartOpen}
+                  setCartOpen={setCartOpen}
+                />
               </div>
-
-              {/* Mobile Menu Button */}
+            ),
+          },
+          {
+            key: "menu",
+            icon: (
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white hover:bg-white/20 transition-all duration-300"
+                className="md:hidden text-foreground hover:bg-secondary transition-all duration-300"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 <div className="relative">
-                  <Menu
-                    className={`h-6 w-6 transition-all duration-300 ${mobileMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
-                      }`}
-                  />
-                  <X
-                    className={`h-6 w-6 absolute top-0 left-0 transition-all duration-300 ${mobileMenuOpen ? "rotate-0 opacity-100" : "rotate-90 opacity-0"
-                      }`}
-                  />
+                  <Menu className={`h-6 w-6 transition-all duration-300 ${mobileMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`} />
+                  <X className={`h-6 w-6 absolute top-0 left-0 transition-all duration-300 ${mobileMenuOpen ? "rotate-0 opacity-100" : "rotate-90 opacity-0"}`} />
                 </div>
               </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+            ),
+          },
+        ]}
+      />
 
       <div className="max-w-7xl mx-auto p-4">
         {/* Main Product Section */}

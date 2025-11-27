@@ -1,12 +1,13 @@
-
 "use client";
 
-import React, { useState, createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { useState, createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
+
 import NavbarFilter from "@/components/NavbarFilter";
 import ProductCardGrid from "@/components/ProductGrid";
 import SidebarFilters from "@/components/SidebarFilters";
 
 import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut } from 'lucide-react';
+// eslint-disable-next-line import/no-unresolved
 import { useFilterContext } from "@/context/FilterContext";
 import { useWishListContext } from "@/context/WishListsContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -22,6 +23,8 @@ import { Product } from "@/types/global";
 import { useAuthStorage } from '@/hooks/useAuth';
 import NotificationCenter from '@/components/NotificationCenter';
 import NotificationBanner from '@/components/NotificationBanner';
+import AppHeader from "@/components/ui/AppHeader";
+import { useSearchParams } from "next/navigation";
 
 // Type Definitions
 interface CartItem extends Product {
@@ -30,9 +33,12 @@ interface CartItem extends Product {
 
 const ProductGrid: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const { filters, updateFilter } = useFilterContext();
   const { wishListsData, setWistListsData, getUserWishList } = useWishListContext();
   const { productsData } = useProductsContext();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const { dispatch, state } = useOrder();
@@ -40,7 +46,6 @@ const ProductGrid: React.FC = () => {
   const { user, logout } = useAuthStorage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [filterAnimation, setFilterAnimation] = useState(false);
@@ -48,11 +53,92 @@ const ProductGrid: React.FC = () => {
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
 
+  // Helper: select a category by id and sync URL
+  const handleSelectCategory = useCallback((catId: string) => {
+    updateFilter('category', catId);
+    updateFilter('searchTerm', '');
+    try {
+      // Keep same path, just swap query category
+      const qs = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+      if (catId === 'all') {
+        qs.delete('category');
+      } else {
+        qs.set('category', catId);
+      }
+      const newUrl = `${typeof window !== 'undefined' ? window.location.pathname : '/productlist'}${qs.toString() ? `?${qs.toString()}` : ''}`;
+      // next/navigation router.replace accepts relative href
+      router.replace(newUrl as any);
+    } catch {}
+    // Small UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [router, updateFilter]);
+
+  // Helper: resolve a category value (id, slug, or name) to the canonical _id used in products
+  const resolveCategoryId = useCallback((val: string | undefined | null): string | null => {
+    if (!val) return null;
+    // If already an id present in keys, return as-is
+    const asIs = val as string;
+    // Try exact id match
+    const hasId = (productsData as any[]).some(p => (typeof p.category === 'string' ? p.category : p?.category?._id) === asIs);
+    if (hasId) return asIs;
+    // Try by slug or name
+    const found = (productsData as any[]).find(p => {
+      const cat = typeof p.category === 'string' ? null : p?.category;
+      return cat && (cat.slug === asIs || cat.name?.toLowerCase() === asIs.toLowerCase());
+    });
+    if (found) return typeof found.category === 'string' ? found.category : found.category?._id || null;
+    return null;
+  }, [productsData]);
+
+  // Category keys and human labels (use stable IDs, work with object or string category)
+  const categoryKeys = useMemo(
+    () => {
+      const ids = productsData.map((p: any) => (typeof p.category === 'string' ? p.category : p?.category?._id)).filter(Boolean);
+      return Array.from(new Set(ids));
+    },
+    [productsData]
+  );
+  const categoryLabelMap: Record<string, string> = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const p of productsData as any[]) {
+      const id = typeof p.category === 'string' ? p.category : p?.category?._id;
+      const label = p?.categoryName || p?.categoryLabel || p?.category?.name || String(id || '');
+      if (id && !map[id]) map[id] = label;
+    }
+    return map;
+  }, [productsData]);
+
+  const currentCategoryLabel = useMemo(
+    () => (filters.category === 'all' ? 'All' : (categoryLabelMap[filters.category] ?? filters.category)),
+    [filters.category, categoryLabelMap]
+  );
+
   useEffect(() => {
     if (user?._id) {
       getUserWishList(user?._id);
     }
   }, [user?._id]);
+
+  // Preselect category from query (?category=...) once (on initial 'all') - supports id, slug, or name
+  useEffect(() => {
+    const qpCategory = searchParams?.get('category');
+    if (qpCategory && filters.category === 'all') {
+      const id = resolveCategoryId(qpCategory);
+      if (id) {
+        updateFilter('category', id);
+      }
+    }
+  }, [searchParams, updateFilter, filters.category, resolveCategoryId]);
+
+  // Guard: if filters.category is not 'all' and not a known id, try to normalize it
+  useEffect(() => {
+    if (filters.category && filters.category !== 'all') {
+      const id = resolveCategoryId(filters.category);
+      if (id && id !== filters.category) {
+        updateFilter('category', id);
+      }
+    }
+  }, [filters.category, resolveCategoryId, updateFilter]);
 
   useEffect(() => {
     if (user?._id) {
@@ -73,11 +159,12 @@ const ProductGrid: React.FC = () => {
 
   useEffect(() => {
     if (filters.searchTerm && filters.searchTerm.length > 1) {
+      const q = filters.searchTerm.toLowerCase();
       const suggestions = productsData
-        .filter((product: Product) =>
-          product.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-          product.category.toLowerCase().includes(filters.searchTerm.toLowerCase())
-        )
+        .filter((product: any) => {
+          const catName = typeof product.category === 'string' ? product.category : product?.category?.name || '';
+          return product.name.toLowerCase().includes(q) || catName.toLowerCase().includes(q);
+        })
         .slice(0, 5)
         .map((product: Product) => product.name);
       setSearchSuggestions(suggestions);
@@ -86,11 +173,12 @@ const ProductGrid: React.FC = () => {
     }
   }, [filters.searchTerm, productsData]);
 
-  const filteredProducts: Product[] = productsData.filter((product: Product) => {
+  const filteredProducts: Product[] = productsData.filter((product: any) => {
     if (filters.searchTerm && !product.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
       return false;
     }
-    if (filters.category !== 'all' && product.category !== filters.category) {
+    const prodCatId = typeof product.category === 'string' ? product.category : product?.category?._id;
+    if (filters.category !== 'all' && prodCatId !== filters.category) {
       return false;
     }
     if (filters.priceRanges.length > 0) {
@@ -223,353 +311,268 @@ const ProductGrid: React.FC = () => {
         <AnnouncementBar />
       </div>
 
-      <div className="sticky top-0 z-50 backdrop-blur-md bg-background/90 shadow-soft border-b border-border">
-        <header className="transition-all duration-300">
-
-          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2 border-b-1">
-            <div className="flex items-center justify-between">
-              {/* Enhanced Logo with hover animation */}
-              <div className="flex items-center gap-2 flex-shrink-0 group">
-                <img
-                  src="./logoGro.png"
-                  className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                  alt="logo"
-                />
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary transition-all duration-300">
-                  Gro-Delivery
-                </h1>
-
-              </div>
-
-              {/* Enhanced Search Bar with suggestions */}
-              <div className="hidden md:flex items-center space-x-4 flex-1 max-w-2xl mx-0 relative" style={{ marginLeft: "140px" }}>
-                <div className="relative flex-1">
-                  <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:outline-none ${searchFocused ? 'border-primary shadow-soft' : 'border-border'}`}
-                    value={filters.searchTerm}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      updateFilter('searchTerm', e.target.value)
+      <AppHeader
+        logoSrc="/logoGro.png"
+        title="Gro-Delivery"
+        onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        showSearch
+        onSearch={(q) => updateFilter('searchTerm', q)}
+        searchPlaceholder="Search products..."
+        initialSearch={filters.searchTerm}
+        actions={[
+          ...(user?._id ? [
+            { key: 'location', icon: <div className="hidden md:block"><LocationSelector /></div> },
+            { key: 'notify', icon: <NotificationCenter location="products" /> }] : []),
+          { key: 'wishlist', href: '/wishlist', icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />, badgeCount: wishListsData ? wishListsData.length : 0 },
+          { key: 'cart', icon: (
+              <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
+                <AddCardList
+                  cartItems={cartItems}
+                  removeFromCart={removeFromCart1}
+                  updateQuantity={(itemId: any, newQuantity: any) => {
+                    if (newQuantity === 0) {
+                      removeFromCart1(itemId);
+                    } else {
+                      const change = newQuantity - getCartQuantity({ id: itemId } as Product);
+                      updateQuantity1(itemId?.toString(), change);
                     }
-                    onFocus={() => setSearchFocused(true)}
-                    onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
-                  />
-
-                  {/* Search Suggestions */}
-                  {searchFocused && searchSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 bg-card shadow-soft-lg rounded-lg mt-1 border border-border z-50 max-h-60 overflow-y-auto">
-                      {searchSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="px-4 py-2 hover:bg-secondary cursor-pointer transition-colors duration-200"
-                          onClick={() => {
-                            updateFilter('searchTerm', suggestion);
-                            setSearchFocused(false);
-                          }}
-                        >
-                          {suggestion}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="z-50">
-                  <LocationSelector />
-                </div>
-              </div>
-
-              {/* Enhanced Right side icons */}
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Dynamic Notification Center */}
-                {user?._id && <NotificationCenter location="products" />}
-
-                {/* Enhanced Wishlist */}
-                <button className="relative p-2 hover:bg-secondary rounded-lg transition-all duration-300 hover:scale-110 group">
-                  <Link href="/wishlist">
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary group-hover:text-primary transition-colors duration-300" />
-                    {wishListsData && wishListsData.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full animate-bounce">
-                        {wishListsData.length}
-                      </span>
-                    )}
-                  </Link>
-                </button>
-
-                {/* Enhanced Cart */}
-                <div className="flex items-center space-x-2 relative z-[120px]">
-                  <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
-                    <AddCardList
-                      cartItems={cartItems}
-                      removeFromCart={removeFromCart1}
-                      updateQuantity={(itemId: any, newQuantity: any) => {
-                        if (newQuantity === 0) {
-                          removeFromCart1(itemId);
-                        } else {
-                          const change = newQuantity - getCartQuantity({ id: itemId } as Product);
-                          updateQuantity1(itemId?.toString(), change);
-                        }
-                      }}
-                      getTotalPrice={getTotalPrice}
-                      setCartItems={setCartItems}
-                      cartOpen={cartOpen}
-                      setCartOpen={setCartOpen}
-                    />
-                  </div>
-
-                  {/* Enhanced Mobile Menu Button */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="md:hidden text-gray-700 hover:bg-secondary transition-all duration-300"
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  >
-                    <div className="relative">
-                      <Menu className={`h-5 w-5 transition-all duration-300 ${mobileMenuOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`} />
-                      <X className={`h-5 w-5 absolute top-0 left-0 transition-all duration-300 ${mobileMenuOpen ? 'rotate-0 opacity-100' : 'rotate-90 opacity-0'}`} />
-                    </div>
-                  </Button>
-                </div>
-
-                {/* Enhanced Profile with dropdown */}
-                <div className="hidden sm:flex items-center relative">
-                  <div
-                    className="cursor-pointer group"
-                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  >
-                    <img
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-border group-hover:border-primary transition-all duration-300 group-hover:scale-110"
-                      src="https://picsum.photos/200"
-                      alt="profile"
-                    />
-
-                  </div>
-
-                  {/* Profile Dropdown */}
-                  {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-card shadow-soft-lg rounded-lg border border-border z-[100] animate-in slide-in-from-top-5 duration-300 ease-in-out text-foreground">
-                      <div className="py-2">
-                        <Link href="/profile">
-                          <button className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
-                            <User className="w-4 h-4" />
-                            <span>Profile</span>
-                          </button>
-                        </Link>
-                        <Link href="/profile">
-                          <button onClick={() => router.push("/profile")} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-secondary transition-colors duration-200 flex items-center space-x-2">
-                            <Settings className="w-4 h-4" />
-                            <span>Settings</span>
-                          </button>
-                        </Link>
-                        <hr className="my-2" />
-                        <button onClick={handleLogout} className=" cursor-pointer w-full px-4 py-2 text-left hover:bg-secondary text-foreground transition-colors duration-200 flex items-center space-x-2">
-                          <LogOut className="w-4 h-4" />
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced Mobile Search Bar */}
-            <div className="md:hidden mt-3">
-              <div className="relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none transition-colors duration-300 ${searchFocused ? 'text-primary' : 'text-muted-foreground'}`} />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className={`pl-10 pr-4 w-full py-2 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:outline-none ${searchFocused ? 'border-primary shadow-soft' : 'border-border'}`}
-                  value={filters.searchTerm}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFilter('searchTerm', e.target.value)
-                  }
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+                  }}
+                  getTotalPrice={getTotalPrice}
+                  setCartItems={setCartItems}
+                  cartOpen={cartOpen}
+                  setCartOpen={setCartOpen}
                 />
-
               </div>
-              <div className="mt-2">
-                <LocationSelector />
-              </div>
-            </div>
-            {/* Notification Banner for products */}
-            <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
-              <NotificationBanner location="products" />
-            </div>
+            )},
+          ...(user?._id ? [{
+            key: 'profile',
+            icon: (
+              <img
+                src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                alt="profile"
+                className="w-8 h-8 rounded-full border border-border"
+              />
+            ),
+            onClick: () => setProfileMenuOpen(!profileMenuOpen)
+          }] : [])
+        ]}
+      />
 
-            {/* Navigation Filter */}
-            <div className="hidden md:block">
-              <NavbarFilter />
-            </div>
-          </div>
-        </header>
-
-          {/* Enhanced Mobile Menu Overlay */}
-          {mobileMenuOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden animate-in fade-in duration-300">
-              <div className="fixed right-0 top-0 h-full w-80 bg-card shadow-soft overflow-y-auto animate-in slide-in-from-right duration-400">
-                <div className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Menu</h2>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="hover:bg-secondary transition-colors duration-300"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
-
-                  {/* Enhanced Profile in mobile menu */}
-                  <div className="flex items-center space-x-3 mb-6 p-3 bg-secondary rounded-lg shadow-soft hover:shadow-soft-lg transition-shadow duration-300" onClick={() => router.push('/profile')}>
-                    <img className="w-10 h-10 rounded-full border-2 border-border" src="https://picsum.photos/200" alt="profile" />
-                    <div>
-                      <p className="font-medium">Your Account</p>
-                      <p className="text-sm text-gray-600">Manage your profile</p>
-                    </div>
-                  </div>
-
-                  {/* Mobile Filters */}
-                  <div className="mt-6">
-                    <SidebarFilters />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Loading Overlay */}
-          {isLoading && (
-            <div className="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading fresh products...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Main Content */}
-          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
-            <div className="flex gap-2 lg:gap-6">
-              {/* Desktop Sidebar Filters */}
-              <div className="hidden lg:block">
-                <SidebarFilters productsData={productsData} />
-              </div>
-
-              {/* Products Grid */}
-              <div className="flex-1">
-                {/* Enhanced Header with animations */}
-                <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="space-y-2">
-                    <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'}`}>
-                      Fresh Groceries
-                      {/* ({filteredProducts.length} products) */}
-                    </h2>
-                    {filteredProducts.length === 0 && (
-                      <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
-                    )}
-                  </div>
-
-                  {/* Enhanced Filter tags */}
-                  <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                    {(filters.category !== 'all' || filters.priceRanges.length > 0 || filters.ratings.length > 0) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={clearAllFilters}
-                        className="hover:bg-secondary hover:border-primary transition-all duration-300"
-                      >
-                        Clear All
-                      </Button>
-                    )}
-
-                    {filters.category !== 'all' && (
-                      <span className="bg-secondary text-foreground px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300">
-                        Category: {filters.category}
-                      </span>
-                    )}
-                    {filters.priceRanges.length > 0 && (
-                      <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-100">
-                        Price filters applied
-                      </span>
-                    )}
-                    {filters.ratings.length > 0 && (
-                      <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-200">
-                        Rating filters applied
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Enhanced Mobile Filter Button */}
-                <div className="lg:hidden mb-4">
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto hover:bg-secondary hover:border-primary transition-all duration-300 hover:shadow-md"
-                    onClick={() => setMobileMenuOpen(true)}
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filters & Categories
-                  </Button>
-                </div>
-
-                {/* Product Grid with enhanced loading state */}
-                <div className={`transition-all duration-500 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
-                  {user?._id && recommendations.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg sm:text-xl font-semibold mb-3">Recommended for you</h3>
-                      <ProductCardGrid
-                        isLoading={false}
-                        isInCart={isInCart}
-                        getCartQuantity={getCartQuantity}
-                        productLists={recommendations}
-                        onAddToCart={handleAddToCart}
-                        onToggleWishlist={toggleWishlist}
-                      />
-                    </div>
-                  )}
-                  <ProductCardGrid
-                    isLoading={isLoading}
-                    isInCart={isInCart}
-                    getCartQuantity={getCartQuantity}
-                    productLists={filteredProducts}
-                    onAddToCart={handleAddToCart}
-                    onToggleWishlist={toggleWishlist}
-
-                  />
-                </div>
+      {/* Profile Dropdown */}
+      {profileMenuOpen && (
+        <div className="fixed right-4 top-16 z-50 bg-card border border-border shadow-soft-lg rounded-lg w-56">
+          <div className="p-3 border-b border-border">
+            <div className="flex items-center gap-3">
+              <img
+                src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                className="w-10 h-10 rounded-full border"
+                alt="profile"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{(((user as any)?.firstName || '') + ' ' + ((user as any)?.lastName || '')).trim() || (user as any)?.name || 'Your Account'}</p>
+                <p className="text-xs text-muted-foreground truncate">{(user as any)?.email || ''}</p>
               </div>
             </div>
           </div>
+          <div className="py-1">
+            <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-secondary">Profile</Link>
+            <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm hover:bg-secondary">Logout</button>
+          </div>
+        </div>
+      )}
 
-          {/* Scroll to Top Button */}
-          {showScrollTop && (
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 md:hidden animate-in fade-in duration-300">
+          <div className="fixed right-0 top-0 h-full w-80 bg-card shadow-soft overflow-y-auto animate-in slide-in-from-right duration-400">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Menu</h2>
+                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)} className="hover:bg-secondary transition-colors duration-300">
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              <div className="flex items-center space-x-3 mb-6 p-3 bg-secondary rounded-lg shadow-soft hover:shadow-soft-lg transition-shadow duration-300" onClick={() => router.push('/profile')}>
+                <img className="w-10 h-10 rounded-full border-2 border-border" src="https://picsum.photos/200" alt="profile" />
+                <div>
+                  <p className="font-medium">{(user as any)?.fullName || 'Your Account'}</p>
+                  <p className="text-sm text-gray-600">Manage your profile</p>
+                </div>
+              </div>
+              <div className="mt-6">
+                <SidebarFilters />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+        <NotificationBanner location="products" />
+      </div>
+
+      {/* Top Category Pills */}
+      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+          {categoryKeys.map((cat: string) => (
             <button
-              onClick={scrollToTop}
-              className="fixed bottom-6 right-6 bg-primary text-primary-foreground p-3 rounded-full shadow-soft hover:shadow-soft-lg transition-all duration-300 hover:scale-110 z-40 animate-in slide-in-from-bottom duration-300"
+              key={cat}
+              onClick={() => handleSelectCategory(cat)}
+              className={`px-3 py-1 rounded-full border ${filters.category === cat ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-foreground border-border'} whitespace-nowrap hover:shadow-soft transition`}
             >
-              <ChevronUp className="w-6 h-6" />
+              {categoryLabelMap[cat]}
+            </button>
+          ))}
+          {filters.category !== 'all' && (
+            <button
+              onClick={() => handleSelectCategory('all')}
+              className={`px-3 py-1 rounded-full border bg-secondary text-foreground border-border whitespace-nowrap hover:shadow-soft transition`}
+            >
+              All
             </button>
           )}
+        </div>
+      </div>
 
-          {/* Quick Actions Floating Menu */}
-          <div className="fixed bottom-20 right-6 space-y-3 z-30">
-            {/* Quick Cart Access */}
-            {cartItems.length > 0 && (
-              <button
-                onClick={() => setCartOpen(true)}
-                className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-bounce"
-              >
-                <ShoppingCart className="w-5 h-5" />
-              </button>
-            )}
+      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+        <div className="flex gap-2 lg:gap-6">
+          <div className="hidden lg:block">
+            <SidebarFilters productsData={productsData} />
           </div>
 
+          <div className="flex-1">
+            <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-2">
+                <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'}`}>
+                  Fresh Groceries
+                </h2>
+                {filteredProducts.length === 0 && (
+                  <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                {(filters.category !== 'all' || filters.priceRanges.length > 0 || filters.ratings.length > 0) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="hover:bg-secondary hover:border-primary transition-all duration-300"
+                  >
+                    Clear All
+                  </Button>
+                )}
+
+                {filters.category !== 'all' && (
+                  <span className="bg-secondary text-foreground px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300">
+                    Category: {currentCategoryLabel}
+                  </span>
+                )}
+                {filters.priceRanges.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-100">
+                    Price filters applied
+                  </span>
+                )}
+                {filters.ratings.length > 0 && (
+                  <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm animate-in slide-in-from-left duration-300 delay-200">
+                    Rating filters applied
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:hidden mb-4">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto hover:bg-secondary hover:border-primary transition-all duration-300 hover:shadow-md"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters & Categories
+              </Button>
+            </div>
+
+            <div className={`transition-all duration-500 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+              {user?._id && recommendations.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-3">Recommended for you</h3>
+                  <ProductCardGrid
+                    isLoading={false}
+                    isInCart={isInCart}
+                    getCartQuantity={getCartQuantity}
+                    productLists={recommendations}
+                    onAddToCart={handleAddToCart}
+                    onToggleWishlist={toggleWishlist}
+                  />
+                </div>
+              )}
+              <ProductCardGrid
+                isLoading={isLoading}
+                isInCart={isInCart}
+                getCartQuantity={getCartQuantity}
+                productLists={filteredProducts}
+                onAddToCart={handleAddToCart}
+                onToggleWishlist={toggleWishlist}
+              />
+
+              {/* More Categories Preview */}
+              {filters.category !== 'all' && (
+                <div className="mt-8 space-y-8">
+                  {categoryKeys
+                    .filter((cat: string) => cat !== filters.category)
+                    .map((cat: string) => {
+                      const sample = (productsData as any[])
+                        .filter((p: any) => (typeof p.category === 'string' ? p.category : p?.category?._id) === cat)
+                        .slice(0, 6);
+                      if (sample.length === 0) return null;
+                      return (
+                        <div key={cat}>
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg sm:text-xl font-semibold">{categoryLabelMap[cat]}</h3>
+                            <button
+                              onClick={() => handleSelectCategory(cat)}
+                              className="text-primary text-sm hover:underline"
+                            >
+                              View All
+                            </button>
+                          </div>
+                          <ProductCardGrid
+                            isLoading={false}
+                            isInCart={isInCart}
+                            getCartQuantity={getCartQuantity}
+                            productLists={sample}
+                            onAddToCart={handleAddToCart}
+                            onToggleWishlist={toggleWishlist}
+                          />
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 bg-primary text-primary-foreground p-3 rounded-full shadow-soft hover:shadow-soft-lg transition-all duration-300 hover:scale-110 z-40 animate-in slide-in-from-bottom duration-300"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Quick Actions Floating Menu */}
+      <div className="fixed bottom-20 right-6 space-y-3 z-30">
+        {cartItems.length > 0 && (
+          <button
+            onClick={() => setCartOpen(true)}
+            className="bg-green-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-bounce"
+          >
+            <ShoppingCart className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Background click handler for dropdowns */}
