@@ -157,117 +157,55 @@ export default function ProductPage() {
                 setPageLoading(false);
             }
         };
-        // const fetchProductData = async (ids:string|undefined) => {
-        //     try {
-        //         setError(null);
-
-        //         // Fetch categories
-        //         const categoriesResponse = await fetch('/api/auth/products/' + ids);
-        //         if (!categoriesResponse.ok) {
-        //             throw new Error('Failed to fetch categories');
-        //         }
-
-        //         const categoriesData = await categoriesResponse.json();
-        //         console.log('Categories:', categoriesData);
-        //         setCategories(categoriesData.data?.categories || categoriesData.categories || []);
-
-        //         // If editing, fetch product data
-        //         if (isEditMode && id) {
-        //             const productResponse = await fetch(`/api/auth/products/${id}`);
-        //             if (!productResponse.ok) {
-        //                 throw new Error('Failed to fetch product');
-        //             }
-
-        //             const productData = await productResponse.json();
-
-        //             // Handle different response structures
-        //             const product = productData.data || productData;
-        //             setFormData({
-        //                 name: product.name || '',
-        //                 description: product.description || '',
-        //                 category: product.category?._id || product.category || '',
-        //                 sku: product.sku || '',
-        //                 brand: product.brand || '',
-        //                 price: product.price || 0,
-        //                 originalPrice: product.originalPrice || 0,
-        //                 stock: product.stock || 0,
-        //                 inStock: product.inStock !== undefined ? product.inStock : true,
-        //                 weight: product.weight || '',
-        //                 dimensions: product.dimensions || '',
-        //                 tags: product.tags || [],
-        //                 features: product.features || [],
-        //                 specifications: product.specifications || {},
-        //                 nutritionalInfo: product.nutritionalInfo || {},
-        //                 deliveryInfo: {
-        //                     freeDelivery: product.deliveryInfo?.freeDelivery || false,
-        //                     estimatedDays: product.deliveryInfo?.estimatedDays || '2-3 days',
-        //                     expressAvailable: product.deliveryInfo?.expressAvailable || false,
-        //                     expressDays: product.deliveryInfo?.expressDays || ''
-        //                 },
-        //                 warranty: product.warranty || '',
-        //                 warrantyPeriod: product.warrantyPeriod || '',
-        //                 status: product.status || 'active',
-        //                 images: product.images || []
-        //             });
-        //         }
-        //     } catch (error) {
-        //         console.error('Error fetching data:', error);
-        //         setError(error instanceof Error ? error.message : 'Failed to load data');
-        //     } finally {
-        //         setPageLoading(false);
-        //     }
-        // };
-        // if (id) {
-        //     fetchProductData(id)
         fetchData();
     }, [id, isEditMode]);
 
     // Fetch external products using Google Custom Search (via our API route)
-  const searchOnlineProducts = async (q: string) => {
-  const query =
-    q?.trim()?.length > 0 ? q.trim() : "indian sweets OR indian masala";
+    const searchOnlineProducts = async (q: string) => {
+        const query =
+            q?.trim()?.length > 0 ? q.trim() : "indian sweets OR indian masala";
 
-  try {
-    setOnlineLoading(true);
-    setOnlineResults([]);
+        try {
+            setOnlineLoading(true);
+            setOnlineResults([]);
 
-    const res = await fetch(
-      `/api/google-search?q=${encodeURIComponent(query)}`
-    );
+            const res = await fetch(
+                `/api/google-search?q=${encodeURIComponent(query)}`
+            );
 
-    if (!res.ok) throw new Error("Google Search API failed");
+            if (!res.ok) throw new Error("Google Search API failed");
 
-    const data = await res.json();
-    const items = Array.isArray(data?.items) ? data.items : [];
+            const data = await res.json();
+            const items = Array.isArray(data?.items) ? data.items : [];
 
-    const mappedResults = items
-      .map((item: any, index: number) => {
-        const thumb =
-          item?.pagemap?.cse_thumbnail?.[0]?.src ||
-          item?.pagemap?.cse_image?.[0]?.src;
+            const mappedResults = items
+                .map((item: any, index: number) => {
+                    const thumb =
+                        item?.pagemap?.cse_thumbnail?.[0]?.src ||
+                        item?.pagemap?.cse_image?.[0]?.src;
 
-        return {
-          id: item?.cacheId || item?.link || index,
-          title: item?.title || "Result",
-          description: item?.snippet || "",
-          thumbnail: thumb,
-          images: thumb ? [thumb] : [],
-          price: null, // google does not send price
-          category: "online",
-          link: item?.link || "",
-        };
-      })
-      .filter((r:any) => r.title || r.description);
+                    return {
+                        id: item?.cacheId || item?.link || index,
+                        title: item?.title || "Result",
+                        description: item?.snippet || "",
+                        thumbnail: thumb,
+                        images: thumb ? [thumb] : [],
+                        price: null, // google does not send price
+                        category: "online",
+                        link: item?.link || "",
+                    };
+                })
+                .filter((r: any) => r.title || r.description);
 
-    // 🔥 finally setting into your state
-    setOnlineResults(mappedResults);
-  } catch (error) {
-    console.error("online search failed", error);
-    setOnlineResults([]);
-  } finally {
-    setOnlineLoading(false);
-  }
-};
+            // 🔥 finally setting into your state
+            setOnlineResults(mappedResults);
+        } catch (error) {
+            console.error("online search failed", error);
+            setOnlineResults([]);
+        } finally {
+            setOnlineLoading(false);
+        }
+    };
 
 
     // Infer category ID from text (title/description) and available categories
@@ -626,7 +564,7 @@ export default function ProductPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-padding pb-24">
             {/* Header */}
             <div className="sticky top-0 z-30 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -660,7 +598,7 @@ export default function ProductPage() {
             )}
 
             {/* Form Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="app-container py-4">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
                     <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-8 text-black dark:text-gray-100">
                         {/* Import from Online */}
@@ -1318,26 +1256,28 @@ export default function ProductPage() {
                             {/* {/* </div> */}
                         </div>
                         {/* Form Actions */}
-                        <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-                            <button
-                                type="button"
-                                onClick={handleCancel}
-                                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading || uploadingImages}
-                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {loading
-                                    ? 'Saving...'
-                                    : isEditMode
-                                        ? 'Update Product'
-                                        : 'Create Product'
-                                }
-                            </button>
+                        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-t border-gray-200 px-4 py-3 md:static md:bg-transparent md:backdrop-blur-0 md:px-0 md:py-0 md:flex md:justify-end md:gap-4 md:pt-6">
+                            <div className="app-container md:p-0 md:m-0 md:max-w-none flex gap-3 md:gap-4">
+                                <button
+                                    type="button"
+                                    onClick={handleCancel}
+                                    className="w-full md:w-auto px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading || uploadingImages}
+                                    className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {loading
+                                        ? 'Saving...'
+                                        : isEditMode
+                                            ? 'Update Product'
+                                            : 'Create Product'
+                                    }
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

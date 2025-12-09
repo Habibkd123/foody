@@ -168,7 +168,7 @@ const ProductPage = () => {
   // NOW we can do conditional returns AFTER all hooks are declared
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto p-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -358,7 +358,9 @@ const ProductPage = () => {
       position: 'relative',
       overflow: 'hidden',
       cursor: 'zoom-in',
-      height: '500px',
+      // Use viewport-based height for better responsiveness on small screens,
+      // while keeping a sensible max height for larger displays.
+      height: 'min(70vw, 500px)',
       borderRadius: '0.75rem',
     } as React.CSSProperties,
 
@@ -435,7 +437,7 @@ const ProductPage = () => {
         ]}
       />
 
-      <div className="max-w-7xl mx-auto p-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Images */}
@@ -723,7 +725,7 @@ const ProductPage = () => {
 
         {/* Tabs Section */}
         <div className="border-b mb-6">
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-6 overflow-x-auto whitespace-nowrap">
             {['description', 'specifications', 'nutrition', 'reviews'].map((tab) => (
               <button
                 key={tab}

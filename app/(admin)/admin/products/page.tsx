@@ -143,10 +143,12 @@ const ProductManagement = () => {
         </div>
 
         {/* Header Actions */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+        <div className="flex flex-col bs-lg:flex-row justify-between items-start bs-lg:items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-full sm:max-w-md">
+
               <input
                 type="text"
                 placeholder="Search products..."
@@ -170,7 +172,8 @@ const ProductManagement = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 sm:gap-3">
+
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -196,14 +199,16 @@ const ProductManagement = () => {
             </div>
           </div>
 
-          <button onClick={()=>router.push('/admin/products/add')} className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+          <button onClick={()=>router.push('/admin/products/add')} className="inline-flex items-center px-4 py-2 bs-md:px-5 bs-md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+
             <PlusIcon className="w-5 h-5 mr-2" />
             Add Product
           </button>
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 bs-lg:grid-cols-3 xl:grid-cols-4 bs-2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
+
           {products.map((product: any, index: any) => {
             const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
             return (

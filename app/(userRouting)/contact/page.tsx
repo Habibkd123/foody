@@ -30,9 +30,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Contact Us</h1>
-      <form onSubmit={submit} className="space-y-4">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-10">
+      <div className="max-w-xl mx-auto px-4 sm:px-6">
+        <h1 className="text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6">Contact Us</h1>
+        <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Name</label>
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -49,11 +50,12 @@ export default function ContactPage() {
           <label className="block text-sm font-medium mb-1">Message</label>
           <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required />
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button type="submit">Send Message</Button>
         </div>
-      </form>
-      {status && <p className="mt-4 text-sm text-gray-700">{status}</p>}
+        </form>
+        {status && <p className="mt-4 text-sm text-gray-700">{status}</p>}
+      </div>
     </div>
   );
 }

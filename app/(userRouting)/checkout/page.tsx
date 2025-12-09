@@ -98,20 +98,20 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-4 sm:px-6 py-6 sm:py-10">
       {/* ✅ HEADER */}
-      <header className="flex justify-between bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 items-center bg-white shadow-sm px-6 py-4 rounded-2xl mb-10">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-sm px-4 sm:px-6 py-4 rounded-2xl mb-8 sm:mb-10">
          <div className="flex items-center gap-2 group">
             <img
               src="/logoGro.png"
               className="w-10 h-10 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
               alt="logo"
             />
-            <h1 className="text-2xl font-bold bg-clip-text ">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text">
               Gro-Delivery
             </h1>
           </div>
-        <div className="text-gray-600 text-sm">
+        <div className="text-white/90 text-sm sm:text-base">
           <span className="font-semibold">Need help?</span> support@gostay.com
         </div>
       </header>
@@ -121,12 +121,12 @@ export default function CheckoutPage() {
         <NotificationBanner location="checkout" />
       </div>
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Secure Checkout</h1>
-          <p className="text-gray-600">Choose your preferred payment method</p>
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Secure Checkout</h2>
+          <p className="text-gray-600 text-sm sm:text-base">Choose your preferred payment method</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {gateway === 'stripe' ? (
             clientSecret ? (
               <Elements stripe={stripePromise} options={options}>

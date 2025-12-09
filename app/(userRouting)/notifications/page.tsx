@@ -135,11 +135,11 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !readNotifications.includes(n._id)).length
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 sm:py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                 <Bell className="w-6 h-6 text-white" />
@@ -151,7 +151,7 @@ export default function NotificationsPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
               {unreadCount > 0 && (
                 <Button
                   onClick={markAllAsRead}
@@ -169,7 +169,7 @@ export default function NotificationsPage() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}

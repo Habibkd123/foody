@@ -119,7 +119,9 @@ export function middleware(request: NextRequest) {
       "/admin/settings",
       "/admin/users",
       "/admin/notifications",
-    ],
+      "/admin/sales",
+      "/admin/test"
+    ],  
     user: [
       "/add-address",
       "/checkout",
@@ -139,6 +141,7 @@ export function middleware(request: NextRequest) {
 
   const allowedRoutes = roleRoutes[userRole || ""] || [];
   const hasAccess = allowedRoutes.some((route) => path.startsWith(route));
+
   
   // Restrict access for unauthorized roles
   if (!hasAccess) {

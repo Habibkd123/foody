@@ -334,7 +334,8 @@ const ProductGrid: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
+
       {/* Enhanced Header with animations */}
       <div className='sticky top-0 z-40'>
         <AnnouncementBar />
@@ -435,12 +436,12 @@ const ProductGrid: React.FC = () => {
         </div>
       )}
 
-      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <NotificationBanner location="products" />
       </div>
 
       {/* Top Category Pills */}
-      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
           {categoryKeys.map((cat: string) => (
             <button
@@ -462,7 +463,7 @@ const ProductGrid: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex gap-2 lg:gap-6">
           <div className="hidden lg:block">
             <SidebarFilters productsData={productsData} />

@@ -29,12 +29,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="flex h-screen">
+      <div className="flex min-h-screen">
         <Sidebar />
         <div className={`flex-1 flex flex-col transition-all duration-300 ${!isMobile ? (isExpanded ? 'lg:ml-64' : 'lg:ml-16') : ''}`}>
           {showHeader && <Header />}
           <div className="flex-1 overflow-auto">
-            {children}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
+              {children}
+            </div>
           </div>
         </div>
         <style jsx global>{`

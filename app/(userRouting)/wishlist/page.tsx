@@ -277,7 +277,7 @@ useEffect(() => {
       <div className="sticky top-0 z-50">
         <header className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-shrink-0">
                 <img
                   src="./logoGro.png"
@@ -302,7 +302,6 @@ useEffect(() => {
                     onChange={(e) => updateFilter('searchTerm', e.target.value)}
                   />
                 </div>
-
               </div>
 
               {/* Enhanced Action Buttons */}
@@ -342,7 +341,7 @@ useEffect(() => {
             </div>
 
             {/* Mobile Search */}
-            <div className="md:hidden mt-3">
+            <div className="md:hidden mt-3 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-primary w-5 h-5" />
                 <input
@@ -354,7 +353,7 @@ useEffect(() => {
                 />
               </div>
 
-              <div className="mt-2">
+              <div>
                 <LocationSelector />
               </div>
             </div>
@@ -363,8 +362,8 @@ useEffect(() => {
 
         {/* Enhanced Controls Bar */}
         <div className="bg-white border-b px-4 py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="max-w-7xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center space-x-4 flex-wrap gap-2">
               {/* Bulk Actions */}
               {selectedItems.length > 0 && (
                 <div className="flex items-center space-x-2 bg-secondary px-3 py-2 rounded-lg">
@@ -403,7 +402,7 @@ useEffect(() => {
               </Button>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 flex-wrap gap-2 justify-end">
               {/* Sort Controls */}
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Sort by:</span>
@@ -509,8 +508,7 @@ useEffect(() => {
             <p className="text-gray-600 mb-6">
               {filters.searchTerm
                 ? 'Try adjusting your search or filters'
-                : 'Start adding products to your wishlist to see them here'
-              }
+                : 'Start adding products to your wishlist to see them here'}
             </p>
             <Button
               onClick={() => router.push('/productlist')}
@@ -520,11 +518,13 @@ useEffect(() => {
             </Button>
           </div>
         ) : (
-          <div className={
-            viewMode === 'grid'
-              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-              : "space-y-4"
-          }>
+          <div
+            className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
+                : 'space-y-4'
+            }
+          >
             {sortedAndFilteredProducts.map((product: any) => {
               const isSelected = selectedItems.includes(product.id);
               const inCart = isInCart(product.id);
@@ -534,8 +534,7 @@ useEffect(() => {
                 // Grid View
                 <div
                   key={product._id}
-                  className={`bg-white border rounded-lg shadow-soft hover:shadow-soft transition-all duration-200 overflow-hidden group relative ${isSelected ? 'ring-2 ring-primary' : ''
-                    }`}
+                  className={`bg-white border rounded-lg shadow-soft hover:shadow-soft transition-all duration-200 overflow-hidden group relative ${isSelected ? 'ring-2 ring-primary' : ''}`}
                 >
                   {/* Selection Checkbox */}
                   <div className="absolute top-2 left-2 z-10">
@@ -551,7 +550,6 @@ useEffect(() => {
                       }}
                       className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
-
                   </div>
 
                   {/* Product Image */}
@@ -563,11 +561,13 @@ useEffect(() => {
                         className="w-full h-full object-cover rounded"
                       />
                     </div>
-                    {product?.discount && product?.discount > 0 ? (<div className="absolute top-0 right-0">
-                      <div className="bg-secondary text-foreground text-xs font-medium px-2 py-1 rounded-bl-lg custom-corner">
-                        {product.discount}% OFF
+                    {product?.discount && product?.discount > 0 ? (
+                      <div className="absolute top-0 right-0">
+                        <div className="bg-secondary text-foreground text-xs font-medium px-2 py-1 rounded-bl-lg custom-corner">
+                          {product.discount}% OFF
+                        </div>
                       </div>
-                    </div>) : null}
+                    ) : null}
                   </Link>
 
                   {/* Remove from Wishlist */}
@@ -593,10 +593,11 @@ useEffect(() => {
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-3 h-3 ${i < Math.floor(product.rating || 0)
-                                ? 'text-yellow-400 fill-current'
-                                : 'text-gray-300'
-                                }`}
+                              className={`w-3 h-3 ${
+                                i < Math.floor(product.rating || 0)
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-300'
+                              }`}
                             />
                           ))}
                         </div>
@@ -664,8 +665,7 @@ useEffect(() => {
                 // List View
                 <div
                   key={product._id}
-                  className={`bg-white border rounded-lg shadow-soft hover:shadow-soft transition-all duration-200 p-4 ${isSelected ? 'ring-2 ring-primary' : ''
-                    }`}
+                  className={`bg-white border rounded-lg shadow-soft hover:shadow-soft transition-all duration-200 p-4 ${isSelected ? 'ring-2 ring-primary' : ''}`}
                 >
                   <div className="flex items-center space-x-4">
                     {/* Selection Checkbox */}
@@ -706,10 +706,11 @@ useEffect(() => {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${i < Math.floor(product.rating || 0)
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                                  }`}
+                                className={`w-4 h-4 ${
+                                  i < Math.floor(product.rating || 0)
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
                               />
                             ))}
                           </div>

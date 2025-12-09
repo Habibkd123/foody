@@ -66,7 +66,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           containerClassName,
         ].join(" ")}
         >
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             {/* Left: Menu + Logo/Title */}
             <div className="flex items-center gap-3 min-w-0">
               {onMenuClick && (
@@ -118,7 +118,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             )}
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
               {actions.map((action) => {
                 const content = (
                   <div className="relative">

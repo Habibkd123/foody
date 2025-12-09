@@ -286,7 +286,7 @@ const HomePage: React.FC = () => {
             </div>
           )}
 
-          <div className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 ">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
             <NotificationBanner location="home" />
           </div>
 
@@ -296,7 +296,10 @@ const HomePage: React.FC = () => {
           </div>
 
 
-          <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
+          <section
+            id="home"
+            className="relative min-h-[70vh] sm:h-[80vh] lg:h-screen flex items-center justify-center overflow-hidden"
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -305,7 +308,7 @@ const HomePage: React.FC = () => {
               <HeroSlider type="Home" />
             </div>
           </section>
-          <div className="max-w-8xl mx-auto px-6 py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {categoriesLoading ? (
               <>
                 <CategorySectionSkeleton />

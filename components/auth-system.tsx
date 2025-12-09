@@ -1,43 +1,13 @@
-// "use client"
-
-// import type React from "react"
-
-// import { useState, useEffect, use } from "react"
-// import { Mail, Phone, Eye, EyeOff, ArrowLeft, Check, X, Loader2, Shield, MapPin } from "lucide-react"
-// import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Checkbox } from "@/components/ui/checkbox"
-
-// interface AuthSystemProps {
-//   onClose: () => void
-//   onLoginSuccess: () => void
-// }
-
-// export default function AuthSystem({ onClose, onLoginSuccess }: AuthSystemProps) {
-//   const [currentStep, setCurrentStep] = useState<
-//     "login" | "signup" | "forgot-password" | "otp-verification" | "profile-setup"
-//   >("login")
-//   const [authMethod, setAuthMethod] = useState<"email" | "phone">("email")
-//   const [showPassword, setShowPassword] = useState(false)
-//   const [loading, setLoading] = useState(false)
-//   const [otpTimer, setOtpTimer] = useState(0)
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     phone: "",
-//     password: "",
-//     confirmPassword: "",
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Mail, Phone, Eye, EyeOff, ArrowLeft, Check, X, Loader2, Shield, MapPin } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Mail, Phone, Eye, EyeOff, Loader2, Shield, MapPin, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { useAuthStorage } from "@/hooks/useAuth"
 

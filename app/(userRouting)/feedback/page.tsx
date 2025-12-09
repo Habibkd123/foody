@@ -39,9 +39,10 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Order Feedback</h1>
-      <form onSubmit={submit} className="space-y-4">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-10">
+      <div className="max-w-xl mx-auto px-4 sm:px-6">
+        <h1 className="text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6">Order Feedback</h1>
+        <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Order ID (optional)</label>
           <Input value={form.orderId} onChange={(e) => setForm({ ...form, orderId: e.target.value })} placeholder="e.g. ORD_1234" />
@@ -58,11 +59,12 @@ export default function FeedbackPage() {
           <label className="block text-sm font-medium mb-1">Contact Email (optional)</label>
           <Input type="email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} placeholder="you@example.com" />
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button type="submit">Submit Feedback</Button>
         </div>
-      </form>
-      {status && <p className="mt-4 text-sm text-gray-700">{status}</p>}
+        </form>
+        {status && <p className="mt-4 text-sm text-gray-700">{status}</p>}
+      </div>
     </div>
   );
 }

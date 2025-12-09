@@ -83,8 +83,10 @@ export default function PaymentForm({ totalAmount }: PaymentFormProps) {
   };
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit}>
-      <PaymentElement id="payment-element" options={{ layout: "accordion" }} />
+    <form id="payment-form" onSubmit={handleSubmit} className="space-y-4">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
+        <PaymentElement id="payment-element" options={{ layout: "accordion" }} />
+      </div>
 
       <button
         disabled={isLoading || !stripe || !elements}
@@ -98,7 +100,14 @@ export default function PaymentForm({ totalAmount }: PaymentFormProps) {
         )}
       </button>
 
-      {message && <div id="payment-message">{message}</div>}
+      {message && (
+        <div
+          id="payment-message"
+          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+        >
+          {message}
+        </div>
+      )}
     </form>
   );
 }

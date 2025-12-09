@@ -53,12 +53,12 @@ export default function AddAddressPage() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:py-10 max-w-2xl mx-auto">
       {/* Back Arrow */}
       <button className="mb-4 text-orange-600">&larr; Back</button>
 
       {/* Header Location */}
-      <div className="flex items-start gap-2 mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-2 mb-2">
         <MapPin className="text-orange-600 mt-1" />
         <div>
           <h2 className="font-bold text-lg">{pinnedArea}</h2>

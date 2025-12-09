@@ -2,17 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Package, Truck, MapPin, CreditCard, Phone, Mail, Calendar, Clock, Edit, Printer, Download, MessageSquare, AlertCircle, CheckCircle, XCircle, RefreshCw, User, DollarSign, ShoppingBag } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 
-interface OrderItem {
-    id: string;
-    name: string;
-    sku: string;
-    image: string;
-    quantity: number;
-    price: number;
-    total: number;
-}
 
 interface Timeline {
     status: string;
@@ -155,49 +145,7 @@ const SingleOrderPage = () => {
 
 
     const timeline: Timeline[] = [
-        {
-            status: 'Order Placed',
-            date: 'Oct 5, 2024',
-            time: '10:30 AM',
-            description: 'Order has been placed successfully',
-            completed: true
-        },
-        {
-            status: 'Payment Confirmed',
-            date: 'Oct 5, 2024',
-            time: '10:31 AM',
-            description: 'Payment has been verified and confirmed',
-            completed: true
-        },
-        {
-            status: 'Processing',
-            date: 'Oct 5, 2024',
-            time: '11:00 AM',
-            description: 'Order is being prepared for shipment',
-            completed: orderStatus !== 'pending'
-        },
-        {
-            status: 'Shipped',
-            date: 'Oct 6, 2024',
-            time: '2:00 PM',
-            description: 'Package has been shipped',
-            completed: orderStatus === 'shipped' || orderStatus === 'delivered'
-        },
-        {
-            status: 'Out for Delivery',
-            date: 'Oct 7, 2024',
-            time: '9:00 AM',
-            description: 'Package is out for delivery',
-            completed: orderStatus === 'delivered'
-        },
-        {
-            status: 'Delivered',
-            date: 'Oct 7, 2024',
-            time: '3:00 PM',
-            description: 'Order has been delivered',
-            completed: orderStatus === 'delivered'
-        }
-    ];
+  ];
 
 
     const handleStatusChange = async (newStatus: string) => {
@@ -1736,8 +1684,8 @@ const SingleOrderPage = () => {
                                                 key={status.value}
                                                 onClick={() => handleStatusChange(status.value)}
                                                 className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm ${orderStatus === status.value
-                                                        ? `${status.color} text-white shadow-md`
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    ? `${status.color} text-white shadow-md`
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
                                                 {/* <Icon size={14} /> */}

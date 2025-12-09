@@ -224,7 +224,8 @@ const LatestSignupsTable = () => {
 
 // Main Dashboard Component
 const MainDashboard = ({ activeTab }: any) => (
-  <main className="p-6">
+  <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+
     {activeTab === 'dashboard' && (
       <div className="animate-fadeIn">
         <StatsGrid />

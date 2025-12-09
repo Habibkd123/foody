@@ -10,6 +10,25 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Responsive Grid Helpers */
+  .grid-auto {
+    @apply grid gap-3 sm:gap-4 md:gap-6;
+  }
+  .grid-2 {
+    @apply grid-auto grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  }
+  .grid-1 {
+    @apply grid-auto grid-cols-1 sm:grid-cols-2;
+  }
+
+  /* Safe mobile padding (for iPhone gesture bars) */
+  .safe-padding {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  .safe-bottom {
+    margin-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
 }
 
 @layer base {
@@ -48,6 +67,7 @@ body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -82,13 +102,59 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
+  /* Global Resets */
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 14px;
+  }
+
+  @media (min-width: 640px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  html, body {
+    overscroll-behavior: none;
+  }
+
+  /* Responsive Container */
+  .app-container {
+    @apply max-w-screen-xl mx-auto px-3 sm:px-5 md:px-8;
+  }
+
+  /* Typography Scale */
+  h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl font-semibold;
+  }
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl font-semibold;
+  }
+  h3 {
+    @apply text-lg sm:text-xl md:text-2xl font-medium;
+  }
+  p {
+    @apply text-sm sm:text-base leading-relaxed;
+  }
+
+  /* Button Classes */
+  .btn {
+    @apply py-2 px-4 text-sm sm:text-base rounded-lg font-medium;
+  }
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  .btn-outline {
+    @apply border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800;
   }
 }

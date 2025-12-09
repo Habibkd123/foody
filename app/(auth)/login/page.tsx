@@ -42,27 +42,8 @@ const page = () => {
 
 
   return (
-    <div>
-      {/* {showDashboard && 
-     <UserDashboard onClose={() => setShowDashboard(false)} />
-     } 
-          {showAuth && 
-          <AuthSystem onClose={() => setShowAuth(false)} onLoginSuccess={() => setShowDashboard(true)} />
-          }
-          {showAdminAuth && (
-            <AdminAuthSystem onClose={() => setShowAdminAuth(false)} onLoginSuccess={handleAdminLoginSuccess} />
-          )}
-          {showAdminDashboard && adminUser && (
-            <AdminDashboard
-              user={adminUser}
-              onClose={() => {
-                setShowAdminDashboard(false)
-                setAdminUser(null)
-              }}
-            />
-         )}  */}
-      <div className='mt-4 '>
-
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 py-6 sm:py-10">
+      <div className="w-full max-w-md">
         <AuthSystem onClose={() => setShowAuth(false)} userRole1={userRole} onLoginSuccess={() => setShowDashboard(true)} />
       </div>
     </div>

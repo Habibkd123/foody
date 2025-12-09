@@ -68,10 +68,10 @@ export default function ConfirmLocationPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-4 bg-white">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-4 sm:py-8">
       <div className="w-full max-w-4xl">
         {/* Map */}
-        <div className="relative rounded-md overflow-hidden h-[350px]">
+        <div className="relative rounded-md overflow-hidden min-h-[280px] sm:h-[360px] lg:h-[420px] bg-gray-200">
           <div ref={mapRef} className="w-full h-full" />
           <button
             onClick={handleLocateMe}
