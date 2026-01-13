@@ -148,13 +148,14 @@ const ProductPage = () => {
   };
 
   const handleSubmitReply = async (reviewId: string) => {
+    if (user?.role !== 'restaurant') return;
     const text = replyText.trim();
     if (!text) return;
     try {
-      const res = await fetch(`/api/products/${product_id}/reviews`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/restaurant/reviews/${reviewId}/reply`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId, action: 'reply', comment: text, user: user?._id }),
+        body: JSON.stringify({ comment: text }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -1017,12 +1018,29 @@ const ProductPage = () => {
                         <ThumbsDown className="w-4 h-4" />
                         Not Helpful ({(review as any)?.notHelpful || 0})
                       </button>
-                      <button onClick={() => handleToggleReply(review._id)} className="hover:text-blue-600 flex items-center gap-1">
-                        <MessageCircle className="w-4 h-4" />
-                        Reply
-                      </button>
+                      {user?.role === 'restaurant' && (
+                        <button onClick={() => handleToggleReply(review._id)} className="hover:text-blue-600 flex items-center gap-1">
+                          <MessageCircle className="w-4 h-4" />
+                          Reply
+                        </button>
+                      )}
                     </div>
-                    {replyOpenId === review._id && (
+
+                    {Array.isArray((review as any)?.replies) && (review as any).replies.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {(review as any).replies.map((r: any, idx: number) => (
+                          <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                            <div className="text-xs text-gray-600">
+                              {r?.user?.firstName ? `${r.user.firstName}${r.user.lastName ? ' ' + r.user.lastName : ''}` : 'Restaurant'}
+                              {r?.createdAt ? ` • ${new Date(r.createdAt).toLocaleDateString()}` : ''}
+                            </div>
+                            <div className="text-sm text-gray-800">{String(r?.comment || '')}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {user?.role === 'restaurant' && replyOpenId === review._id && (
                       <div className="mt-3 flex items-center gap-2">
                         <input
                           value={replyText}

@@ -80,23 +80,17 @@ export function middleware(request: NextRequest) {
   }
 
   // Publicly accessible routes (no auth required)
+  // Strict mode: only auth pages are public; everything else requires login
   const publicRoutes = [
-    "/",
     "/login",
     "/auth",
-    "/home",
-    "/contact",
-    "/faqs",
-    "/features",
-    "/howitworks",
-    "/pricing",
   ];
 
   // Allow public routes without authentication
   if (publicRoutes.some((route) => path === route || path.startsWith(route + "/"))) {
     // But if user is logged in and tries to access /login, redirect them
     if ((path === "/login" || path.startsWith("/auth")) && token && userRole) {
-      const redirectPath = userRole === "admin" ? "/admin" : "/productlist";
+      const redirectPath = userRole === "admin" ? "/admin" : userRole === "restaurant" ? "/restaurant" : "/productlist";
       console.log("Redirecting logged-in user from", path, "to", redirectPath);
       return NextResponse.redirect(new URL(redirectPath, request.url));
     }
@@ -120,9 +114,14 @@ export function middleware(request: NextRequest) {
       "/admin/users",
       "/admin/notifications",
       "/admin/sales",
-      "/admin/test"
+      "/admin/test",
+      "/orders"
     ],  
+    restaurant: [
+      "/restaurant",
+    ],
     user: [
+      "/",
       "/add-address",
       "/checkout",
       "/confirm-location",
@@ -130,6 +129,7 @@ export function middleware(request: NextRequest) {
       "/faqs",
       "/feedback",
       "/home",
+      "/orders",
       "/productlist",
       "/products",
       "/profile",

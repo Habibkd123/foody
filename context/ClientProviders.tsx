@@ -9,6 +9,7 @@ import { ProductsProvider } from '@/context/AllProductContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/components/ui/ToastProvider';
 import React, { ReactNode } from 'react';
 
 interface ClientProvidersProps {
@@ -26,7 +27,9 @@ export function ClientProviders({ children }: ClientProvidersProps) {
                 <OrderProvider>
                   <SidebarProvider>
                     <AuthProvider>
-                      {children}
+                      <ToastProvider>
+                        {children}
+                      </ToastProvider>
                     </AuthProvider>
                   </SidebarProvider>
                 </OrderProvider>

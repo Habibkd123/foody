@@ -132,7 +132,7 @@ const ProductManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <div className="p-6">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-200">
             Products
@@ -143,7 +143,7 @@ const ProductManagement = () => {
         </div>
 
         {/* Header Actions */}
-        <div className="flex flex-col bs-lg:flex-row justify-between items-start bs-lg:items-center gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
 
             {/* Search */}
@@ -199,7 +199,7 @@ const ProductManagement = () => {
             </div>
           </div>
 
-          <button onClick={()=>router.push('/admin/products/add')} className="inline-flex items-center px-4 py-2 bs-md:px-5 bs-md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+          <button onClick={()=>router.push('/admin/products/add')} className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 md:px-5 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
 
             <PlusIcon className="w-5 h-5 mr-2" />
             Add Product
@@ -207,21 +207,22 @@ const ProductManagement = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 bs-lg:grid-cols-3 xl:grid-cols-4 bs-2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
 
           {products.map((product: any, index: any) => {
             const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
             return (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md dark:hover:shadow-gray-900/20">
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md dark:hover:shadow-gray-900/20 flex flex-col">
                 {/* Product Image */}
-                <div className="aspect-w-1 aspect-h-1 bg-gray-200 dark:bg-gray-700 transition-colors duration-200">
-                  <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center transition-colors duration-200">
+                <div className="bg-gray-200 dark:bg-gray-700 transition-colors duration-200">
+                  <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center overflow-hidden transition-colors duration-200">
                   <img src={product.images[0] || '/placeholder.png'} alt={product.name} className="object-cover w-full h-full" />
                   </div>
                 </div>
 
                 {/* Product Info */}
-                <div className="p-4">
+                <div className="p-4 flex-1 flex flex-col">
+
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 transition-colors duration-200">
                       {product.name}
@@ -241,7 +242,7 @@ const ProductManagement = () => {
                     {product.description}
                   </p>
 
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3 gap-2">
                     <div className="flex items-center space-x-2">
                       <span className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-200">
                         {formatPrice(product.price)}
@@ -252,7 +253,7 @@ const ProductManagement = () => {
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200 truncate max-w-[120px] text-right">
                       SKU: {product.sku}
                     </span>
                   </div>
@@ -270,7 +271,7 @@ const ProductManagement = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between">
+                  <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
                     <div className="flex space-x-2">
                       <Link href={`/admin/products/view/${product._id}`} >
                       <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">

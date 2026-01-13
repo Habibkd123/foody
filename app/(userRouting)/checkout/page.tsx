@@ -16,7 +16,10 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string>("");
   const [gateway, setGateway] = useState<'stripe' | 'razorpay'>('stripe');
-  const { state } = useOrder();
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const { state, dispatch } = useOrder();
   const { user } = useAuthStorage();
   const { loadCart, getAddresses } = useCartOrder();
   const { defaultAddress, loadAddresses } = useAddress();
@@ -32,12 +35,53 @@ export default function CheckoutPage() {
 
   const itemsSubtotal = state?.items?.reduce((t, i) => t + i.price * i.quantity, 0) || 0;
   const totalItemsQty = state?.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
+  const discountAmount = Number(state?.discountAmount || 0);
+  const payableItemsSubtotal = Math.max(0, itemsSubtotal - discountAmount);
+
   const totalAmount =
-    itemsSubtotal +
+    payableItemsSubtotal +
     (state?.tip || 0) +
     (state?.deliveryCharge || 0) +
     (state?.handlingCharge || 0) +
     (state?.donation || 0);
+
+  const primaryProductId = state?.items?.[0]?.productId || (state?.items?.[0]?.id ? String(state.items[0].id).split(':')[0] : undefined);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError(null);
+
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          cartTotal: itemsSubtotal,
+          userId: user?._id,
+          productId: primaryProductId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        setCouponError(data?.error || 'Failed to apply coupon');
+        return;
+      }
+      const nextDiscount = Number(data?.data?.discount || 0);
+      dispatch({ type: 'SET_COUPON', couponCode: code, discountAmount: nextDiscount });
+    } catch (e: any) {
+      setCouponError(e?.message || 'Failed to apply coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const clearCoupon = () => {
+    dispatch({ type: 'CLEAR_COUPON' });
+    setCouponError(null);
+  };
 
   const effectiveAddress = (state?.address as any) || (defaultAddress as any) || null;
   const addrLabel = effectiveAddress?.label || 'Selected';
@@ -98,9 +142,9 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-4 sm:px-6 py-6 sm:py-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-3 sm:px-6 py-5 sm:py-10">
       {/* ✅ HEADER */}
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-sm px-4 sm:px-6 py-4 rounded-2xl mb-8 sm:mb-10">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-sm px-3 sm:px-6 py-3 sm:py-4 rounded-2xl mb-6 sm:mb-10">
          <div className="flex items-center gap-2 group">
             <img
               src="/logoGro.png"
@@ -133,26 +177,38 @@ export default function CheckoutPage() {
                 <PaymentForm totalAmount={totalAmount} />
               </Elements>
             ) : (
-              <div className="p-6 rounded-2xl border-2 border-gray-200 bg-white">Preparing Stripe checkout...</div>
+              <div className="p-4 sm:p-6 rounded-2xl border-2 border-gray-200 bg-white">Preparing Stripe checkout...</div>
             )
           ) : (
-            <div className="p-6 rounded-2xl border-2 border-gray-200 bg-white">
+            <div className="p-4 sm:p-6 rounded-2xl border-2 border-gray-200 bg-white">
               <RazorpayButton totalAmount={totalAmount} />
             </div>
           )}
 
           {/* Order Summary */}
           <div className="w-full space-y-6">
-            <div className="sticky top-6 bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-xl">
-              <div className="bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white">
+            <div className="lg:sticky lg:top-6 bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-xl">
+              <div className="bg-gradient-to-r from-orange-500 to-orange-400 p-4 sm:p-6 text-white">
                 <h2 className="text-2xl font-bold mb-2">Order Summary</h2>
                 <div className="flex items-center">
                   <Star className="text-yellow-300 mr-1" size={16} />
                   <span className="text-sm">Secure & Fast Checkout</span>
                 </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Kitchen Notes</h3>
+                  <div className="text-xs text-gray-500 mb-2">Examples: Less spicy, No onion, Extra sauce</div>
+                  <textarea
+                    value={state?.notes || ''}
+                    onChange={(e) => dispatch({ type: 'SET_NOTES', notes: e.target.value })}
+                    rows={3}
+                    placeholder="Add any special instructions for the kitchen"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                  />
+                </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-6">
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-3">Delivery Address</h3>
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
@@ -181,6 +237,44 @@ export default function CheckoutPage() {
                       {totalItemsQty} items
                     </span>
                   </h3>
+
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-800 mb-2">Coupon</h3>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        placeholder="Enter coupon code"
+                        className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                      />
+                      <button
+                        onClick={applyCoupon}
+                        disabled={couponLoading || !couponInput.trim() || !primaryProductId}
+                        className="w-full sm:w-auto rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-70"
+                        type="button"
+                      >
+                        {couponLoading ? 'Applying...' : 'Apply'}
+                      </button>
+                      {!!state?.couponCode && (
+                        <button
+                          onClick={clearCoupon}
+                          type="button"
+                          className="w-full sm:w-auto rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {couponError && (
+                      <div className="mt-2 text-sm text-red-600">{couponError}</div>
+                    )}
+                    {!!state?.couponCode && !couponError && (
+                      <div className="mt-2 text-sm text-emerald-700">
+                        Applied: <span className="font-semibold">{String(state.couponCode).toUpperCase()}</span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-2">
                     {state?.items?.map((item, index) => {
                       const lineTotal = (item.price * item.quantity).toFixed(2);
@@ -217,6 +311,13 @@ export default function CheckoutPage() {
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <p className="font-medium text-gray-800">Handling Charge</p>
                         <span className="font-semibold text-gray-800">₹{Number(state.handlingCharge).toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <p className="font-medium text-gray-800">Discount</p>
+                        <span className="font-semibold text-emerald-700">-₹{discountAmount.toFixed(2)}</span>
                       </div>
                     )}
                   </div>

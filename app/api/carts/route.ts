@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
 
     // Validate product availability and stock
     for (const item of validatedData.items) {
-      const product = products.find(p => p._id.toString() === item.product);
+      const product = products.find((p:any) => p._id.toString() === item.product);
       const validation = validateProductAvailability(product, item.quantity);
 
       if (!validation.isValid) {

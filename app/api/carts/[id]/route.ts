@@ -224,7 +224,7 @@ export async function GET(request: NextRequest, context: any) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     if (!validateCartObjectId(id)) {
       return createCartErrorResponse(
@@ -262,7 +262,7 @@ export async function PUT(request: NextRequest, context: any) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     if (!validateCartObjectId(id)) {
       return createCartErrorResponse(
@@ -301,7 +301,7 @@ export async function PUT(request: NextRequest, context: any) {
       }
 
       for (const item of validatedData.items) {
-        const product = products.find(p => p._id.toString() === item.product);
+        const product = products.find((p:any) => p?._id.toString() === item.product);
         const validation = validateProductAvailability(product, item.quantity);
 
         if (!validation.isValid) {
@@ -346,7 +346,7 @@ export async function DELETE(request: NextRequest, context: any) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     if (!validateCartObjectId(id)) {
       return createCartErrorResponse(
@@ -376,3 +376,4 @@ export async function DELETE(request: NextRequest, context: any) {
     return handleCartError(error);
   }
 }
+

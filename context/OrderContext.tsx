@@ -12,18 +12,24 @@ interface State {
   handlingCharge: number;
   tip: number;
   donation?: number;
+  notes?: string;
+  couponCode?: string;
+  discountAmount?: number;
   loading: boolean;
   error: string | null;
 }
 
 type Action =
   | { type: "ADD_ITEM"; item: CartLine }
-  | { type: "REMOVE_ITEM"; id: number }
-  | { type: "UPDATE_QUANTITY"; id: number; qty: number }
+  | { type: "REMOVE_ITEM"; id: any }
+  | { type: "UPDATE_QUANTITY"; id: any; qty: number }
   | { type: "SET_ITEMS"; items: CartLine[] }
 
   | { type: "SET_ADDRESS"; address?: Address }
   | { type: "SET_TIP"; tip: number }
+  | { type: "SET_NOTES"; notes: string }
+  | { type: "SET_COUPON"; couponCode: string; discountAmount: number }
+  | { type: "CLEAR_COUPON" }
   | { type: "SET_DISTANCE"; distance: number }
   | { type: "SET_DELIVERY_CHARGE"; deliveryCharge: number }
   | { type: "SET_HANDLING_CHARGE"; handlingCharge: number }
@@ -36,6 +42,9 @@ const initial: State = {
   tip: 0,
   deliveryCharge: 0,
   handlingCharge: 0,
+  notes: '',
+  couponCode: '',
+  discountAmount: 0,
   loading: false,
   error: null,
 };
@@ -50,11 +59,11 @@ const calcDelivery = (distance: number) => {
 function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "ADD_ITEM":
-      return s.items.find(i => i.id === a.item.id)
+      return s.items.find((i: any) => i.id === a.item.id)
         ? {
           ...s,
           items: s.items.map(i =>
-            i.id === a.item.id
+            (i as any).id === (a.item as any).id
               ? { ...i, quantity: i.quantity + a.item.quantity }
               : i
           ),
@@ -90,6 +99,15 @@ function reducer(s: State, a: Action): State {
     case "SET_TIP":
       return { ...s, tip: a.tip };
 
+    case "SET_NOTES":
+      return { ...s, notes: a.notes };
+
+    case "SET_COUPON":
+      return { ...s, couponCode: a.couponCode, discountAmount: a.discountAmount };
+
+    case "CLEAR_COUPON":
+      return { ...s, couponCode: '', discountAmount: 0 };
+
     case "SET_LOADING":
       return { ...s, loading: a.loading };
 
@@ -109,8 +127,8 @@ interface CartContextType {
   dispatch: React.Dispatch<Action>;
   addToCart: (userId: string, item: CartLine) => Promise<void>;
   addAddress: (userId: string, item: Address) => Promise<void>;
-  removeFromCart: (userId: string, itemId: number) => Promise<void>;
-  updateQuantity: (userId: string, itemId: number, quantity: number) => Promise<void>;
+  removeFromCart: (userId: string, itemId: any) => Promise<void>;
+  updateQuantity: (userId: string, itemId: any, quantity: number) => Promise<void>;
   loadCart: (userId: string) => Promise<void>;
   clearCart: (userId: string) => Promise<void>;
   setDistance: (distance: number) => void;
@@ -158,7 +176,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       const data = await apiCall(`/api/carts/user/${userId}`, { method: "GET" });
       if (data.success && data.data) {
         const cartItems: CartLine[] = data.data.items.map((item: any) => ({
-          id: item.product._id,
+          id: `${item.product._id}:${item.configKey || ''}`,
+          productId: item.product._id,
+          configKey: item.configKey || '',
+          variant: item.variant,
+          addons: item.addons,
           name: item.product.name,
           price: item.product.price,
           quantity: item.quantity,
@@ -177,9 +199,17 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       if(!userId){
         return;
       }
+      const payload: any = {
+        productId: (item as any).productId || item.id,
+        quantity: item.quantity,
+      };
+      if ((item as any).configKey) payload.configKey = (item as any).configKey;
+      if ((item as any).variant) payload.variant = (item as any).variant;
+      if ((item as any).addons) payload.addons = (item as any).addons;
+
       const data = await apiCall(`/api/carts/user/${userId}`, {
         method: "POST",
-        body: JSON.stringify({ productId: item.id, quantity: item.quantity }),
+        body: JSON.stringify(payload),
       });
       if (data.success) dispatch({ type: "ADD_ITEM", item });
       console.log("data", data)
@@ -190,12 +220,16 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const removeFromCart = useCallback(async (userId: string, itemId: number) => {
+  const removeFromCart = useCallback(async (userId: string, itemId: any) => {
     try {
       if(!userId){
         return;
       }
-      await apiCall(`/api/carts/user/${userId}?productId=${itemId}`, { method: "DELETE" });
+      const key = String(itemId);
+      const [productId, configKey] = key.split(':');
+      const qs = new URLSearchParams({ productId });
+      if (configKey) qs.set('configKey', configKey);
+      await apiCall(`/api/carts/user/${userId}?${qs.toString()}`, { method: "DELETE" });
       dispatch({ type: "REMOVE_ITEM", id: itemId });
     } catch (error) {
       console.error("Failed to remove item:", error);
@@ -203,16 +237,21 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateQuantity = useCallback(
-    async (userId: string, itemId: number, quantity: number) => {
+    async (userId: string, itemId: any, quantity: number) => {
       try {
         if (quantity <= 0) {
           await removeFromCart(userId, itemId);
           return;
         }
 
+        const key = String(itemId);
+        const [productId, configKey] = key.split(':');
+
+        const updatePayload: any = { productId, quantity };
+        if (configKey) updatePayload.configKey = configKey;
         const data = await apiCall(`/api/carts/user/${userId}`, {
           method: "PUT",
-          body: JSON.stringify({ productId: itemId, quantity }),
+          body: JSON.stringify(updatePayload),
         });
 
         if (data.success) { 

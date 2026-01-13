@@ -1,5 +1,7 @@
 import mongoose, { Schema, model, Types, Document } from 'mongoose';
 export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' }
+export type ProductApprovalStatus = 'pending' | 'approved' | 'rejected';
+
 export interface Category {
   _id: string;
   name: string;
@@ -13,8 +15,11 @@ export interface Category {
   updatedAt?: string;
   subcategories?: Category[];
 }
+
 export interface Product {
   _id: string;
+  restaurantId?: string;
+  approvalStatus?: ProductApprovalStatus;
   name: string;
   description: string;
   price: number;
@@ -24,6 +29,21 @@ export interface Product {
   category: Category;
   views?: number;
   inStock?: boolean;
+  recipe?: Array<{ item: string; qty: number }>;
+  addonGroups?: Array<{
+    name: string;
+    selectionType: 'single' | 'multiple';
+    min?: number;
+    max?: number;
+    options: Array<{ name: string; price: number; inStock?: boolean }>;
+  }>;
+  variants?: Array<{
+    name: string;
+    selectionType: 'single';
+    options: Array<{ name: string; price: number; inStock?: boolean }>;
+  }>;
+  isCombo?: boolean;
+  comboItems?: Array<{ product: string; quantity: number }>;
   relatedProducts?: Product[];
   images: string[];
   brand?: string;

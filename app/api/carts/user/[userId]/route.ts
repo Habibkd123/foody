@@ -6,11 +6,11 @@ import Cart from '@/app/models/Cart';
 import Product from '@/app/models/Product';
 import User from '@/app/models/User';
 import { addToCartSchema, updateCartItemSchema, bulkUpdateCartSchema } from '@/lib/cart-validations';
-import { 
-  handleCartError, 
-  validateCartObjectId, 
-  formatCartResponse, 
-  createCartSuccessResponse, 
+import {
+  handleCartError,
+  validateCartObjectId,
+  formatCartResponse,
+  createCartSuccessResponse,
   createCartErrorResponse,
   validateProductAvailability,
   findCartItem,
@@ -46,7 +46,7 @@ export async function GET(
       );
     }
 
-    let cart = await Cart.findOne({ user: userId, status:"active"})
+    let cart = await Cart.findOne({ user: userId, status: "active" })
       .populate({
         path: 'user',
         select: 'firstName lastName email'
@@ -105,6 +105,7 @@ export async function POST(
 
     const body = await request.json();
     const validatedData = addToCartSchema.parse(body);
+    const configKey = typeof validatedData.configKey === 'string' ? validatedData.configKey : '';
 
     // Check if user exists
     const user = await User.findById(userId);
@@ -136,7 +137,10 @@ export async function POST(
         user: userId,
         items: [{
           product: validatedData.productId,
-          quantity: validatedData.quantity
+          quantity: validatedData.quantity,
+          configKey,
+          variant: (validatedData as any).variant,
+          addons: (validatedData as any).addons,
         }],
         status: 'active',
         expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
@@ -144,7 +148,7 @@ export async function POST(
     } else {
       // Check if product already exists in cart
       const existingItemIndex = cart.items.findIndex(
-        (item: any) => item.product.toString() === validatedData.productId
+        (item: any) => item.product.toString() === validatedData.productId && String(item.configKey || '') === configKey
       );
 
       if (existingItemIndex >= 0) {
@@ -166,7 +170,10 @@ export async function POST(
         // Add new item to cart
         cart.items.push({
           product: validatedData.productId,
-          quantity: validatedData.quantity
+          quantity: validatedData.quantity,
+          configKey,
+          variant: (validatedData as any).variant,
+          addons: (validatedData as any).addons,
         });
       }
 
@@ -236,6 +243,7 @@ export async function PUT(
 
 async function handleSingleItemUpdate(userId: string, body: any) {
   const validatedData = updateCartItemSchema.parse(body);
+  const configKey = typeof (validatedData as any).configKey === 'string' ? (validatedData as any).configKey : '';
 
   // Find user's cart
   const cart = await Cart.findOne({ user: userId });
@@ -249,7 +257,7 @@ async function handleSingleItemUpdate(userId: string, body: any) {
 
   // Find the item in cart
   const itemIndex = cart.items.findIndex(
-    (item: any) => item.product.toString() === validatedData.productId
+    (item: any) => item.product.toString() === validatedData.productId && String(item.configKey || '') === configKey
   );
 
   if (itemIndex === -1) {
@@ -313,6 +321,7 @@ export async function DELETE(
     const { userId } = await context.params;
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
+    const configKey = searchParams.get('configKey') || '';
 
     if (!validateCartObjectId(userId)) {
       return createCartErrorResponse(
@@ -344,7 +353,7 @@ export async function DELETE(
 
       const initialItemCount = cart.items.length;
       cart.items = cart.items.filter(
-        (item: any) => item.product.toString() !== productId
+        (item: any) => !(item.product.toString() === productId && String(item.configKey || '') === configKey)
       );
 
       if (cart.items.length === initialItemCount) {
@@ -397,11 +406,11 @@ async function handleBulkUpdate(userId: string, body: any) {
 
   // Validate all products
   const productIds = validatedData.items.map(item => item.productId);
-  const products = await Product.find({ _id: { $in: productIds } });
+  const products: any[] = await Product.find({ _id: { $in: productIds } });
 
   for (const item of validatedData.items) {
     if (item.quantity > 0) {
-      const product = products.find(p => p._id.toString() === item.productId);
+      const product = products.find((p: any) => p?._id?.toString?.() === item.productId);
       const validation = validateProductAvailability(product, item.quantity);
 
       if (!validation.isValid) {
@@ -421,7 +430,8 @@ async function handleBulkUpdate(userId: string, body: any) {
     if (updateItem.quantity > 0) {
       updatedItems.push({
         product: updateItem.productId,
-        quantity: updateItem.quantity
+        quantity: updateItem.quantity,
+        configKey: typeof (updateItem as any).configKey === 'string' ? (updateItem as any).configKey : '',
       });
     }
     // If quantity is 0, item is effectively removed
@@ -452,3 +462,4 @@ async function handleBulkUpdate(userId: string, body: any) {
     'Cart updated successfully'
   );
 }
+

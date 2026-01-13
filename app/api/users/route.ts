@@ -98,14 +98,39 @@ export async function GET(request: NextRequest) {
 // POST - Create a new user
 export async function POST(request: NextRequest) {
   try {
-    const { firstName, lastName, email, password, phone, username, otp } =
-      await request.json();
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      username,
+      otp,
+      role,
+      restaurantName,
+      restaurantOwnerName,
+      restaurantAddress,
+      openingTime,
+      closingTime,
+    } = await request.json();
 
     if (!firstName || !lastName || !email || !password) {
       return NextResponse.json(
         { success: false, message: 'All required fields must be filled' },
         { status: 400 }
       );
+    }
+
+    // Only allow user / restaurant signup from public registration
+    const normalizedRole = role === 'restaurant' ? 'restaurant' : 'user';
+
+    if (normalizedRole === 'restaurant') {
+      if (!restaurantName || !restaurantOwnerName || !restaurantAddress || !openingTime || !closingTime) {
+        return NextResponse.json(
+          { success: false, message: 'All restaurant details are required' },
+          { status: 400 }
+        );
+      }
     }
 
     await connectDB();
@@ -138,6 +163,17 @@ export async function POST(request: NextRequest) {
       password,
       phone,
       username,
+      role: normalizedRole,
+      restaurant: normalizedRole === 'restaurant'
+        ? {
+            status: 'pending',
+            name: restaurantName,
+            ownerName: restaurantOwnerName,
+            address: restaurantAddress,
+            openingTime,
+            closingTime,
+          }
+        : undefined,
     });
 
     const { password: _, ...userData } = newUser.toObject();

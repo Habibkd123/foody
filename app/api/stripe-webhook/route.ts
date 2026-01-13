@@ -3,6 +3,8 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import Order from "@/app/models/Order";
 import connectDB from "@/lib/mongodb";
+import { ensureInvoiceForOrder } from "@/app/lib/invoice";
+import { OrderStatus } from "@/app/models/User";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-08-27.basil" });
 
@@ -42,9 +44,13 @@ export async function POST(request: NextRequest) {
       if (orderId) {
         await connectDB();
         await Order.findByIdAndUpdate(orderId, {
-          status: "PAID",
+          status: OrderStatus.PAID,
           paymentId: session.id,
         });
+
+        try {
+          await ensureInvoiceForOrder(orderId, { gstRate: 5 });
+        } catch {}
       }
     }
 

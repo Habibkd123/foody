@@ -169,9 +169,12 @@ import {
   Shield,
   BarChart3,
   CheckSquare,
+  AlertCircle,
   Users,
   DollarSign,
   Bell,
+  Store,
+  Utensils,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -187,7 +190,10 @@ const navigationItems: NavItem[] = [
   { id: "categories", label: "Categories", icon: CheckSquare, href: "/admin/categories" },
   { id: "products", label: "Products", icon: CheckSquare, href: "/admin/products" },
   { id: "banner", label: "Banner", icon: CheckSquare, href: "/admin/banner" },
-  { id: "orders", label: "Orders", icon: CheckSquare, href: "/admin/orders" },
+  { id: "orders", label: "Orders Overview", icon: CheckSquare, href: "/admin/orders" },
+  { id: "disputes", label: "Disputes", icon: AlertCircle, href: "/admin/disputes" },
+  { id: "restaurants", label: "Restaurant Approval", icon: Store, href: "/admin/restaurants" },
+  { id: "food-approval", label: "Food Approval", icon: Utensils, href: "/admin/food-approval" },
   { id: "users", label: "Users", icon: Users, href: "/admin/users" },
   { id: "notifications", label: "Notifications", icon: Bell, href: "/admin/notifications" },
   { id: "sales", label: "Sales", icon: DollarSign, href: "/admin/sales" },

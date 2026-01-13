@@ -14,6 +14,9 @@ export interface CartUpdateRequest {
 
 export interface CartItemResponse {
   _id?: string;
+  configKey?: string;
+  variant?: { name: string; option: string };
+  addons?: Array<{ group: string; option: string }>;
   product: {
     _id: string;
     name: string;
@@ -60,11 +63,15 @@ export interface ApiResponse<T> {
 export interface AddToCartRequest {
   productId: string;
   quantity: number;
+  configKey?: string;
+  variant?: { name: string; option: string };
+  addons?: Array<{ group: string; option: string }>;
 }
 
 export interface UpdateCartItemRequest {
   productId: string;
   quantity: number;
+  configKey?: string;
 }
 
 export interface CartStatsResponse {

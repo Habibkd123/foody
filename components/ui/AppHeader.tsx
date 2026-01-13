@@ -47,10 +47,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const [query, setQuery] = React.useState(initialSearch);
 
-  const WrapperTag = sticky ? "div" : ("div" as const);
-
   return (
-    <WrapperTag
+    <div
       className={[
         sticky ? "sticky top-0 z-50" : "",
         withBlur ? "backdrop-blur-md" : "",
@@ -62,11 +60,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     >
       <header className="transition-all duration-300">
         <div className={[
-          "max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3",
+          "max-w-8xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-3",
           containerClassName,
         ].join(" ")}
         >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
             {/* Left: Menu + Logo/Title */}
             <div className="flex items-center gap-3 min-w-0">
               {onMenuClick && (
@@ -85,10 +83,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   <img
                     src={logoSrc}
                     alt="Logo"
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md"
+                    className="hidden md:block w-8 h-8 sm:w-10 sm:h-10 rounded-md"
                   />
                 )}
-                <div className="truncate">
+                <div className="truncate hidden md:block">
                   <div className="text-lg sm:text-xl font-extrabold text-foreground leading-tight truncate">
                     {title}
                   </div>
@@ -118,8 +116,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             )}
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-nowrap sm:flex-wrap justify-end">
               {actions.map((action) => {
+                const isProfile = action.key === "profile";
                 const content = (
                   <div className="relative">
                     <div className="inline-flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
@@ -140,13 +139,21 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
                 if (action.href) {
                   return (
-                    <Link key={action.key} href={action.href} className="group">
+                    <Link
+                      key={action.key}
+                      href={action.href}
+                      className="group"
+                    >
                       {content}
                     </Link>
                   );
                 }
                 return (
-                  <button key={action.key} onClick={action.onClick} className="group">
+                  <button
+                    key={action.key}
+                    onClick={action.onClick}
+                    className="group"
+                  >
                     {content}
                   </button>
                 );
@@ -156,7 +163,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
           {/* Mobile search */}
           {showSearch && (
-            <div className="mt-3 md:hidden">
+            <div className="mt-2 md:hidden">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -173,7 +180,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </div>
       </header>
-    </WrapperTag>
+    </div>
   );
 };
 

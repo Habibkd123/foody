@@ -89,6 +89,9 @@ export function formatCartResponse(cart: any, includeProductDetails = true): Car
 
     return {
       _id: item._id?.toString(),
+      configKey: item.configKey || '',
+      variant: item.variant && (item.variant.name || item.variant.option) ? item.variant : undefined,
+      addons: Array.isArray(item.addons) ? item.addons : undefined,
       product: includeProductDetails ? {
         _id: item.product._id.toString(),
         name: item.product.name,

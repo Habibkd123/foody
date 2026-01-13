@@ -14,6 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const reviews = await Review.find({ product: id })
       .populate('user', 'firstName lastName email')
+      .populate('replies.user', 'firstName lastName email')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -90,21 +91,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       review.notHelpful = (review as any).notHelpful ? (review as any).notHelpful + 1 : 1;
       await review.save();
     } else if (action === 'reply') {
-      if (!comment || typeof comment !== 'string' || comment.trim().length === 0) {
-        return NextResponse.json({ success: false, error: 'Reply comment required' }, { status: 400 });
-      }
-      const reply: any = { comment: comment.trim(), createdAt: new Date() };
-      if (user && mongoose.Types.ObjectId.isValid(user)) reply.user = user;
-      // @ts-ignore replies may be undefined in legacy docs
-      if (!review.replies) (review as any).replies = [];
-      (review as any).replies.push(reply);
-      await review.save();
+      return NextResponse.json(
+        { success: false, error: 'Reply must be submitted by restaurant via authenticated endpoint' },
+        { status: 403 }
+      );
     } else {
       return NextResponse.json({ success: false, error: 'Unknown action' }, { status: 400 });
     }
 
     const reviews = await Review.find({ product: id })
       .populate('user', 'firstName lastName email')
+      .populate('replies.user', 'firstName lastName email')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -113,3 +110,4 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ success: false, error: error.message || 'Failed to update review' }, { status: 500 });
   }
 }
+

@@ -8,7 +8,7 @@ type User = {
   _id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'restaurant';
 };
 
 type AuthContextType = {

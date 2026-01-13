@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Coupon, { ICoupon } from '@/app/models/Coupon';
 import CouponRedemption from '@/app/models/CouponRedemption';
+import Product from '@/app/models/Product';
 import mongoose from 'mongoose';
 import { computeCouponDiscount, isCouponActiveNow } from '@/app/lib/coupons';
 
@@ -9,14 +10,28 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
-    const { code, cartTotal, userId } = body || {};
+    const { code, cartTotal, userId, productId, restaurantId } = body || {};
 
     if (!code || typeof cartTotal !== 'number') {
       return NextResponse.json({ success: false, error: 'code and cartTotal required' }, { status: 400 });
     }
 
-    const coupon = await Coupon.findOne({ code: String(code).toUpperCase() })
-      .select('code type value minTotal maxDiscount startsAt endsAt usageLimit perUserLimit active')
+    let resolvedRestaurantId: string | null = null;
+
+    if (restaurantId && mongoose.Types.ObjectId.isValid(restaurantId)) {
+      resolvedRestaurantId = String(restaurantId);
+    } else if (productId && mongoose.Types.ObjectId.isValid(productId)) {
+      const p: any = await Product.findById(productId).select('restaurantId').lean();
+      const rid = p?.restaurantId?.toString?.();
+      if (rid && mongoose.Types.ObjectId.isValid(rid)) resolvedRestaurantId = rid;
+    }
+
+    if (!resolvedRestaurantId) {
+      return NextResponse.json({ success: false, error: 'restaurantId (or valid productId) required' }, { status: 400 });
+    }
+
+    const coupon = await Coupon.findOne({ restaurantId: resolvedRestaurantId, code: String(code).toUpperCase() })
+      .select('restaurantId code type value minTotal maxDiscount startsAt endsAt usageLimit perUserLimit active')
       .lean<ICoupon & { _id: mongoose.Types.ObjectId }>();
     if (!coupon) return NextResponse.json({ success: false, error: 'Invalid coupon' }, { status: 404 });
 
@@ -39,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     const discount = computeCouponDiscount(coupon as ICoupon, cartTotal);
-    return NextResponse.json({ success: true, data: { code: coupon.code, discount } });
+    return NextResponse.json({ success: true, data: { code: coupon.code, discount, restaurantId: resolvedRestaurantId } });
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message || 'Failed to validate coupon' }, { status: 500 });
   }

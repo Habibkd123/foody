@@ -2,6 +2,9 @@ import mongoose, { Schema, model, Types, Document, Model } from 'mongoose';
 export interface ICartItem {
   product: Types.ObjectId;
   quantity: number;
+  configKey?: string;
+  variant?: { name: string; option: string };
+  addons?: Array<{ group: string; option: string }>;
 }
 export interface ICart extends Document {
   user: Types.ObjectId;
@@ -17,6 +20,17 @@ const CartSchema = new Schema<ICart>({
   items: [{
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, default: 1 },
+    configKey: { type: String, default: '' },
+    variant: {
+      name: { type: String, default: '' },
+      option: { type: String, default: '' },
+    },
+    addons: [
+      {
+        group: { type: String, default: '' },
+        option: { type: String, default: '' },
+      },
+    ],
   }],
   status: { type: String, enum: ['active', 'purchased', 'abandoned'], default: 'active' },
   // TTL date field. Only set for non-purchased carts. When this date passes, MongoDB will remove the document.

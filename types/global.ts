@@ -43,6 +43,10 @@ export interface UserWishList {
 
 export interface CartItem extends Product {
   quantity: number;
+  productId?: string;
+  configKey?: string;
+  variant?: { name: string; option: string };
+  addons?: Array<{ group: string; option: string }>;
 }
 
 export type CartLine = CartItem;

@@ -4,7 +4,8 @@ import Banner from '@/app/models/Banner';
 
 connectDB();
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest,
+   { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await request.json();
     const { id } = await params;
@@ -33,3 +34,4 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ error: 'Failed to delete banner' }, { status: 500 });
   }
 }
+

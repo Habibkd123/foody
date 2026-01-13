@@ -26,6 +26,7 @@ import NotificationBanner from '@/components/NotificationBanner';
 import AppHeader from "@/components/ui/AppHeader";
 import { useSearchParams } from "next/navigation";
 import { getCategories } from '@/components/APICall/category';
+import ProductOptionsModal from '@/components/ProductOptionsModal';
 
 // Type Definitions
 interface CartItem extends Product {
@@ -54,6 +55,8 @@ const ProductGrid: React.FC = () => {
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [categoriesById, setCategoriesById] = useState<Record<string, string>>({});
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [selectedProductForOptions, setSelectedProductForOptions] = useState<any>(null);
 
   // Helper: select a category by id and sync URL
   const handleSelectCategory = useCallback((catId: string) => {
@@ -247,18 +250,31 @@ const ProductGrid: React.FC = () => {
   };
 
   const handleAddToCart = useCallback(async (item: Product) => {
+
     if (!user?._id) {
       alert('please Login First ')
       return;
     }
+    const hasOptions = Array.isArray((item as any).variants) && (item as any).variants.length > 0
+      || Array.isArray((item as any).addonGroups) && (item as any).addonGroups.length > 0;
+
+    if (hasOptions) {
+      setSelectedProductForOptions(item as any);
+      setOptionsOpen(true);
+      return;
+    }
+
     const cartItem: any = {
-      id: item._id,
+      id: `${item._id}:base`,
+      productId: item._id,
+      configKey: 'base',
       name: item.name,
       price: item.price,
       quantity: 1,
       image: item.images[0],
     };
     let response = await addToCart(user?._id, cartItem);
+
     // @ts-ignore
     if (response.success) {
       alert('Product added to cart successfully');
@@ -283,28 +299,26 @@ const ProductGrid: React.FC = () => {
   }, [removeFromCart, user?._id]);
 
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const productId = parseInt(itemId);
-    const currentItem = state.items.find((item: any) => item._id === productId);
+    const currentItem = state.items.find((item: any) => String(item.id) === String(itemId));
     if (currentItem) {
       const newQuantity = Math.max(0, currentItem.quantity + change);
       if (newQuantity === 0) {
-        setCartItems(cartItems.filter((item: any) => item._id !== productId));
-        updateQuantity(user?._id, productId, newQuantity);
+        updateQuantity(user?._id, itemId as any, newQuantity);
       } else {
-        setCartItems(cartItems.map((item: any) => item.id === productId ? { ...item, quantity: newQuantity } : item));
-        dispatch({ type: 'UPDATE_QUANTITY', id: productId, qty: newQuantity });
-        updateQuantity(user?._id, productId, newQuantity);
+        dispatch({ type: 'UPDATE_QUANTITY', id: itemId as any, qty: newQuantity });
+        updateQuantity(user?._id, itemId as any, newQuantity);
       }
     }
-  }, [cartItems, dispatch, state.items, updateQuantity, user?._id]);
+  }, [dispatch, state.items, updateQuantity, user?._id]);
 
   const isInCart = useCallback((product: Product) => {
-    return state.items.some((item: any) => item.id === product._id);
+    return state.items.some((item: any) => (item.productId || String(item.id).split(':')[0]) === product._id);
   }, [state.items]);
 
   const getCartQuantity = useCallback((product: Product) => {
-    const cartItem = state.items.find((item: any) => item.id === product._id);
-    return cartItem ? cartItem.quantity : 0;
+    return state.items
+      .filter((item: any) => (item.productId || String(item.id).split(':')[0]) === product._id)
+      .reduce((sum: number, it: any) => sum + Number(it.quantity || 0), 0);
   }, [state.items]);
 
   const getTotalPrice = () => {
@@ -335,6 +349,33 @@ const ProductGrid: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
+      <ProductOptionsModal
+        open={optionsOpen}
+        product={selectedProductForOptions}
+        onClose={() => {
+          setOptionsOpen(false);
+          setSelectedProductForOptions(null);
+        }}
+        onConfirm={async ({ quantity, configKey, variant, addons }) => {
+          const item = selectedProductForOptions;
+          if (!item?._id) return;
+          const cartItem: any = {
+            id: `${item._id}:${configKey}`,
+            productId: item._id,
+            configKey,
+            variant,
+            addons,
+            name: item.name,
+            price: item.price,
+            quantity,
+            image: item.images?.[0],
+          };
+          await addToCart(user?._id, cartItem);
+          setOptionsOpen(false);
+          setSelectedProductForOptions(null);
+        }}
+      />
 
       {/* Enhanced Header with animations */}
       <div className='sticky top-0 z-40'>
@@ -431,23 +472,52 @@ const ProductGrid: React.FC = () => {
               <div className="mt-6">
                 <SidebarFilters />
               </div>
+              {/* Mobile Categories */}
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-2">Categories</h3>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                  {categoryKeys.map((cat: string) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        handleSelectCategory(cat);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`px-3 py-1 rounded-full border text-xs ${filters.category === cat ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-foreground border-border'} whitespace-nowrap`}
+                    >
+                      {categoryLabelMap[cat]}
+                    </button>
+                  ))}
+                  {filters.category !== 'all' && (
+                    <button
+                      onClick={() => {
+                        handleSelectCategory('all');
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`px-3 py-1 rounded-full border text-xs bg-secondary text-foreground border-border whitespace-nowrap`}
+                    >
+                      All
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <NotificationBanner location="products" />
       </div>
 
-      {/* Top Category Pills */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+      {/* Top Category Pills (desktop only) */}
+      <div className="hidden lg:block max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-2">
+        <div className="flex gap-1 overflow-x-auto no-scrollbar py-0">
           {categoryKeys.map((cat: string) => (
             <button
               key={cat}
               onClick={() => handleSelectCategory(cat)}
-              className={`px-3 py-1 rounded-full border ${filters.category === cat ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-foreground border-border'} whitespace-nowrap hover:shadow-soft transition`}
+              className={`px-2 py-1 rounded-full border text-xs sm:text-sm ${filters.category === cat ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-foreground border-border'} whitespace-nowrap hover:shadow-soft transition`}
             >
               {categoryLabelMap[cat]}
             </button>
@@ -455,7 +525,7 @@ const ProductGrid: React.FC = () => {
           {filters.category !== 'all' && (
             <button
               onClick={() => handleSelectCategory('all')}
-              className={`px-3 py-1 rounded-full border bg-secondary text-foreground border-border whitespace-nowrap hover:shadow-soft transition`}
+              className={`px-2 py-1 rounded-full border text-xs sm:text-sm bg-secondary text-foreground border-border whitespace-nowrap hover:shadow-soft transition`}
             >
               All
             </button>
@@ -463,7 +533,7 @@ const ProductGrid: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex gap-2 lg:gap-6">
           <div className="hidden lg:block">
             <SidebarFilters productsData={productsData} />
@@ -472,9 +542,7 @@ const ProductGrid: React.FC = () => {
           <div className="flex-1">
             <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-2">
-                <h2 className={`text-xl sm:text-2xl font-bold text-gray-800 transition-all duration-300 ${filterAnimation ? 'scale-105' : 'scale-100'}`}>
-                  Fresh Groceries
-                </h2>
+              
                 {filteredProducts.length === 0 && (
                   <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
                 )}
@@ -510,7 +578,7 @@ const ProductGrid: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:hidden mb-4">
+            <div className="lg:hidden mb-2">
               <Button
                 variant="outline"
                 className="w-full sm:w-auto hover:bg-secondary hover:border-primary transition-all duration-300 hover:shadow-md"
@@ -608,7 +676,7 @@ const ProductGrid: React.FC = () => {
       {/* Background click handler for dropdowns */}
       {profileMenuOpen && (
         <div
-          className="fixed inset-0 z-[90]"
+          className="fixed inset-0 z-40"
           onClick={() => {
             setProfileMenuOpen(false);
           }}

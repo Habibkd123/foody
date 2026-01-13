@@ -11,7 +11,7 @@ type UserPayload = {
   id: string;
   userId?: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'restaurant';
 };
 
 export async function generateToken(user: UserPayload): Promise<string> {

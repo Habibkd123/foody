@@ -20,6 +20,7 @@ interface AuthSystemProps {
 export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthSystemProps) {
   let { userRole } = useAuthStorage();
   console.log("User Role in AuthSystem:", userRole);
+
   const [currentStep, setCurrentStep] = useState<
     "login" | "signup" | "forgot-password" | "otp-verification" | "profile-setup"
   >("login")
@@ -39,6 +40,12 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
     address: "",
     otp: "",
     agreeToTerms: false,
+    role: "user",
+    restaurantName: "",
+    restaurantOwnerName: "",
+    restaurantAddress: "",
+    openingTime: "",
+    closingTime: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -63,7 +70,13 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
         phone: formData.phone?.trim() || undefined,
         password: formData.password,
         username: formData.username || undefined,
-        otp: formData.otp?.trim() || undefined
+        otp: formData.otp?.trim() || undefined,
+        role: formData.role,
+        restaurantName: formData.restaurantName?.trim() || undefined,
+        restaurantOwnerName: formData.restaurantOwnerName?.trim() || undefined,
+        restaurantAddress: formData.restaurantAddress?.trim() || undefined,
+        openingTime: formData.openingTime?.trim() || undefined,
+        closingTime: formData.closingTime?.trim() || undefined,
       }
 
       const response = await fetch('/api/users', {
@@ -152,11 +165,13 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
         // Important: Perform a full reload to ensure middleware sees the cookie
         if (userRole == "user") {
           window.location.href = '/productlist';
-        }  else if (userRole == "admin") {
+        } else if (userRole == "admin") {
           window.location.href = '/admin';
+        } else if (userRole == "restaurant") {
+          window.location.href = '/restaurant';
         }
         window.location.reload();
-              return result;
+        return result;
       } else {
         throw new Error('Invalid response from server');
       }
@@ -166,15 +181,16 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
     }
   };
 
-
-useEffect(() => {
-     if (userRole == "user") {
-          window.location.href = '/productlist';
-        } else if (userRole == "admin") {
-          window.location.href = '/admin';
-        }else  {
-          setCurrentStep("login")
-        }
+  useEffect(() => {
+    if (userRole == "user") {
+      window.location.href = '/productlist';
+    } else if (userRole == "admin") {
+      window.location.href = '/admin';
+    } else if (userRole == "restaurant") {
+      window.location.href = '/restaurant';
+    } else {
+      setCurrentStep("login")
+    }
   }, [userRole]);
 
   const validateEmail = (email: string) => {
@@ -229,6 +245,19 @@ useEffect(() => {
         if (!formData.lastName.trim()) {
           newErrors.lastName = "Last name is required"
         }
+
+        if (!formData.role) {
+          newErrors.role = "Role is required"
+        }
+
+        if (formData.role === "restaurant") {
+          if (!formData.restaurantName.trim()) newErrors.restaurantName = "Restaurant name is required"
+          if (!formData.restaurantOwnerName.trim()) newErrors.restaurantOwnerName = "Owner name is required"
+          if (!formData.restaurantAddress.trim()) newErrors.restaurantAddress = "Restaurant address is required"
+          if (!formData.openingTime.trim()) newErrors.openingTime = "Opening time is required"
+          if (!formData.closingTime.trim()) newErrors.closingTime = "Closing time is required"
+        }
+
         if (!formData.agreeToTerms) {
           newErrors.agreeToTerms = "Please agree to the terms and conditions"
         }
@@ -334,8 +363,6 @@ useEffect(() => {
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
-
-
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900">
@@ -514,6 +541,93 @@ useEffect(() => {
                     <span className="hidden sm:inline">Phone</span>
                   </button>
                 </div>
+
+                {/* Role Selection */}
+                <div>
+                  <Label htmlFor="role" className="text-sm sm:text-base font-medium">Role</Label>
+                  <select
+                    id="role"
+                    value={formData.role}
+                    onChange={(e) => handleInputChange("role", e.target.value)}
+                    className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md h-11 sm:h-12 ${errors.role ? "border-red-500" : ""}`}
+                  >
+                    <option value="user">User</option>
+                    <option value="restaurant">Restaurant</option>
+                  </select>
+                  {errors.role && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.role}</p>}
+                </div>
+
+                {formData.role === "restaurant" && (
+                  <>
+                    <div>
+                      <Label htmlFor="restaurantName" className="text-sm sm:text-base font-medium">Restaurant Name</Label>
+                      <Input
+                        id="restaurantName"
+                        type="text"
+                        placeholder="Restaurant name"
+                        value={formData.restaurantName}
+                        onChange={(e) => handleInputChange("restaurantName", e.target.value)}
+                        className={`h-11 sm:h-12 text-sm sm:text-base ${errors.restaurantName ? "border-red-500" : ""}`}
+                      />
+                      {errors.restaurantName && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.restaurantName}</p>}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="restaurantOwnerName" className="text-sm sm:text-base font-medium">Owner Name</Label>
+                      <Input
+                        id="restaurantOwnerName"
+                        type="text"
+                        placeholder="Owner name"
+                        value={formData.restaurantOwnerName}
+                        onChange={(e) => handleInputChange("restaurantOwnerName", e.target.value)}
+                        className={`h-11 sm:h-12 text-sm sm:text-base ${errors.restaurantOwnerName ? "border-red-500" : ""}`}
+                      />
+                      {errors.restaurantOwnerName && (
+                        <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.restaurantOwnerName}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="restaurantAddress" className="text-sm sm:text-base font-medium">Restaurant Address</Label>
+                      <Input
+                        id="restaurantAddress"
+                        type="text"
+                        placeholder="Full address"
+                        value={formData.restaurantAddress}
+                        onChange={(e) => handleInputChange("restaurantAddress", e.target.value)}
+                        className={`h-11 sm:h-12 text-sm sm:text-base ${errors.restaurantAddress ? "border-red-500" : ""}`}
+                      />
+                      {errors.restaurantAddress && (
+                        <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.restaurantAddress}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <Label htmlFor="openingTime" className="text-sm sm:text-base font-medium">Opening Time</Label>
+                        <Input
+                          id="openingTime"
+                          type="time"
+                          value={formData.openingTime}
+                          onChange={(e) => handleInputChange("openingTime", e.target.value)}
+                          className={`h-11 sm:h-12 text-sm sm:text-base ${errors.openingTime ? "border-red-500" : ""}`}
+                        />
+                        {errors.openingTime && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.openingTime}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="closingTime" className="text-sm sm:text-base font-medium">Closing Time</Label>
+                        <Input
+                          id="closingTime"
+                          type="time"
+                          value={formData.closingTime}
+                          onChange={(e) => handleInputChange("closingTime", e.target.value)}
+                          className={`h-11 sm:h-12 text-sm sm:text-base ${errors.closingTime ? "border-red-500" : ""}`}
+                        />
+                        {errors.closingTime && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.closingTime}</p>}
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Name Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

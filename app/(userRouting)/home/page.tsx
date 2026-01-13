@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import Image from "next/image";
+import Script from "next/script";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import HeroSlider from "@/components/ui/HeroSlider";
 import { useRouter } from "next/navigation";
@@ -61,46 +63,83 @@ const CategorySectionSkeleton = () => {
 }
 
 const CategorySection = ({ section }: { section: any }) => {
+  const products: any[] = Array.isArray(section?.products) ? section.products : [];
+  const [expanded, setExpanded] = useState(false);
+  if (products.length === 0) return null;
+  const visible = expanded ? products : products.slice(0, 6);
   return (
-    <div className="mb-12">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{section?.name}</h2>
-        <Link href={{ pathname: '/productlist', query: { category: section?.name } }} className="text-orange-600 hover:text-orange-700 font-medium flex items-center space-x-1 group transition-colors">
-          <span>View All</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </Link>
+    <section className="mb-8 sm:mb-12" aria-labelledby={`category-${section?.name || 'section'}`}>
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div>
+          <h2 id={`category-${section?.name || 'section'}`} className="text-2xl font-bold text-gray-900">{section?.name}</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Showing {expanded ? products.length : Math.min(6, products.length)} of {products.length}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {products.length > 6 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="sm:hidden inline-flex items-center gap-2 rounded-full bg-white border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                aria-expanded={expanded}
+                aria-controls={`category-${section?.name || 'section'}-grid`}
+              >
+                {expanded ? 'Show less' : 'Show all'}
+              </button>
+              <Link href={{ pathname: '/productlist', query: { category: section?.name } }} className="hidden sm:inline-flex items-center gap-2 rounded-full bg-white border border-orange-200 text-orange-700 px-4 py-2 text-sm font-medium hover:bg-orange-50 transition-colors" aria-label={`View all in ${section?.name}`}>
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        {Array.isArray(section.products) && section.products.length > 0 ? (
-          section.products.map((item: any, idx: any) => (
+      <div id={`category-${section?.name || 'section'}-grid`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        {visible.map((item: any, idx: any) => (
             <div
               key={idx}
-              className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200"
+              className="group bg-white rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200 animate-fade-in"
             >
               {/* @ts-ignore */}
-              <Link href={`/products/${item._id}`}>
+              <Link href={`/products/${item._id}`} aria-label={`View details for ${item?.name || 'product'}`}>
                 <div className="relative overflow-hidden rounded-lg mb-3">
-                  <img
-                    src={item.images[0]}
-                    alt={item.name}
-                    className="w-full h-20 sm:h-24 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative w-full aspect-square">
+                    <Image
+                      src={(item?.images && item.images[0]) || '/placeholder-logo.png'}
+                      alt={item?.name || 'Product image'}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12vw"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2">
+                  <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2 min-h-[2.25rem]">
                     {item.name}
                   </h3>
                 </div>
               </Link>
             </div>
-          ))
-        ) : (
-          <div className="col-span-full text-gray-400 text-center py-8">No products in this category.</div>
-        )}
+          ))}
       </div>
-    </div>
+      {products.length > 6 && (
+        <div className="mt-4 hidden sm:flex justify-center">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            aria-expanded={expanded}
+            aria-controls={`category-${section?.name || 'section'}-grid`}
+          >
+            {expanded ? 'Show less' : 'Show more'}
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -210,6 +249,38 @@ const HomePage: React.FC = () => {
   console.log("Categories:",user);
   return (
     <>
+      <Script
+        id="ld-json-website"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Gro-Delivery',
+            url: (typeof window !== 'undefined' ? window.location.origin : ''),
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: `${process.env.NEXT_PUBLIC_APP_URL || ''}/productlist?search={search_term_string}`,
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
+      <Script
+        id="ld-json-organization"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Gro-Delivery',
+            url: (typeof window !== 'undefined' ? window.location.origin : ''),
+            logo: '/logoGro.png',
+          }),
+        }}
+      />
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
         <div className="min-h-screen bg-gray-50">
           {/* Announcement Bar */}
@@ -252,10 +323,12 @@ const HomePage: React.FC = () => {
               ...(user?._id ? [{
                 key: 'profile',
                 icon: (
-                  <img
+                  <Image
                     src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
-                    alt="profile"
-                    className="w-8 h-8 rounded-full border border-border"
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full border border-border object-cover"
                   />
                 ),
                 onClick: () => setProfileMenuOpen(!profileMenuOpen)
@@ -268,10 +341,12 @@ const HomePage: React.FC = () => {
             <div className="fixed right-4 top-16 z-50 bg-card border border-border shadow-soft-lg rounded-lg w-56">
               <div className="p-3 border-b border-border">
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
-                    className="w-10 h-10 rounded-full border"
-                    alt="profile"
+                    className="w-10 h-10 rounded-full border object-cover"
+                    alt="Profile"
+                    width={40}
+                    height={40}
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{(user as any)?.firstName+ " " +(user as any)?.lastName || 'Your Account'}</p>
@@ -291,9 +366,9 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Navigation Filter (sticky under header) */}
-          <div className="hidden md:block sticky top-20 z-40 backdrop-blur-md bg-background/90 border-b border-border">
+          <nav className="hidden md:block sticky top-20 z-40 backdrop-blur-md bg-background/90 border-b border-border" aria-label="Product filters">
             <NavbarFilter />
-          </div>
+          </nav>
 
 
           <section
@@ -307,8 +382,35 @@ const HomePage: React.FC = () => {
 
               <HeroSlider type="Home" />
             </div>
+            <h1 className="sr-only">Gro-Delivery — Order fresh groceries and modern milkshakes online</h1>
+            <div className="relative z-20 text-center px-4">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-md">
+                Fresh Groceries, Faster Delivery
+              </h2>
+              <p className="mt-3 text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+                Order daily essentials and delightful milkshakes with lightning-fast delivery and great prices.
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                <Link
+                  href="/productlist"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-5 py-3 text-white font-medium shadow-lg hover:from-orange-600 hover:to-red-600 transition-colors w-full sm:w-auto justify-center"
+                  aria-label="Shop groceries now"
+                >
+                  Shop Groceries
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="#categories"
+                  onClick={(e) => { e.preventDefault(); const el = document.getElementById('categories'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/90 text-gray-900 px-5 py-3 font-medium shadow hover:bg-white w-full sm:w-auto justify-center"
+                  aria-label="Browse categories"
+                >
+                  Browse Categories
+                </Link>
+              </div>
+            </div>
           </section>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div id="categories" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
             {categoriesLoading ? (
               <>
                 <CategorySectionSkeleton />
@@ -373,7 +475,7 @@ const HomePage: React.FC = () => {
         </div> */}
 
           {/* Footer */}
-          <footer className="bg-gray-900 text-white mt-16">
+          <footer className="bg-gray-900 text-white mt-16 hidden md:block">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>

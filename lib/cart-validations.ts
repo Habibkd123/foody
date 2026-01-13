@@ -18,11 +18,15 @@ export const updateCartSchema = z.object({
 export const addToCartSchema = z.object({
   productId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid product ID format'),
   quantity: z.number().int().min(1, 'Quantity must be at least 1').max(100, 'Maximum quantity is 100'),
+  configKey: z.string().min(1).max(200).optional(),
+  variant: z.object({ name: z.string(), option: z.string() }).optional(),
+  addons: z.array(z.object({ group: z.string(), option: z.string() })).optional(),
 });
 
 export const updateCartItemSchema = z.object({
   productId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid product ID format'),
   quantity: z.number().int().min(0, 'Quantity cannot be negative').max(100, 'Maximum quantity is 100'),
+  configKey: z.string().min(1).max(200).optional(),
 });
 
 export const cartQuerySchema = z.object({
@@ -53,6 +57,7 @@ export const cartStatsQuerySchema = z.object({
 export const bulkCartItemSchema = z.object({
   productId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid product ID format'),
   quantity: z.number().int().min(0, 'Quantity cannot be negative').max(100, 'Maximum quantity is 100'),
+  configKey: z.string().min(1).max(200).optional(),
 });
 
 export const bulkUpdateCartSchema = z.object({

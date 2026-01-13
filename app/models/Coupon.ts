@@ -3,6 +3,7 @@ import mongoose, { Schema, model, Document } from 'mongoose';
 export type CouponType = 'percent' | 'flat';
 
 export interface ICoupon extends Document {
+  restaurantId: mongoose.Types.ObjectId;
   code: string;
   type: CouponType;
   value: number; // percent 1-100 or flat amount
@@ -18,7 +19,8 @@ export interface ICoupon extends Document {
 }
 
 const CouponSchema = new Schema<ICoupon>({
-  code: { type: String, required: true, unique: true, uppercase: true, trim: true },
+  restaurantId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  code: { type: String, required: true, uppercase: true, trim: true },
   type: { type: String, enum: ['percent', 'flat'], required: true },
   value: { type: Number, required: true },
   minTotal: { type: Number },
@@ -30,7 +32,7 @@ const CouponSchema = new Schema<ICoupon>({
   active: { type: Boolean, default: true },
 }, { timestamps: true });
 
-CouponSchema.index({ code: 1 });
+CouponSchema.index({ restaurantId: 1, code: 1 }, { unique: true });
 CouponSchema.index({ active: 1, startsAt: 1, endsAt: 1 });
 
 export default mongoose.models.Coupon || model<ICoupon>('Coupon', CouponSchema);

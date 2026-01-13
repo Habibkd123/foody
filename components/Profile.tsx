@@ -16,6 +16,8 @@ import { Address } from "@/types/global";
 import DeliveryAddressPage from "./AddAddressModal";
 import EditProfileModal from "./EditProfileModal";
 import { useSearchParams } from "next/navigation";
+import RaiseDisputeModal from "./RaiseDisputeModal";
+import DisputeDetailsModal from "./DisputeDetailsModal";
 
 const Profile = () => {
   const searchParams = useSearchParams();
@@ -39,6 +41,12 @@ const Profile = () => {
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [tabValue, setTabValue] = useState<string>('profile');
+  const [raiseDisputeOpen, setRaiseDisputeOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [disputesLoading, setDisputesLoading] = useState(false);
+  const [disputeDetailsOpen, setDisputeDetailsOpen] = useState(false);
+  const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
 
   // Update addresses when context address changes
   useEffect(() => {
@@ -70,7 +78,7 @@ const Profile = () => {
   // Sync tab from query param (?tab=orders)
   useEffect(() => {
     const t = searchParams?.get('tab');
-    if (t === 'orders' || t === 'favorites' || t === 'addresses' || t === 'profile') {
+    if (t === 'orders' || t === 'favorites' || t === 'addresses' || t === 'profile' || t === 'disputes') {
       setTabValue(t);
     }
   }, [searchParams]);
@@ -88,6 +96,33 @@ const Profile = () => {
     } catch (error) {
       console.error('Error loading addresses:', error);
     }
+  };
+
+  const handleUserDisputes = async () => {
+    try {
+      setDisputesLoading(true);
+      const res = await fetch('/api/disputes', { method: 'GET' });
+      const json = await res.json();
+      if (res.ok && json?.success) {
+        setDisputes(Array.isArray(json.data) ? json.data : []);
+      } else {
+        alert(json?.error || 'Failed to fetch disputes');
+      }
+    } catch (e: any) {
+      alert(e?.message || 'Failed to fetch disputes');
+    } finally {
+      setDisputesLoading(false);
+    }
+  };
+
+  const openDisputeDetails = (id: string) => {
+    setSelectedDisputeId(id);
+    setDisputeDetailsOpen(true);
+  };
+
+  const openRaiseDispute = (order: any) => {
+    setSelectedOrder(order);
+    setRaiseDisputeOpen(true);
   };
 
   const handleUserOrders = async () => {
@@ -270,7 +305,7 @@ const Profile = () => {
         {/* Modern Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
           <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-5 mb-8 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
               <TabsTrigger 
                 value="profile" 
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
@@ -284,6 +319,18 @@ const Profile = () => {
               >
                 <Package className="w-4 h-4 mr-2" />
                 Orders
+              </TabsTrigger>
+              <TabsTrigger 
+                value="disputes" 
+                className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
+                onClick={() => {
+                  if (!disputes || disputes.length === 0) {
+                    handleUserDisputes();
+                  }
+                }}
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Disputes
               </TabsTrigger>
               <TabsTrigger 
                 value="favorites" 
@@ -410,6 +457,13 @@ const Profile = () => {
                             <Button size="sm" variant="outline" className="mt-2 bg-transparent">
                               View Details
                             </Button>
+                            <Button
+                              size="sm"
+                              className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                              onClick={() => openRaiseDispute(order)}
+                            >
+                              Raise Dispute
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -419,6 +473,78 @@ const Profile = () => {
                   <p className="text-gray-600 text-center py-8">No orders yet</p>
                 )}
               </div>
+            </TabsContent>
+
+            <RaiseDisputeModal
+              open={raiseDisputeOpen}
+              onOpenChange={setRaiseDisputeOpen}
+              order={selectedOrder}
+              onCreated={() => {
+                handleUserOrders();
+                handleUserDisputes();
+              }}
+            />
+
+            <DisputeDetailsModal
+              open={disputeDetailsOpen}
+              onOpenChange={setDisputeDetailsOpen}
+              disputeId={selectedDisputeId}
+            />
+
+            <TabsContent value="disputes" className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-lg font-semibold">My Disputes</div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-transparent"
+                  onClick={handleUserDisputes}
+                  disabled={disputesLoading}
+                >
+                  {disputesLoading ? 'Refreshing...' : 'Refresh'}
+                </Button>
+              </div>
+
+              {disputesLoading ? (
+                <p className="text-gray-600 text-center py-8">Loading disputes...</p>
+              ) : Array.isArray(disputes) && disputes.length > 0 ? (
+                <div className="space-y-4">
+                  {disputes.map((d: any) => (
+                    <Card key={d._id}>
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">
+                              Order #{d?.order?.orderId || (d?.order?._id ? String(d.order._id).slice(-6) : (d?._id ? String(d._id).slice(-6) : ''))}
+                            </h4>
+                            <p className="text-gray-600 dark:text-gray-400">{String(d.reason || '')}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                            </p>
+                            <p className="text-sm mt-1">
+                              <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">
+                                {String(d.status || '')}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="bg-transparent"
+                              onClick={() => openDisputeDetails(String(d._id))}
+                            >
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600 text-center py-8">No disputes yet</p>
+              )}
             </TabsContent>
 
             <TabsContent value="favorites" className="mt-6">

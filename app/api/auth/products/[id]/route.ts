@@ -348,7 +348,7 @@ export async function GET(request: NextRequest, context: any) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     const { searchParams } = new URL(request.url);
 
@@ -474,7 +474,7 @@ export async function PUT(request: NextRequest, context: any) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     if (!validateObjectId(id)) {
       return createErrorResponse(
@@ -541,7 +541,7 @@ export async function DELETE(request: NextRequest, context: any) {
   try {
     await connectDB();
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     if (!validateObjectId(id)) {
       return createErrorResponse(
@@ -569,3 +569,4 @@ export async function DELETE(request: NextRequest, context: any) {
     return handleError(error);
   }
 }
+

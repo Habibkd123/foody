@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import * as jose from 'jose';
+import connectDB from '@/lib/mongodb';
+import AuthSession from '@/app/models/AuthSession';
 
 type UserPayload = {
   userId: string;
@@ -14,6 +16,7 @@ export async function getAuthUser(request: NextRequest): Promise<{
   isAdmin: boolean;
 }> {
   const cookieToken = request.cookies.get('token')?.value;
+  const sid = request.cookies.get('sid')?.value;
   const headerAuth = request.headers.get('authorization');
   const headerToken = headerAuth?.startsWith('Bearer ')
     ? headerAuth.replace('Bearer ', '')
@@ -52,6 +55,44 @@ export async function getAuthUser(request: NextRequest): Promise<{
     }
     const secret = new TextEncoder().encode(secretEnv);
     const { payload } = await jose.jwtVerify(token, secret) as { payload: UserPayload };
+
+    // If this request uses cookie-based auth, enforce an active session.
+    // (Header bearer tokens remain supported without sid.)
+    if (cookieToken && sid) {
+      try {
+        await connectDB();
+        const session: any = await AuthSession.findOne({ sessionId: sid }).select('userId revokedAt').lean();
+        if (!session || session.revokedAt) {
+          return {
+            userId: null,
+            role: null,
+            isAuthenticated: false,
+            isAdmin: false,
+          };
+        }
+        if (String(session.userId) !== String(payload.userId)) {
+          return {
+            userId: null,
+            role: null,
+            isAuthenticated: false,
+            isAdmin: false,
+          };
+        }
+
+        // best-effort update
+        try {
+          await AuthSession.updateOne({ sessionId: sid }, { $set: { lastSeenAt: new Date() } });
+        } catch {}
+      } catch {
+        // If DB is down, fail closed for session-based auth.
+        return {
+          userId: null,
+          role: null,
+          isAuthenticated: false,
+          isAdmin: false,
+        };
+      }
+    }
     
     return {
       userId: payload.userId,

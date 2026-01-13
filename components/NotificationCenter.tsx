@@ -249,7 +249,9 @@ export default function NotificationCenter({ location = 'home' }: NotificationCe
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] animate-slideDown">
+        <div
+          className="fixed inset-x-3 top-16 z-[100] mx-auto w-auto max-w-md md:absolute md:inset-x-auto md:top-auto md:right-0 md:mt-2 md:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 animate-slideDown"
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <div>

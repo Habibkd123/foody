@@ -185,7 +185,7 @@ export default function NotificationForm({ editingId, formData, setFormData, onS
             <div>
               <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">Display Locations</label>
               <div className="flex flex-wrap gap-2">
-                {['home', 'products', 'cart', 'checkout'].map(loc => {
+                {['home', 'products', 'cart', 'checkout', 'restaurant'].map(loc => {
                   const checked = formData.displayLocation.includes(loc)
                   return (
                     <label key={loc} className={`px-3 py-2 rounded-lg border text-sm cursor-pointer select-none ${checked ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-transparent border-gray-300 text-gray-700 dark:text-gray-300'}`}>

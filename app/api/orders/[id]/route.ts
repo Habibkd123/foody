@@ -4,6 +4,7 @@ import Order from '@/app/models/Order';
 import { OrderStatus } from '@/app/models/User';
 import mongoose from 'mongoose';
 import { sendOrderStatusEmail } from '@/app/lib/notify';
+import { ensureInvoiceForOrder } from '@/app/lib/invoice';
 
 // GET /api/orders/[id] - Fetch a single order by ID
 export async function GET(
@@ -26,7 +27,15 @@ export async function GET(
     // Find order with population
     const order = await Order.findById(id)
       .populate('user', 'firstName lastName email phone addresses')
-      .populate('items.product')
+      .populate({
+        path: 'items.product',
+        select: 'name images price originalPrice category brand sku description tags rating totalReviews',
+        populate: {
+          path: 'category',
+          model: 'Category',
+          select: 'name',
+        },
+      })
       .populate('delivery', 'address status estimatedDelivery trackingNumber')
       .lean();
     
@@ -79,6 +88,8 @@ export async function PUT(
         { status: 404 }
       );
     }
+
+    const prevStatus = String(existingOrder.status || '').toLowerCase();
     
     // Prepare update data
     const updateData: any = {};
@@ -125,8 +136,12 @@ export async function PUT(
       updateData.delivery = body.delivery;
     }
     
-    if (body.method && ['card', 'upi'].includes(body.method)) {
+    if (body.method && ['card', 'upi','razorpay'].includes(body.method)) {
       updateData.method = body.method;
+    }
+
+    if (typeof body.notes === 'string') {
+      updateData.notes = body.notes;
     }
     
     // Update the order
@@ -139,6 +154,14 @@ export async function PUT(
       .populate('items.product',)
       .populate('delivery', 'address status estimatedDelivery trackingNumber');
       console.log("daa",updatedOrder)
+
+    // Auto-invoice: when status becomes paid (best-effort)
+    try {
+      const nextStatus = String((updatedOrder as any)?.status || '').toLowerCase();
+      if (prevStatus !== 'paid' && nextStatus === 'paid') {
+        await ensureInvoiceForOrder(id, { gstRate: 5 });
+      }
+    } catch {}
     // Realtime notify (best-effort)
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -235,3 +258,4 @@ export async function DELETE(
     );
   }
 }
+

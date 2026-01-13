@@ -44,16 +44,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if refund is possible
-    if (order.status === 'cancelled') {
+    const status = String((order as any).status || '').toLowerCase();
+    if (status === 'refunded') {
       return NextResponse.json(
-        { success: false, error: 'Cannot process refund for cancelled order' },
+        { success: false, error: 'Refund already processed for this order' },
         { status: 400 }
       );
     }
 
-    if (refundAmount > order.total) {
+    const penalty = Number((order as any).cancellationPenaltyAmount || 0);
+    const maxRefund = Math.max(0, Number(order.total || 0) - (Number.isFinite(penalty) ? penalty : 0));
+    if (refundAmount > maxRefund) {
       return NextResponse.json(
-        { success: false, error: 'Refund amount cannot exceed order total' },
+        { success: false, error: `Refund amount cannot exceed ₹${maxRefund}` },
         { status: 400 }
       );
     }
@@ -66,16 +69,15 @@ export async function POST(request: NextRequest) {
       refundAmount,
       refundReason,
       refundDate: new Date(),
-      refundStatus: 'processed', // You might have pending/processed/failed statuses
-      refundId: `REF-${Date.now()}` // Generate a refund ID
+      refundStatus: 'processed',
+      refundId: `REF-${Date.now()}`,
     };
 
-    // You could add a refund field to your Order schema, or create a separate Refund model
-    // For now, we'll just mark the order as refunded if full refund
-    if (refundAmount === order.total) {
-      order.status = 'refunded';
-    }
-
+    (order as any).refundAmount = refundData.refundAmount;
+    (order as any).refundReason = refundData.refundReason;
+    (order as any).refundDate = refundData.refundDate;
+    (order as any).refundStatus = refundData.refundStatus;
+    (order as any).refundId = refundData.refundId;
     await order.save();
 
     return NextResponse.json({

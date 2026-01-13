@@ -96,3 +96,4 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return createErrorResponse('Failed to fetch recommendations', (error as any)?.message || 'Unexpected error', 500)
   }
 }
+

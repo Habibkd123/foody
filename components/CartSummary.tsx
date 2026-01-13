@@ -116,7 +116,7 @@ const getEstimatedDeliveryDate = (daysToAdd = 2) => {
     <div className="max-w-md mx-auto px-2 border rounded-lg shadow-md bg-white">
       {cartItems.map((item: any) => (
         <div
-          key={item.id}
+          key={String(item.id)}
           className="flex items-center space-x-3 p-3 bg-orange-100 rounded-lg mt-2"
         >
           <img
