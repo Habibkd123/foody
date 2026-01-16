@@ -2,6 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { Menu, Heart, ShoppingCart, Search } from "lucide-react";
+import { ThemeToggleButton } from "../common/ThemeToggleButton";
 
 type Action = {
   key: string;
@@ -117,6 +118,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
             {/* Right: Actions */}
             <div className="flex items-center gap-1.5 sm:gap-3 flex-nowrap sm:flex-wrap justify-end">
+              <ThemeToggleButton />
               {actions.map((action) => {
                 const isProfile = action.key === "profile";
                 const content = (

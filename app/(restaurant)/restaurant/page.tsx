@@ -108,6 +108,7 @@ const RestaurantDashboard = () => {
 
     useEffect(() => {
         let ignore = false;
+        let socket: any = null;
 
         const load = async () => {
             if (!isApproved) {
@@ -118,6 +119,7 @@ const RestaurantDashboard = () => {
             }
 
             try {
+                // Initial load
                 setOrdersLoading(true);
                 setOrdersError(null);
                 const res = await fetch('/api/restaurant/orders', {
@@ -141,9 +143,35 @@ const RestaurantDashboard = () => {
             }
         };
 
+        const initSocket = async () => {
+            if (!isApproved) return;
+
+            // Ensure the socket server is running
+            await fetch('/api/socket');
+
+            const { io } = await import('socket.io-client');
+            socket = io({
+                path: '/api/socket',
+                addTrailingSlash: false,
+            });
+
+            socket.on('connect', () => {
+                console.log('Connected to socket', socket.id);
+            });
+
+            socket.on('newOrder', (newOrder: any) => {
+                console.log('New order received:', newOrder);
+                setOrders((prev) => [newOrder, ...prev]);
+                // Optional: Play sound here
+            });
+        };
+
         load();
+        initSocket();
+
         return () => {
             ignore = true;
+            if (socket) socket.disconnect();
         };
     }, [isApproved]);
 
@@ -197,11 +225,10 @@ const RestaurantDashboard = () => {
                 </div>
             )}
             {user?.restaurant?.status && user.restaurant.status !== 'approved' && (
-                <div className={`mb-6 rounded-lg border p-4 ${
-                    user.restaurant.status === 'pending'
+                <div className={`mb-6 rounded-lg border p-4 ${user.restaurant.status === 'pending'
                         ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
                         : 'bg-red-50 border-red-200 text-red-800'
-                }`}>
+                    }`}>
                     <p className="font-semibold">
                         {user.restaurant.status === 'pending'
                             ? 'Your restaurant account is pending admin approval.'
@@ -230,12 +257,11 @@ const RestaurantDashboard = () => {
                             Manual: {isRestaurantOpen ? 'Open' : 'Closed'}
                         </span>
                     </div>
-                    <button 
+                    <button
                         onClick={handleToggleRestaurantOpen}
                         disabled={toggleLoading || disableManualToggle}
-                        className={`p-2 rounded-full text-white transition-colors ${
-                            isRestaurantOpen ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
-                        } ${(toggleLoading || disableManualToggle) ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                        className={`p-2 rounded-full text-white transition-colors ${isRestaurantOpen ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                            } ${(toggleLoading || disableManualToggle) ? 'opacity-60 cursor-not-allowed' : ''}`}>
                         <Power size={20} />
                     </button>
                 </div>

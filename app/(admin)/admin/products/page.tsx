@@ -199,7 +199,7 @@ const ProductManagement = () => {
             </div>
           </div>
 
-          <button onClick={()=>router.push('/admin/products/add')} className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 md:px-5 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+          <button onClick={() => router.push('/admin/products/add')} className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 md:px-5 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
 
             <PlusIcon className="w-5 h-5 mr-2" />
             Add Product
@@ -216,7 +216,7 @@ const ProductManagement = () => {
                 {/* Product Image */}
                 <div className="bg-gray-200 dark:bg-gray-700 transition-colors duration-200">
                   <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center overflow-hidden transition-colors duration-200">
-                  <img src={product.images[0] || '/placeholder.png'} alt={product.name} className="object-cover w-full h-full" />
+                    <img src={product.images[0] || '/placeholder.png'} alt={product.name} className="object-cover w-full h-full" />
                   </div>
                 </div>
 
@@ -274,14 +274,14 @@ const ProductManagement = () => {
                   <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
                     <div className="flex space-x-2">
                       <Link href={`/admin/products/view/${product._id}`} >
-                      <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
+                        <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
+                          <EyeIcon className="w-4 h-4" />
+                        </button>
                       </Link>
                       <Link href={`/admin/products/${product._id}`} >
-                      <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200">
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
+                        <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200">
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
                       </Link>
                       <button
                         onClick={() => handleDelete(product?._id)}
@@ -301,8 +301,20 @@ const ProductManagement = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400 transition-colors duration-200">
-            Loading products...
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 animate-pulse">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 h-[320px]">
+                <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-t-lg" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                  <div className="flex justify-between pt-4">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-10" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
         ) : products.length === 0 && (

@@ -10,13 +10,10 @@ import {
 } from 'lucide-react';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuthStorage } from '@/hooks/useAuth';
+import { useTheme } from '@/context/ThemeContext';
 const ThemeToggleButton = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <button
@@ -24,7 +21,7 @@ const ThemeToggleButton = () => {
       className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors duration-200"
       aria-label="Toggle theme"
     >
-      {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   );
 };
@@ -32,7 +29,7 @@ const ThemeToggleButton = () => {
 // User Dropdown
 const UserDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-const {logout}=useAuthStorage();
+  const { logout } = useAuthStorage();
   return (
     <div className="relative">
       <button

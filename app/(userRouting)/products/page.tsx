@@ -3,7 +3,7 @@ import HomePage from '../home/page';
 
 const Products = () => {
     return (
-     <HomePage/>
+        <HomePage />
     )
 }
 

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         .lean({ virtuals: true }),
       Product.countDocuments(filter),
     ]);
-    const formattedProducts: ProductResponse[] = products.map((product:any) => ({
+    const formattedProducts: ProductResponse[] = products.map((product: any) => ({
       _id: product._id?.toString() || '',
       id: product.id?.toString(), // optional
       name: product.name,         // required

@@ -62,6 +62,7 @@ export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
           contact: user?.phone || ''
         },
         handler: async function (response: any) {
+          console.log("newdatafor razarpay", response)
           // 3) Verify payment and create our order in DB
           const verifyRes = await fetch('/api/razorpay/verify', {
             method: 'POST',
@@ -92,8 +93,9 @@ export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
             })
           });
           const verifyData = await verifyRes.json();
+          console.log("newdatafor razarpay", verifyData)
           if (verifyData?.success) {
-            window.location.href = `/success?payment_id=${response.razorpay_payment_id}`;
+            // window.location.href = `/success?payment_id=${response.razorpay_payment_id}`;
           } else {
             alert(verifyData?.error || 'Payment verification failed');
           }

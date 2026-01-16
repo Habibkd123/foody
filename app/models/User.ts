@@ -214,8 +214,8 @@ const UserSchema = new Schema<IUser>(
     username: { type: String, trim: true },
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
-    email: { type: String, trim: true, lowercase: true, unique: true },
-    image : { type: String, default: '' },
+    email: { type: String, trim: true, lowercase: true },
+    image: { type: String, default: '' },
     phone: { type: String, trim: true, default: '' },
     password: { type: String, required: true, select: false }, // hide password by default
     role: {

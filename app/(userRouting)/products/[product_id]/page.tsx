@@ -139,7 +139,7 @@ const ProductPage = () => {
       if (res.ok && data.success) {
         setRemoteReviews(Array.isArray(data.data) ? data.data : []);
       }
-    } catch {}
+    } catch { }
   };
 
   const handleToggleReply = (id: string) => {
@@ -163,7 +163,7 @@ const ProductPage = () => {
         setReplyOpenId(null);
         setReplyText('');
       }
-    } catch {}
+    } catch { }
   };
 
   // NOW we can do conditional returns AFTER all hooks are declared
@@ -384,7 +384,7 @@ const ProductPage = () => {
     } as React.CSSProperties
   };
   return (
-    <div>
+    <div key={product_id ? String(product_id) : 'product-page'} className="fixed inset-0 z-[100] bg-white overflow-y-auto">
       <AppHeader
         logoSrc="/logoGro.png"
         title="Gro-Delivery"
@@ -931,8 +931,8 @@ const ProductPage = () => {
                         <Star
                           key={i}
                           className={`w-5 h-5 ${i < Math.floor(product?.rating)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
                             }`}
                         />
                       ))}
@@ -980,8 +980,8 @@ const ProductPage = () => {
                             <Star
                               key={i}
                               className={`w-4 h-4 ${i < review.rating
-                                  ? "text-yellow-400 fill-current"
-                                  : "text-gray-300"
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300"
                                 }`}
                             />
                           ))}
@@ -1143,33 +1143,7 @@ const ProductPage = () => {
         </div>
       </div>
 
-      {/* Trust Badges */}
-      <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-xl font-bold text-center mb-6">Why Shop With Us?</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Truck className="w-8 h-8 text-green-600" />
-            </div>
-            <h4 className="font-semibold mb-1">Free Delivery</h4>
-            <p className="text-sm text-gray-600">On orders above ₹500</p>
-          </div>
-          <div className="text-center">
-            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Shield className="w-8 h-8 text-blue-600" />
-            </div>
-            <h4 className="font-semibold mb-1">Quality Assured</h4>
-            <p className="text-sm text-gray-600">100% authentic products</p>
-          </div>
-          <div className="text-center">
-            <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Users className="w-8 h-8 text-purple-600" />
-            </div>
-            <h4 className="font-semibold mb-1">Customer Support</h4>
-            <p className="text-sm text-gray-600">24/7 assistance</p>
-          </div>
-        </div>
-      </div>
+      {/* Trust Badges - Removed as per user request to avoid Home Banner duplication */}
 
       {/* Floating Action Button */}
       <button

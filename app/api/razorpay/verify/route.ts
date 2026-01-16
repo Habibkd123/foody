@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, user, items, total, method = 'razorpay', address, orderId, notes, couponCode, tip, deliveryCharge, handlingCharge, donation, deliveryLocation } = body;
-
+  console.log("newdatafor razarpay", body)
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     return NextResponse.json({ success: false, error: 'Missing payment verification data' }, { status: 400 });
   }
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-    } catch {}
+    } catch { }
 
     // Delivery radius enforcement (if configured)
     try {
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
           );
         }
       }
-    } catch {}
+    } catch { }
 
     const effective = getEffectiveRestaurantOpen(restaurantUser?.restaurant, new Date());
     const isOpen = effective.isOpen;

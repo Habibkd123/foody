@@ -27,12 +27,13 @@ import ProductsSection from "@/components/home/ProductsSection"
 import WhyChooseSection from "@/components/home/WhyChooseSection"
 import ContactSection from "@/components/home/ContactSection"
 import SiteFooter from "@/components/home/SiteFooter"
+import { ThemeToggleButton } from "@/components/common/ThemeToggleButton"
 
 function GroceryApp() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const toast = useCustomToast()
-  
+
   // Contact form state
   const [contactForm, setContactForm] = useState({
     name: '',
@@ -49,7 +50,7 @@ function GroceryApp() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [categories, setCategories] = useState<Array<any>>([])
-  const { token, user, setToken, setUser ,logout} = useAuthStorage()
+  const { token, user, setToken, setUser, logout } = useAuthStorage()
   const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
   const { wishListsData, addWishList, removeWishList, setWistListsData, getUserWishList } = useWishListContext();
   const { dispatch, state } = useOrder();
@@ -64,11 +65,11 @@ function GroceryApp() {
 
       if (data.success) {
         // Add "All Items" as first category with special styling
-        const allCategory = { 
-          _id: 'all', 
-          name: "All Items", 
+        const allCategory = {
+          _id: 'all',
+          name: "All Items",
           icon: "",
-          isAllCategory: true 
+          isAllCategory: true
         };
         setCategories([allCategory, ...data.data]);
       }
@@ -106,7 +107,7 @@ function GroceryApp() {
 
   // Enhanced wishlist toggle with animation
   const toggleWishlist = async (item: any) => {
-    const isWishlisted = wishListsData&&wishListsData.some((item) => item?._id === item?._id);
+    const isWishlisted = wishListsData && wishListsData.some((item) => item?._id === item?._id);
     try {
       if (isWishlisted) {
         await removeWishList(user?._id, item?._id);
@@ -239,6 +240,7 @@ function GroceryApp() {
 
             {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
+              <ThemeToggleButton />
               {/* Notification Center */}
               {user?._id && <NotificationCenter location="home" />}
               <div className="flex items-center space-x-2 relative z-[120px]">
@@ -302,7 +304,7 @@ function GroceryApp() {
       {/* Hero Section — Minimal Milkshake Landing */}
       <CategoriesSection
         categories={groceryCategories}
-        products={products??[]}
+        products={products ?? []}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
       />
@@ -319,14 +321,14 @@ function GroceryApp() {
       />
 
       {/* Flash Sales Section */}
-      <FlashSales 
+      <FlashSales
         products={products}
         onAddToCart={handleAddToCart}
         onToggleWishlist={toggleWishlist}
       />
 
       {/* Trending Products Section */}
-      <TrendingProducts 
+      <TrendingProducts
         onAddToCart={handleAddToCart}
         onToggleWishlist={toggleWishlist}
       />

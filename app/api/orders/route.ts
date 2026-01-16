@@ -129,7 +129,7 @@ function computeCustomizationsDelta(product: any, reqItem: any) {
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
-    
+
     // Build filter object
     const filter: any = {};
     if (status && Object.values(OrderStatus).includes(status as OrderStatus)) {
@@ -146,14 +146,14 @@ export async function GET(request: NextRequest) {
     if (userId && mongoose.Types.ObjectId.isValid(userId)) {
       filter.user = userId;
     }
-    
+
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
-    
+
     // Build sort object
     const sort: any = {};
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-    
+
     // Fetch orders with population
     const orders = await Order.find(filter)
       .populate('user', 'firstName lastName email phone')
@@ -163,11 +163,11 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit)
       .lean();
-    
+
     // Get total count for pagination
     const totalOrders = await Order.countDocuments(filter);
     const totalPages = Math.ceil(totalOrders / limit);
-    
+
     return NextResponse.json({
       success: true,
       data: orders,
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
         hasPrevPage: page > 1
       }
     });
-    
+
   } catch (error: any) {
     console.error('Error fetching orders:', error);
     return NextResponse.json(
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
     console.log('[Orders POST] Enter handler');
     await connectDB();
     console.log('[Orders POST] Connected to DB');
-    
+
     const body = await request.json();
     console.log('[Orders POST] Parsed body');
     const { user, items, total, paymentId, delivery, method, orderId, notes, couponCode, tip, deliveryCharge, handlingCharge, donation, deliveryLocation } = body;
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
       method,
       orderId,
     });
-    
+
     // Validation
     if (!user || !mongoose.Types.ObjectId.isValid(user)) {
       console.warn('[Orders POST] Invalid user', { user });
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (!items || !Array.isArray(items) || items.length === 0) {
       console.warn('[Orders POST] Invalid items array', { itemsType: typeof items, length: Array.isArray(items) ? items.length : undefined });
       return NextResponse.json(
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (!total || typeof total !== 'number' || total <= 0) {
       console.warn('[Orders POST] Invalid total', { total, type: typeof total });
       return NextResponse.json(
@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (!paymentId || typeof paymentId !== 'string') {
       console.warn('[Orders POST] Missing/invalid paymentId', { paymentId });
       return NextResponse.json(
@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (!orderId || typeof orderId !== 'string') {
       console.warn('[Orders POST] Missing/invalid orderId', { orderId });
       return NextResponse.json(
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Validate items structure
     for (const item of items) {
       const idx = items.indexOf(item);
@@ -276,7 +276,7 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    
+
     // Auto accept/reject based on restaurant settings (single-restaurant assumption: uses items[0].product)
     let initialStatus = OrderStatus.PENDING;
     let restaurantSettings: any = null;
@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
               );
             }
-          } catch {}
+          } catch { }
 
           // Delivery radius enforcement (if configured)
           try {
@@ -316,7 +316,7 @@ export async function POST(request: NextRequest) {
                 );
               }
             }
-          } catch {}
+          } catch { }
 
           const effective = getEffectiveRestaurantOpen(restaurantUser?.restaurant, new Date());
           const isOpen = effective.isOpen;
@@ -502,7 +502,7 @@ export async function POST(request: NextRequest) {
         console.error('Delivery creation/linking failed for order', newOrder?._id?.toString?.(), deliveryErr);
       }
     }
-    
+
     // After creating the order, mark user's cart as purchased and disable TTL
     try {
       if (user && mongoose.Types.ObjectId.isValid(user)) {
@@ -523,15 +523,21 @@ export async function POST(request: NextRequest) {
       .populate('items.product', 'name price image category')
       .populate('delivery', 'address status estimatedDelivery');
     console.log('[Orders POST] Populated order ready');
-    
+
+    // Emit socket event for real-time updates
+    if (global.io) {
+      console.log('[Orders POST] Emitting newOrder socket event');
+      global.io.emit('newOrder', populatedOrder);
+    }
+
     return NextResponse.json(
       { success: true, data: populatedOrder },
       { status: 201 }
     );
-    
+
   } catch (error: any) {
     console.error('[Orders POST] Error creating order:', error?.stack || error);
-    
+
     // Handle duplicate key error
     if (error.code === 11000) {
       return NextResponse.json(
@@ -539,7 +545,7 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to create order', details: error.message },
       { status: 500 }

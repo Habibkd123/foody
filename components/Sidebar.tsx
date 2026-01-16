@@ -214,7 +214,7 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
 }) => {
   const isActive =
     item.href === "/admin"
-      ? currentPath === "/admin" || currentPath.startsWith("/admin")
+      ? currentPath === item.href
       : currentPath.startsWith(item.href);
 
   return (
@@ -222,22 +222,19 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
       <button
         type="button"
         aria-current={isActive ? "page" : undefined}
-        className={`w-full flex items-center transition-all duration-200 rounded-lg group relative ${
-          isCollapsed ? "justify-center p-3" : "justify-between px-4 py-3"
-        } ${
-          isActive
+        className={`w-full flex items-center transition-all duration-200 rounded-lg group relative ${isCollapsed ? "justify-center p-3" : "justify-between px-4 py-3"
+          } ${isActive
             ? "bg-orange-100 text-orange-700 border border-orange-200 ring-1 ring-orange-200"
             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 opacity-80 hover:opacity-100"
-        }`}
+          }`}
         title={isCollapsed ? item.label : ""}
       >
         {!isCollapsed && isActive && (
           <span className="absolute left-0 top-0 h-full w-1 bg-orange-500 rounded-r" />
         )}
         <div
-          className={`flex items-center ${
-            isCollapsed ? "justify-center" : "space-x-3"
-          }`}
+          className={`flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
+            }`}
         >
           <item.icon className="h-5 w-5" />
           {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
@@ -283,15 +280,14 @@ const Sidebar: React.FC = () => {
               ? "translate-x-0 w-64"
               : "-translate-x-full w-64"
             : isExpanded
-            ? "w-64"
-            : "w-16"}
+              ? "w-64"
+              : "w-16"}
         `}
       >
         {/* Sidebar header (align with your main header height if needed) */}
         <div
-          className={`flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 ${
-            isExpanded ? "justify-start" : "justify-center"
-          }`}
+          className={`flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 ${isExpanded ? "justify-start" : "justify-center"
+            }`}
         >
           <Shield className="h-7 w-7 text-blue-500" />
           {isExpanded && (
@@ -303,9 +299,8 @@ const Sidebar: React.FC = () => {
 
         {/* Navigation */}
         <nav
-          className={`flex-1 py-4 space-y-2 overflow-y-auto ${
-            isExpanded ? "px-3" : "px-2"
-          }`}
+          className={`flex-1 py-4 space-y-2 overflow-y-auto ${isExpanded ? "px-3" : "px-2"
+            }`}
         >
           {navigationItems.map((item) => (
             <NavigationItem

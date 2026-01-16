@@ -3,9 +3,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/app/models/User';
+import Order from '@/app/models/Order';
+import Product from '@/app/models/Product';
 import { userStatsQuerySchema } from '@/lib/user-validations';
-import { 
-  handleUserError, 
+import {
+  handleUserError,
   createUserSuccessResponse
 } from '@/utils/user-utils';
 import { UserStatsResponse } from '@/types/user-types';
@@ -44,7 +46,12 @@ export async function GET(request: NextRequest) {
       newUsersThisMonth,
       usersWithAddresses,
       roleDistribution,
-      registrationTrend
+      registrationTrend,
+      totalOrders,
+      totalRevenue,
+      activeOrders,
+      totalRestaurants,
+      totalProducts
     ] = await Promise.all([
       // Total users
       User.countDocuments(dateFilter),
@@ -102,7 +109,21 @@ export async function GET(request: NextRequest) {
           }
         },
         { $sort: { _id: 1 } }
-      ])
+      ]),
+
+      // Order Stats
+      Order.countDocuments(dateFilter),
+      Order.aggregate([
+        { $match: { status: 'delivered' } },
+        { $group: { _id: null, total: { $sum: '$total' } } }
+      ]),
+      Order.countDocuments({ status: { $in: ['pending', 'preparing', 'shipped'] } }),
+
+      // Restaurant Stats
+      User.countDocuments({ role: 'restaurant' }),
+
+      // Product Stats
+      Product.countDocuments({})
     ]);
 
     // Format role distribution
@@ -141,6 +162,17 @@ export async function GET(request: NextRequest) {
         usersWithAddresses,
         usersWithoutAddresses: totalUsers - usersWithAddresses,
         percentageWithAddresses: totalUsers > 0 ? ((usersWithAddresses / totalUsers) * 100) : 0
+      },
+      // New Order Stats
+      orderStats: {
+        totalOrders,
+        totalRevenue: totalRevenue[0]?.total || 0,
+        activeOrders
+      },
+      // Business Stats
+      businessStats: {
+        totalRestaurants,
+        totalProducts
       }
     };
 
@@ -157,10 +189,10 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { 
-      groupBy = 'day', 
+    const {
+      groupBy = 'day',
       period = 30,
-      metrics = ['registrations', 'roles'] 
+      metrics = ['registrations', 'roles']
     } = body;
 
     const periodStart = new Date(Date.now() - period * 24 * 60 * 60 * 1000);
@@ -204,12 +236,12 @@ export async function POST(request: NextRequest) {
             $group: {
               _id: {
                 period: { $dateToString: { format: dateFormat, date: '$createdAt' } },
-                hasAddresses: { 
-                  $cond: { 
-                    if: { $gt: [{ $size: { $ifNull: ['$addresses', []] } }, 0] }, 
-                    then: true, 
-                    else: false 
-                  } 
+                hasAddresses: {
+                  $cond: {
+                    if: { $gt: [{ $size: { $ifNull: ['$addresses', []] } }, 0] },
+                    then: true,
+                    else: false
+                  }
                 }
               },
               count: { $sum: 1 }

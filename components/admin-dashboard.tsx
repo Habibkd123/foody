@@ -25,6 +25,7 @@ import {
   Menu,
   X,
   Activity,
+  Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -100,66 +101,60 @@ export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
 
   const { logActivity } = useActivityLogger(user)
 
-  // Sample data
+  // Stats state
+  const [stats, setStats] = useState<any>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/auth/stats')
+      const json = await res.json()
+      if (json.success) {
+        setStats(json.data)
+      }
+    } catch (e) {
+      console.error("Failed to fetch stats", e)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
   const dashboardStats = [
     {
       title: "Total Users",
-      value: "12,543",
-      change: "+12%",
-      trend: "up",
+      value: stats?.totalUsers?.toLocaleString() || "0",
+      change: `+${Math.round(stats?.growthRate?.monthly || 0)}%`,
+      trend: (stats?.growthRate?.monthly || 0) >= 0 ? "up" : "down",
       icon: Users,
       color: "bg-blue-500",
     },
     {
       title: "Active Orders",
-      value: "1,234",
-      change: "+8%",
+      value: stats?.orderStats?.activeOrders?.toLocaleString() || "0",
+      change: "Active",
       trend: "up",
       icon: ShoppingBag,
       color: "bg-green-500",
     },
     {
-      title: "Restaurants",
-      value: "456",
-      change: "+3%",
+      title: "Relationships", // "Restaurants" renamed to relationships or keep as restaurants if only restaurants
+      value: stats?.businessStats?.totalRestaurants?.toLocaleString() || "0",
+      change: "Total",
       trend: "up",
       icon: Store,
       color: "bg-orange-500",
     },
     {
       title: "Revenue",
-      value: "₹2.4M",
-      change: "-2%",
-      trend: "down",
+      value: `₹${(stats?.orderStats?.totalRevenue || 0).toLocaleString()}`,
+      change: "Total",
+      trend: "up",
       icon: DollarSign,
       color: "bg-purple-500",
-    },
-  ]
-
-  const recentOrders = [
-    {
-      id: "ORD001",
-      customer: "John Doe",
-      restaurant: "Spice Garden",
-      amount: 450,
-      status: "delivered",
-      time: "2 mins ago",
-    },
-    {
-      id: "ORD002",
-      customer: "Jane Smith",
-      restaurant: "Pizza Corner",
-      amount: 680,
-      status: "preparing",
-      time: "5 mins ago",
-    },
-    {
-      id: "ORD003",
-      customer: "Mike Johnson",
-      restaurant: "Dragon Palace",
-      amount: 320,
-      status: "cancelled",
-      time: "10 mins ago",
     },
   ]
 
@@ -322,11 +317,10 @@ export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      activeTab === item.id
-                        ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${activeTab === item.id
+                      ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      }`}
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
@@ -373,6 +367,35 @@ export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
               </div>
 
               <div className="flex items-center space-x-4">
+                {activeTab === "dashboard" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden sm:flex"
+                    onClick={() => {
+                      const headers = ['Title', 'Value', 'Change', 'Trend'];
+                      const csvContent = [
+                        headers.join(','),
+                        ...dashboardStats.map(s =>
+                          [s.title, s.value.replace(/,/g, ''), s.change, s.trend].join(',')
+                        )
+                      ].join('\n');
+
+                      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                      const link = document.createElement('a');
+                      const url = URL.createObjectURL(blob);
+                      link.setAttribute('href', url);
+                      link.setAttribute('download', `admin_report_${new Date().toISOString().split('T')[0]}.csv`);
+                      link.style.visibility = 'hidden';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Report
+                  </Button>
+                )}
                 <NotificationSystem adminUser={user} />
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>
@@ -414,11 +437,10 @@ export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
                           setActiveTab(item.id)
                           setSidebarOpen(false)
                         }}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                          activeTab === item.id
-                            ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        }`}
+                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${activeTab === item.id
+                          ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`}
                       >
                         <item.icon className="h-5 w-5" />
                         <span className="font-medium">{item.label}</span>
@@ -471,28 +493,9 @@ export default function AdminDashboard({ user, onClose }: AdminDashboardProps) {
                       <CardTitle>Recent Orders</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {recentOrders.map((order) => (
-                          <div
-                            key={order.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                          >
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{order.id}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{order.customer}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{order.restaurant}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-gray-900 dark:text-white">₹{order.amount}</p>
-                              <Badge
-                                className={`${getStatusColor(order.status)} hover:${getStatusColor(order.status)}`}
-                              >
-                                {order.status}
-                              </Badge>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{order.time}</p>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <ShoppingBag className="h-12 w-12 text-gray-300 mb-3" />
+                        <p className="text-gray-500">Real-time order feed coming soon</p>
                       </div>
                     </CardContent>
                   </Card>

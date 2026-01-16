@@ -492,11 +492,10 @@ const OrdersAdminPage = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                                        activeTab === tab.id
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                                             ? 'border-blue-500 text-blue-600'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                        }`}
                                 >
                                     {tab.label}
                                     <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
@@ -533,63 +532,95 @@ const OrdersAdminPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                {filteredOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {order.orderNumber}
-                                            </div>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                {order.date}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                                        <span className="text-sm font-medium text-gray-600">
+                                {loading ? (
+                                    // Skeleton Loading Rows
+                                    [...Array(5)].map((_, index) => (
+                                        <tr key={index} className="animate-pulse">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
+                                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="rounded-full bg-gray-200 dark:bg-gray-700 h-10 w-10"></div>
+                                                    <div className="ml-4 space-y-2">
+                                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+                                                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-40"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-1"></div>
+                                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-24"></div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    filteredOrders.map((order) => (
+                                        <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    {order.orderNumber}
+                                                </div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {order.date}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="flex-shrink-0 h-10 w-10">
+                                                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
                                                             {order.customer.avatar}
-                                                        </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="ml-4">
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {order.customer.name}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                            {order.customer.email}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {order.customer.name}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        {order.customer.email}
-                                                    </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900 dark:text-white">
+                                                    {order.items} items
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 dark:text-white">
-                                                {order.items} items
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                ${order.total.toFixed(2)}
-                                            </div>
-                                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                {order.payment}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <button
-                                                onClick={() => handleViewOrder(order)}
-                                                className="text-blue-600 hover:text-blue-900 mr-3"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    ${order.total.toFixed(2)}
+                                                </div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {order.payment}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                                                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button
+                                                    onClick={() => handleViewOrder(order)}
+                                                    className="text-blue-600 hover:text-blue-900 mr-3 transition-transform hover:scale-110"
+                                                >
+                                                    <Eye className="h-5 w-5" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -597,7 +628,7 @@ const OrdersAdminPage = () => {
             </div>
             {/* Order Details Modal */}
             {showOrderModal && selectedOrder && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
                     <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
