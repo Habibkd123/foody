@@ -99,32 +99,32 @@ const CategorySection = ({ section }: { section: any }) => {
 
       <div id={`category-${section?.name || 'section'}-grid`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
         {visible.map((item: any, idx: any) => (
-            <div
-              key={idx}
-              className="group bg-white rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200 animate-fade-in"
-            >
-              {/* @ts-ignore */}
-              <Link href={`/products/${item._id}`} aria-label={`View details for ${item?.name || 'product'}`}>
-                <div className="relative overflow-hidden rounded-lg mb-3">
-                  <div className="relative w-full aspect-square">
-                    <Image
-                      src={(item?.images && item.images[0]) || '/placeholder-logo.png'}
-                      alt={item?.name || 'Product image'}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12vw"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block" />
+          <div
+            key={idx}
+            className="group bg-white rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200 animate-fade-in"
+          >
+            {/* @ts-ignore */}
+            <Link href={`/products/${item._id}`} aria-label={`View details for ${item?.name || 'product'}`}>
+              <div className="relative overflow-hidden rounded-lg mb-3">
+                <div className="relative w-full aspect-square">
+                  <Image
+                    src={(item?.images && item.images[0]) || '/placeholder-logo.png'}
+                    alt={item?.name || 'Product image'}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12vw"
+                  />
                 </div>
-                <div className="text-center">
-                  <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2 min-h-[2.25rem]">
-                    {item.name}
-                  </h3>
-                </div>
-              </Link>
-            </div>
-          ))}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2 min-h-[2.25rem]">
+                  {item.name}
+                </h3>
+              </div>
+            </Link>
+          </div>
+        ))}
       </div>
       {products.length > 6 && (
         <div className="mt-4 hidden sm:flex justify-center">
@@ -246,7 +246,7 @@ const HomePage: React.FC = () => {
   const getTotalPrice = () => {
     return cartItems.reduce((total: number, item: any) => total + (item.price || 0) * (item.quantity || 0), 0);
   };
-  console.log("Categories:",user);
+  console.log("Categories:", user);
   return (
     <>
       <Script
@@ -349,7 +349,7 @@ const HomePage: React.FC = () => {
                     height={40}
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{(user as any)?.firstName+ " " +(user as any)?.lastName || 'Your Account'}</p>
+                    <p className="text-sm font-medium truncate">{(user as any)?.firstName + " " + (user as any)?.lastName || 'Your Account'}</p>
                     <p className="text-xs text-muted-foreground truncate">{(user as any)?.email || ''}</p>
                   </div>
                 </div>
@@ -436,43 +436,6 @@ const HomePage: React.FC = () => {
             )}
           </div>
 
-          {/* <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mt-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-8 text-white">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <div className="text-3xl font-bold mb-2">50K+</div>
-                <div className="text-orange-100">Happy Customers</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mb-2">10K+</div>
-                <div className="text-orange-100">Products</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mb-2">30min</div>
-                <div className="text-orange-100">Avg Delivery</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mb-2">4.8★</div>
-                <div className="text-orange-100">Customer Rating</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Stay Updated</h3>
-            <p className="text-gray-600 mb-6">Get notified about new products, offers, and more!</p>
-            <div className="max-w-md mx-auto flex">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-orange-400 focus:outline-none"
-              />
-              <button className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-r-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div> */}
 
           {/* Footer */}
           <footer className="bg-gray-900 text-white mt-16 hidden md:block">
