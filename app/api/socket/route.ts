@@ -6,9 +6,7 @@ declare global {
   var io: IOServer | undefined;
 }
 
-export const config = {
-  runtime: "nodejs",
-};
+export const runtime = "nodejs";
 
 export async function GET() {
   return NextResponse.json({ ok: true, message: "Socket.io endpoint running" });
