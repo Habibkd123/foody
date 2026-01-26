@@ -2,6 +2,20 @@ import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
+const swiperStyles = `
+  .swiper {
+    --swiper-theme-color: #fff;
+    --swiper-navigation-size: 24px;
+    --swiper-pagination-bullet-size: 8px;
+    --swiper-pagination-bullet-horizontal-gap: 6px;
+  }
+  .swiper-wrapper {
+    align-items: center;
+  }
+  .swiper-slide {
+    background: white;
+  }
+`;
 
 export default function HeroSlider({ type }: { type: string }) {
 
@@ -42,29 +56,71 @@ export default function HeroSlider({ type }: { type: string }) {
             console.error("Error fetching banners:", error);
         }
     }
+    useEffect(() => {
+        const styleElement = document.createElement('style');
+        styleElement.textContent = swiperStyles;
+        document.head.appendChild(styleElement);
+        return () => {
+            document.head.removeChild(styleElement);
+        };
+    }, []);
+
     return (
-        <div className="w-full h-screen">
-            <Swiper
-                modules={[Autoplay]}
-                spaceBetween={0}
-                slidesPerView={1}
-                loop={true}
-                autoplay={{ delay: 3000, disableOnInteraction: false }}
-                className="w-full h-full"
-            >
-                {(banners && banners.length > 0 ? banners : images).map((src: string, index: number) => (
-                    <SwiperSlide key={`${src}-${index}`}>
-                        <div
-                            className="w-full h-full bg-cover bg-center bg-no-repeat"
-                            style={{
-                                backgroundImage: `url(${src})`,
-                            }}
-                        ></div>
-                    </SwiperSlide>
-                ))}
+        <div className="w-full overflow-hidden bg-white">
+            <div className="hidden md:block">
+                <Swiper
+                    modules={[Autoplay]}
+                    spaceBetween={0}
+                    slidesPerView={1}
+                    loop={true}
+                    autoplay={{ delay: 3000, disableOnInteraction: false }}
+                    className="w-full h-[50vh] md:h-[60vh] lg:h-[70vh]"
+                >
+                    {(banners && banners.length > 0 ? banners : images).map((src: string, index: number) => (
+                        <SwiperSlide key={`desktop-${src}-${index}`} className="relative">
+                            <div className="relative w-full h-full">
+                                <img
+                                    src={src}
+                                    alt={`Slide ${index + 1}`}
+                                    className="w-full h-full object-cover object-center block"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
+                                />
+                            </div>
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            </div>
 
-
-            </Swiper>
+            <div className="md:hidden px-2">
+                <Swiper
+                    modules={[Autoplay]}
+                    spaceBetween={12}
+                    slidesPerView={1.1}
+                    centeredSlides={true}
+                    loop={true}
+                    autoplay={{ delay: 3000, disableOnInteraction: false }}
+                    className="w-full py-3"
+                >
+                    {(banners && banners.length > 0 ? banners : images).map((src: string, index: number) => (
+                        <SwiperSlide key={`mobile-${src}-${index}`}>
+                            <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-md">
+                                <img
+                                    src={src}
+                                    alt={`Slide ${index + 1}`}
+                                    className="w-full h-full object-cover object-center block"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
+                                />
+                            </div>
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            </div>
         </div>
     );
 }

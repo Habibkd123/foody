@@ -8,7 +8,7 @@ import { Facebook, Instagram, Twitter, Youtube } from "lucide-react"
 
 export default function SiteFooter() {
   return (
-    <footer className="relative bg-gray-900 text-white pt-20 pb-10 overflow-hidden">
+    <footer className="hidden md:block relative bg-gray-900 text-white pt-20 pb-10 overflow-hidden">
 
       {/* Floating Background Gradients */}
       <div className="absolute inset-0 pointer-events-none">

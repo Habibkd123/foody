@@ -373,8 +373,9 @@ const HomePage: React.FC = () => {
 
           <section
             id="home"
-            className="relative min-h-[70vh] sm:h-[80vh] lg:h-screen flex items-center justify-center overflow-hidden"
+            className="relative overflow-hidden"
           >
+<<<<<<< Updated upstream
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -409,6 +410,10 @@ const HomePage: React.FC = () => {
                 </Link>
               </div>
             </div>
+=======
+            <HeroSlider type="Home" />
+            <div className="hidden md:block pointer-events-none absolute inset-0 bg-gradient-to-r from-black/30 to-transparent z-10"></div>
+>>>>>>> Stashed changes
           </section>
           <div id="categories" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
             {categoriesLoading ? (
@@ -418,7 +423,7 @@ const HomePage: React.FC = () => {
                 <CategorySectionSkeleton />
               </>
             ) : categories && categories.length > 0 ? (
-              categories.map((section, idx) => (
+              categories.filter((section: any) => Array.isArray(section?.products) && section.products.length > 0).map((section, idx) => (
                 // @ts-ignore
                 <CategorySection section={section} key={idx} />
               ))
@@ -438,7 +443,11 @@ const HomePage: React.FC = () => {
 
 
           {/* Footer */}
+<<<<<<< Updated upstream
           <footer className="bg-gray-900 text-white mt-16 hidden md:block">
+=======
+          <footer className="hidden md:block bg-gray-900 text-white mt-16">
+>>>>>>> Stashed changes
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
