@@ -2,10 +2,6 @@
 const nextConfig = {
   serverExternalPackages: ["mongoose"],
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -24,3 +20,5 @@ const nextConfig = {
 };
 
 export default nextConfig;
+
+
