@@ -67,6 +67,11 @@ export function middleware(request: NextRequest) {
   console.log("=== MIDDLEWARE DEBUG ===");
   console.log("Path:", path, "Token:", !!token, "Role:", userRole);
 
+  // Always allow SEO/system endpoints
+  if (path === '/robots.txt' || path === '/sitemap.xml') {
+    return NextResponse.next();
+  }
+
   // Skip static files, APIs, uploads, and public assets
   if (
     path.startsWith("/_next/") ||
@@ -84,6 +89,13 @@ export function middleware(request: NextRequest) {
   const publicRoutes = [
     "/login",
     "/auth",
+    "/",
+    "/home",
+    "/products",
+    "/productlist",
+    "/contact",
+    "/faqs",
+    "/feedback",
   ];
 
   // Allow public routes without authentication

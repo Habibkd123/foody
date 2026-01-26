@@ -375,12 +375,8 @@ const HomePage: React.FC = () => {
             id="home"
             className="relative overflow-hidden"
           >
-<<<<<<< Updated upstream
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            >
-
+            <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
               <HeroSlider type="Home" />
             </div>
             <h1 className="sr-only">Gro-Delivery — Order fresh groceries and modern milkshakes online</h1>
@@ -402,7 +398,11 @@ const HomePage: React.FC = () => {
                 </Link>
                 <Link
                   href="#categories"
-                  onClick={(e) => { e.preventDefault(); const el = document.getElementById('categories'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const el = document.getElementById('categories');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
                   className="inline-flex items-center gap-2 rounded-full bg-white/90 text-gray-900 px-5 py-3 font-medium shadow hover:bg-white w-full sm:w-auto justify-center"
                   aria-label="Browse categories"
                 >
@@ -410,10 +410,6 @@ const HomePage: React.FC = () => {
                 </Link>
               </div>
             </div>
-=======
-            <HeroSlider type="Home" />
-            <div className="hidden md:block pointer-events-none absolute inset-0 bg-gradient-to-r from-black/30 to-transparent z-10"></div>
->>>>>>> Stashed changes
           </section>
           <div id="categories" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
             {categoriesLoading ? (
@@ -443,11 +439,7 @@ const HomePage: React.FC = () => {
 
 
           {/* Footer */}
-<<<<<<< Updated upstream
-          <footer className="bg-gray-900 text-white mt-16 hidden md:block">
-=======
           <footer className="hidden md:block bg-gray-900 text-white mt-16">
->>>>>>> Stashed changes
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
