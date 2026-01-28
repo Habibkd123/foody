@@ -1,5 +1,8 @@
 export default function Head() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+  const baseUrlRaw =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
+  const baseUrl = baseUrlRaw.replace(/\/$/, '');
   const title = 'Gro-Delivery — Fresh Groceries, Faster Delivery';
   const description = 'Order daily essentials and modern milkshakes with lightning-fast delivery. Great prices, fresh products, and an effortless experience.';
   const canonical = `${baseUrl}/home`;

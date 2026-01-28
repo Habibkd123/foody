@@ -2,8 +2,12 @@ import './globals.css';
 import { ClientProviders } from '../context/ClientProviders';
 import type { Metadata } from 'next';
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(baseUrl),
   viewport: {
     width: 'device-width',
     initialScale: 1,

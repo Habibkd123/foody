@@ -38,6 +38,20 @@ interface ProductFormData {
     images: string[];
 }
 
+const FOOD_CATEGORY_LABELS = [
+    'Sweets',
+    'Namkeen',
+    'Snacks',
+    'Pickles',
+    'Spices & Masala',
+    'Bakery Items',
+    'Beverages',
+    'Sauces & Chutneys',
+    'Dry Fruits',
+    'Instant Foods',
+    'Ready-to-Eat Items',
+];
+
 const initialFormData: ProductFormData = {
     name: '',
     description: '',
@@ -74,6 +88,7 @@ export default function ProductPage() {
 
     const [formData, setFormData] = useState<ProductFormData>(initialFormData);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [categorySearch, setCategorySearch] = useState('');
     const [loading, setLoading] = useState(false);
     const [uploadingImages, setUploadingImages] = useState(false);
     const [pageLoading, setPageLoading] = useState(true);
@@ -567,7 +582,7 @@ export default function ProductPage() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-padding pb-24">
             {/* Header */}
             <div className="sticky top-0 z-30 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 shadow-lg">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
                     <div className="flex items-center gap-4">
                         <Link href="/admin/products" className="inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white p-2 transition">
                             <ArrowLeft className="h-5 w-5" />
@@ -681,6 +696,72 @@ export default function ProductPage() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                        <div className="space-y-6">
+                            <div className="border-b border-gray-200 pb-4">
+                                <h2 className="text-lg font-semibold text-gray-900">Please tell me the food category</h2>
+                                <p className="text-sm text-gray-600 mt-1">Choose from Sweet Spicy Foody food categories or search and type an exact category name.</p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex flex-col md:flex-row gap-3">
+                                    <input
+                                        type="text"
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Search or type category name, e.g., Sweets, Namkeen..."
+                                        value={categorySearch}
+                                        onChange={(e) => setCategorySearch(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const value = categorySearch.trim().toLowerCase();
+                                                if (!value) return;
+                                                const match = categories.find(
+                                                    (c) => (c.name || '').toLowerCase() === value
+                                                );
+                                                if (match) {
+                                                    setFormData((prev) => ({ ...prev, category: match._id }));
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {FOOD_CATEGORY_LABELS.filter((label) => {
+                                        if (!categorySearch.trim()) return true;
+                                        return label.toLowerCase().includes(categorySearch.trim().toLowerCase());
+                                    }).map((label) => {
+                                        const isSelected = categories.some(
+                                            (c) =>
+                                                c._id === formData.category &&
+                                                (c.name || '').toLowerCase() === label.toLowerCase()
+                                        );
+                                        return (
+                                            <button
+                                                key={label}
+                                                type="button"
+                                                onClick={() => {
+                                                    const match = categories.find(
+                                                        (c) => (c.name || '').toLowerCase() === label.toLowerCase()
+                                                    );
+                                                    if (match) {
+                                                        setFormData((prev) => ({ ...prev, category: match._id }));
+                                                    }
+                                                    setCategorySearch(label);
+                                                }}
+                                                className={`px-3 py-1 rounded-full text-sm border ${
+                                                    isSelected
+                                                        ? 'bg-blue-600 text-white border-blue-600'
+                                                        : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
                         {/* Basic Information */}
                         <div className="space-y-6">

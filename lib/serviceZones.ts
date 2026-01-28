@@ -1,6 +1,17 @@
-import type { Feature, Polygon } from "geojson";
+type GeoJSONPosition = [number, number];
 
-export const SERVICE_ZONES: Feature<Polygon>[] = [
+type GeoJSONPolygon = {
+  type: "Polygon";
+  coordinates: GeoJSONPosition[][];
+};
+
+type GeoJSONFeature<G> = {
+  type: "Feature";
+  properties: Record<string, any>;
+  geometry: G;
+};
+
+export const SERVICE_ZONES: GeoJSONFeature<GeoJSONPolygon>[] = [
   {
     type: "Feature",
     properties: {

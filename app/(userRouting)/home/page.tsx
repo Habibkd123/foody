@@ -240,6 +240,7 @@ const HomePage: React.FC = () => {
             <HeroSlider type="Home" />
           </div>
 
+<<<<<<< HEAD
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -268,6 +269,31 @@ const HomePage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+=======
+          {/* Navigation Filter (sticky under header) */}
+          <nav className="hidden md:block sticky top-20 z-40 backdrop-blur-md bg-background/90 border-b border-border" aria-label="Product filters">
+            <NavbarFilter />
+          </nav>
+
+
+          <section
+            id="home"
+            className="relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
+            <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
+              <HeroSlider type="Home" />
+            </div>
+            <h1 className="sr-only">Gro-Delivery — Order fresh groceries and modern milkshakes online</h1>
+            <div className="relative z-20 text-center px-4">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-md">
+                Fresh Groceries, Faster Delivery
+              </h2>
+              <p className="mt-3 text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+                Order daily essentials and delightful milkshakes with lightning-fast delivery and great prices.
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+>>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
                 <Link
                   href="/productlist"
                   className="group relative flex items-center gap-3 bg-primary px-10 py-4 rounded-2xl text-white font-bold text-lg shadow-[0_10px_40px_-10px_rgba(255,138,0,0.5)] transition-all overflow-hidden"
@@ -276,6 +302,7 @@ const HomePage: React.FC = () => {
                   Get Started
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
+<<<<<<< HEAD
               </motion.div>
 
               <button
@@ -289,17 +316,58 @@ const HomePage: React.FC = () => {
                 <motion.div
                   animate={{ y: [0, 5, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
+=======
+                <Link
+                  href="#categories"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const el = document.getElementById('categories');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/90 text-gray-900 px-5 py-3 font-medium shadow hover:bg-white w-full sm:w-auto justify-center"
+                  aria-label="Browse categories"
+>>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
                 >
                   <ChevronUp className="w-5 h-5 rotate-180" />
                 </motion.div>
               </button>
             </div>
+<<<<<<< HEAD
           </motion.div>
+=======
+          </section>
+          <div id="categories" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+            {categoriesLoading ? (
+              <>
+                <CategorySectionSkeleton />
+                <CategorySectionSkeleton />
+                <CategorySectionSkeleton />
+              </>
+            ) : categories && categories.length > 0 ? (
+              categories.filter((section: any) => Array.isArray(section?.products) && section.products.length > 0).map((section, idx) => (
+                // @ts-ignore
+                <CategorySection section={section} key={idx} />
+              ))
+            ) : (
+              <>
+                {categoriesError ? (
+                  <>
+                    <CategorySectionSkeleton />
+                    <div className="text-center text-gray-400 py-6">Unable to load categories right now.</div>
+                  </>
+                ) : (
+                  <div className="text-center text-gray-400 py-12">No categories available.</div>
+                )}
+              </>
+            )}
+          </div>
+>>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
 
           {/* Bottom Fade Gradient */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
         </section>
 
+<<<<<<< HEAD
         {/* Categories Grid Section */}
         <div id="categories" className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {categoriesLoading ? (
@@ -321,6 +389,57 @@ const HomePage: React.FC = () => {
           ) : (
             <div className="text-center py-20">
               <p className="text-gray-500 italic">No categories available at the moment.</p>
+=======
+          {/* Footer */}
+          <footer className="hidden md:block bg-gray-900 text-white mt-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                      G
+                    </div>
+                    <h3 className="text-xl font-bold">Gro-Delivery</h3>
+                  </div>
+                  <p className="text-gray-400 mb-4">
+                    Fresh groceries delivered to your doorstep. Quality products, quick delivery, happy customers.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+                  <div className="space-y-2">
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">About Us</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Contact</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">FAQs</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Support</a>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Categories</h4>
+                  <div className="space-y-2">
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Fruits & Vegetables</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Dairy Products</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Snacks & Beverages</a>
+                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Personal Care</a>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
+                  <div className="space-y-2 text-gray-400">
+                    <p>📞 +91 98765 43210</p>
+                    <p>📧 info@gro-delivery.com</p>
+                    <p>📍 Jaipur, Rajasthan</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Gro-Delivery. All rights reserved.</p>
+              </div>
+>>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
             </div>
           )}
         </div>
