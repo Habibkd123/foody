@@ -208,13 +208,13 @@ const RestaurantDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 md:p-6">
             {announcements.length > 0 && (
                 <div className="mb-6 space-y-3">
                     {announcements.slice(0, 2).map((n: any) => (
                         <div
                             key={n._id}
-                            className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900"
+                            className="rounded-lg border border-blue-200 bg-blue-50 p-2 sm:p-3 md:p-4 text-blue-900"
                         >
                             <div className="font-semibold">
                                 {n.icon ? `${n.icon} ` : ''}{n.title}
@@ -225,9 +225,9 @@ const RestaurantDashboard = () => {
                 </div>
             )}
             {user?.restaurant?.status && user.restaurant.status !== 'approved' && (
-                <div className={`mb-6 rounded-lg border p-4 ${user.restaurant.status === 'pending'
-                        ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                        : 'bg-red-50 border-red-200 text-red-800'
+                <div className={`mb-6 rounded-lg border p-2 sm:p-3 md:p-4 ${user.restaurant.status === 'pending'
+                    ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                    : 'bg-red-50 border-red-200 text-red-800'
                     }`}>
                     <p className="font-semibold">
                         {user.restaurant.status === 'pending'
@@ -241,7 +241,7 @@ const RestaurantDashboard = () => {
             )}
 
             {ordersError && (
-                <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+                <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-2 sm:p-3 md:p-4 text-red-800">
                     {ordersError}
                 </div>
             )}
@@ -268,9 +268,9 @@ const RestaurantDashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8">
                 {stats.map((stat, index) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                         <div className="flex items-center space-x-4">
                             <div className={`p-3 rounded-lg ${stat.color}`}>
                                 <stat.icon className="h-6 w-6 text-white" />

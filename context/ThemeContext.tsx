@@ -30,11 +30,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem("theme", theme);
+      // Commented out to prevent global dark mode. Theme will be applied locally in AdminLayout.
+      /*
       if (theme === "dark") {
         document.documentElement.classList.add("dark");
       } else {
         document.documentElement.classList.remove("dark");
       }
+      */
     }
   }, [theme, isInitialized]);
 

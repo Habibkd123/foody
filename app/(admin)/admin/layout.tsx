@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar"
 import { usePathname } from 'next/navigation';
 import { useAuthStorage } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,8 +27,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname]);
 
+  const { theme } = useTheme();
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       <div className="flex min-h-screen">
         <Sidebar />
         <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${!isMobile ? (isExpanded ? 'lg:ml-64' : 'lg:ml-16') : ''}`}>

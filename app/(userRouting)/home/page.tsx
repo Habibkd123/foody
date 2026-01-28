@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Script from "next/script";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -11,7 +11,8 @@ import { useWishListContext } from "@/context/WishListsContext";
 import LocationSelector from "@/components/LocationSelector";
 import Link from "next/link";
 import NavbarFilter from "@/components/NavbarFilter";
-import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut, ChevronDown, MapPin, ArrowRight, Plus, Minus, Eye, TrendingUp, Clock, Truck } from 'lucide-react';
+import { Heart, ChevronUp, ArrowRight, ShoppingBag, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStorage } from "@/hooks/useAuth";
 import NotificationCenter from "@/components/NotificationCenter";
 import AppHeader from "@/components/ui/AppHeader";
@@ -19,151 +20,26 @@ import NotificationBanner from "@/components/NotificationBanner";
 import AddCardList from "@/components/AddCards";
 import { useCartOrder, useOrder } from "@/context/OrderContext";
 import { Product } from "@/types/global";
-
-
-// types.ts
-export interface CategoryItem {
-  label: string;
-  img: string;
-}
-export interface CategorySectionType {
-  title: string;
-  items: CategoryItem[];
-}
-
-
-
-
-const CategorySectionSkeleton = () => {
-  return (
-    <div className="mb-12 animate-pulse">
-      <div className="flex justify-between items-center mb-6">
-        <div className="h-7 w-40 bg-gray-200 rounded shadow-sm" />
-        <div className="h-5 w-24 bg-gray-200 rounded shadow-sm" />
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-        {Array.from({ length: 8 }).map((_, idx) => (
-          <div
-            key={idx}
-            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
-          >
-            <div className="relative overflow-hidden rounded-lg mb-3">
-              <div className="w-full h-20 sm:h-24 bg-gray-200 rounded-lg shadow-sm" />
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4 shadow-sm" />
-              <div className="h-4 bg-gray-100 rounded w-1/2 shadow-sm" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const CategorySection = ({ section }: { section: any }) => {
-  const products: any[] = Array.isArray(section?.products) ? section.products : [];
-  const [expanded, setExpanded] = useState(false);
-  if (products.length === 0) return null;
-  const visible = expanded ? products : products.slice(0, 6);
-  return (
-    <section className="mb-8 sm:mb-12" aria-labelledby={`category-${section?.name || 'section'}`}>
-      <div className="flex justify-between items-center mb-4 sm:mb-6">
-        <div>
-          <h2 id={`category-${section?.name || 'section'}`} className="text-2xl font-bold text-gray-900">{section?.name}</h2>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Showing {expanded ? products.length : Math.min(6, products.length)} of {products.length}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {products.length > 6 && (
-            <>
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                className="sm:hidden inline-flex items-center gap-2 rounded-full bg-white border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                aria-expanded={expanded}
-                aria-controls={`category-${section?.name || 'section'}-grid`}
-              >
-                {expanded ? 'Show less' : 'Show all'}
-              </button>
-              <Link href={{ pathname: '/productlist', query: { category: section?.name } }} className="hidden sm:inline-flex items-center gap-2 rounded-full bg-white border border-orange-200 text-orange-700 px-4 py-2 text-sm font-medium hover:bg-orange-50 transition-colors" aria-label={`View all in ${section?.name}`}>
-                View All
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div id={`category-${section?.name || 'section'}-grid`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-        {visible.map((item: any, idx: any) => (
-          <div
-            key={idx}
-            className="group bg-white rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-orange-200 animate-fade-in"
-          >
-            {/* @ts-ignore */}
-            <Link href={`/products/${item._id}`} aria-label={`View details for ${item?.name || 'product'}`}>
-              <div className="relative overflow-hidden rounded-lg mb-3">
-                <div className="relative w-full aspect-square">
-                  <Image
-                    src={(item?.images && item.images[0]) || '/placeholder-logo.png'}
-                    alt={item?.name || 'Product image'}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 12vw"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:block" />
-              </div>
-              <div className="text-center">
-                <h3 className="text-sm font-medium text-gray-900 mb-1 group-hover:text-orange-600 transition-colors line-clamp-2 min-h-[2.25rem]">
-                  {item.name}
-                </h3>
-              </div>
-            </Link>
-          </div>
-        ))}
-      </div>
-      {products.length > 6 && (
-        <div className="mt-4 hidden sm:flex justify-center">
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            aria-expanded={expanded}
-            aria-controls={`category-${section?.name || 'section'}-grid`}
-          >
-            {expanded ? 'Show less' : 'Show more'}
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-
-
+import { CategorySection, CategorySectionSkeleton } from "@/components/home/CategoryGridSection";
+import SiteFooter from "@/components/home/SiteFooter";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
   const { filters, updateFilter } = useFilterContext();
-  const { wishListsData, setWistListsData } = useWishListContext();
-  const { user, setUser, updateUser, logout } = useAuthStorage();
-  // Enhanced UI states
+  const { wishListsData } = useWishListContext();
+  const { user, logout } = useAuthStorage();
+
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
-  const [categories, setCategories] = useState<CategorySectionType[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const [categoriesError, setCategoriesError] = useState<boolean>(false);
-  // Cart state (for header dropdown)
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartAnimation, setCartAnimation] = useState(false);
-  const { dispatch, state } = useOrder();
-  const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
+
+  const { state } = useOrder();
+  const { removeFromCart, updateQuantity } = useCartOrder();
 
   const fetchCategories = async () => {
     setCategoriesLoading(true);
@@ -171,10 +47,8 @@ const HomePage: React.FC = () => {
     try {
       const response = await fetch('/api/categories/productcategory');
       const data = await response.json();
-      console.log('Categories response:', data.data);
-
       if (data?.success && Array.isArray(data?.data)) {
-        setCategories(data.data as any);
+        setCategories(data.data);
       } else {
         setCategories([]);
         setCategoriesError(true);
@@ -186,11 +60,12 @@ const HomePage: React.FC = () => {
     } finally {
       setCategoriesLoading(false);
     }
-  };    // Scroll to top functionality
+  };
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
@@ -198,7 +73,6 @@ const HomePage: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -208,34 +82,17 @@ const HomePage: React.FC = () => {
     localStorage.removeItem("G-user");
     localStorage.removeItem("token");
     logout();
-    window.location.reload();
+    router.push('/login');
   };
 
-  // Cart helpers (match usage from Product List header)
-  const removeFromCart1 = useCallback((itemId: any) => {
-    try {
-      const response: any = removeFromCart(user?._id, itemId);
-      if (response?.success) {
-        // no-op UI
-      }
-    } catch { }
-  }, [removeFromCart, user?._id]);
-
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const productId = parseInt(itemId);
-    const currentItem = state.items.find((item: any) => item._id === productId || item.id === productId);
+    const productId = itemId;
+    const currentItem = state.items.find((item: any) => (item._id || item.id) === productId);
     if (currentItem) {
       const newQuantity = Math.max(0, (currentItem.quantity || 0) + change);
-      if (newQuantity === 0) {
-        setCartItems((prev) => prev.filter((it: any) => (it._id ?? it.id) !== productId));
-        updateQuantity(user?._id, productId, newQuantity);
-      } else {
-        setCartItems((prev) => prev.map((it: any) => ((it._id ?? it.id) === productId ? { ...it, quantity: newQuantity } : it)));
-        dispatch({ type: 'UPDATE_QUANTITY', id: productId, qty: newQuantity });
-        updateQuantity(user?._id, productId, newQuantity);
-      }
+      updateQuantity(user?._id, productId, newQuantity);
     }
-  }, [dispatch, state.items, updateQuantity, user?._id]);
+  }, [state.items, updateQuantity, user?._id]);
 
   const getCartQuantity = useCallback((product: any) => {
     const pid = product?._id ?? product?.id;
@@ -243,30 +100,9 @@ const HomePage: React.FC = () => {
     return cartItem ? cartItem.quantity : 0;
   }, [state.items]);
 
-  const getTotalPrice = () => {
-    return cartItems.reduce((total: number, item: any) => total + (item.price || 0) * (item.quantity || 0), 0);
-  };
-  console.log("Categories:", user);
   return (
-    <>
-      <Script
-        id="ld-json-website"
-        type="application/ld+json"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
-            name: 'Gro-Delivery',
-            url: (typeof window !== 'undefined' ? window.location.origin : ''),
-            potentialAction: {
-              '@type': 'SearchAction',
-              target: `${process.env.NEXT_PUBLIC_APP_URL || ''}/productlist?search={search_term_string}`,
-              'query-input': 'required name=search_term_string',
-            },
-          }),
-        }}
-      />
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Schema.org JSON-LD */}
       <Script
         id="ld-json-organization"
         type="application/ld+json"
@@ -281,227 +117,319 @@ const HomePage: React.FC = () => {
           }),
         }}
       />
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
-        <div className="min-h-screen bg-gray-50">
-          {/* Announcement Bar */}
-          <AnnouncementBar />
 
-          <AppHeader
-            logoSrc="/logoGro.png"
-            title="Gro-Delivery"
-            showSearch
-            onSearch={(q) => updateFilter('searchTerm', q)}
-            initialSearch={filters.searchTerm}
-            actions={[
-              ...(user?._id ?
-                [
-                  { key: 'location', icon: <div className="hidden md:block"><LocationSelector /></div> },
-                  { key: 'notify', icon: <NotificationCenter location="home" /> }] : []),
-              { key: 'wishlist', href: '/wishlist', icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />, badgeCount: wishListsData ? wishListsData.length : 0 },
-              {
-                key: 'cart', icon: (
-                  <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
-                    <AddCardList
-                      cartItems={cartItems}
-                      removeFromCart={removeFromCart1}
-                      updateQuantity={(itemId: any, newQuantity: any) => {
-                        if (newQuantity === 0) {
-                          removeFromCart1(itemId);
-                        } else {
-                          const change = newQuantity - getCartQuantity({ id: itemId } as Product);
-                          updateQuantity1(itemId?.toString(), change);
-                        }
-                      }}
-                      getTotalPrice={getTotalPrice}
-                      setCartItems={setCartItems}
-                      cartOpen={cartOpen}
-                      setCartOpen={setCartOpen}
-                    />
-                  </div>
-                )
-              },
-              ...(user?._id ? [{
-                key: 'profile',
-                icon: (
-                  <Image
-                    src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
-                    alt="Profile"
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full border border-border object-cover"
-                  />
-                ),
-                onClick: () => setProfileMenuOpen(!profileMenuOpen)
-              }] : [])
-            ]}
-          />
+      {/* Announcement Bar */}
+      <AnnouncementBar />
 
-          {/* Profile Dropdown */}
-          {profileMenuOpen && (
-            <div className="fixed right-4 top-16 z-50 bg-card border border-border shadow-soft-lg rounded-lg w-56">
-              <div className="p-3 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
-                    className="w-10 h-10 rounded-full border object-cover"
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                  />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{(user as any)?.firstName + " " + (user as any)?.lastName || 'Your Account'}</p>
-                    <p className="text-xs text-muted-foreground truncate">{(user as any)?.email || ''}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="py-1">
-                <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-secondary">Profile</Link>
-                <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm hover:bg-secondary">Logout</button>
+      {/* App Header */}
+      <AppHeader
+        logoSrc="/logoGro.png"
+        title="Gro-Delivery"
+        showSearch
+        onSearch={(q) => updateFilter('searchTerm', q)}
+        initialSearch={filters.searchTerm}
+        actions={[
+          ...(user?._id ? [
+            { key: 'location', icon: <div className="hidden md:block"><LocationSelector /></div> },
+            { key: 'notify', icon: <NotificationCenter location="home" /> }
+          ] : []),
+          {
+            key: 'wishlist',
+            href: '/wishlist',
+            icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />,
+            badgeCount: wishListsData ? wishListsData.length : 0
+          },
+          {
+            key: 'cart',
+            icon: (
+              <AddCardList
+                cartItems={cartItems}
+                removeFromCart={(id: any) => removeFromCart(user?._id, id)}
+                updateQuantity={(itemId: any, newQuantity: any) => {
+                  const currentQty = getCartQuantity({ id: itemId });
+                  updateQuantity1(itemId.toString(), newQuantity - currentQty);
+                }}
+                getTotalPrice={() => state.items.reduce((total, i) => total + i.price * i.quantity, 0)}
+                setCartItems={setCartItems}
+                cartOpen={cartOpen}
+                setCartOpen={setCartOpen}
+              />
+            )
+          },
+          ...(user?._id ? [{
+            key: 'profile',
+            icon: (
+              <Image
+                src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-full border border-border object-cover"
+              />
+            ),
+            onClick: () => setProfileMenuOpen(!profileMenuOpen)
+          }] : [])
+        ]}
+      />
+
+      {/* Profile Dropdown Menu */}
+      {profileMenuOpen && (
+        <div className="fixed right-4 top-16 z-[60] bg-card border border-border shadow-soft-lg rounded-lg w-56">
+          <div className="p-3 border-b border-border">
+            <div className="flex items-center gap-3">
+              <Image
+                src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                className="w-10 h-10 rounded-full border object-cover"
+                alt="Profile"
+                width={40}
+                height={40}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{(user as any)?.firstName + " " + (user as any)?.lastName || 'Your Account'}</p>
+                <p className="text-xs text-muted-foreground truncate">{(user as any)?.email || ''}</p>
               </div>
             </div>
-          )}
+          </div>
+          <div className="py-1">
+            <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-secondary">Profile</Link>
+            <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm hover:bg-secondary">Logout</button>
+          </div>
+        </div>
+      )}
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-            <NotificationBanner location="home" />
+      {/* Main Content */}
+      <main className="flex-1">
+        {/* Notification Banner */}
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
+          <NotificationBanner location="home" />
+        </div>
+
+        {/* Navigation Filter Bar - Desktop Only */}
+        <nav className="hidden md:block sticky top-16 z-40 backdrop-blur-md bg-white/80 border-b border-border">
+          <NavbarFilter />
+        </nav>
+
+        {/* Floating Background Decorations */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden h-full w-full">
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0],
+              x: [0, 50, 0],
+              y: [0, 30, 0]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[100px] rounded-full"
+          />
+          <motion.div
+            animate={{
+              scale: [1, 1.3, 1],
+              rotate: [0, -90, 0],
+              x: [0, -40, 0],
+              y: [0, 50, 0]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[20%] -right-[5%] w-[35%] h-[35%] bg-orange-400/10 blur-[100px] rounded-full"
+          />
+        </div>
+
+        {/* Hero Section */}
+        <section className="relative h-[65vh] sm:h-[75vh] lg:h-[85vh] flex items-center justify-center overflow-hidden mx-2 sm:mx-4 md:mx-6 lg:mx-8 mt-4 rounded-[2.5rem] shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-10 transition-opacity duration-700"></div>
+          <div className="absolute inset-0">
+            <HeroSlider type="Home" />
           </div>
 
-          {/* Navigation Filter (sticky under header) */}
-          <nav className="hidden md:block sticky top-20 z-40 backdrop-blur-md bg-background/90 border-b border-border" aria-label="Product filters">
-            <NavbarFilter />
-          </nav>
-
-
-          <section
-            id="home"
-            className="relative min-h-[70vh] sm:h-[80vh] lg:h-screen flex items-center justify-center overflow-hidden"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative z-20 text-center px-4 max-w-5xl"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs sm:text-sm font-medium mb-6"
             >
+              <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>
+              New: Fresh Organic Milkshakes Now Available
+            </motion.div>
 
-              <HeroSlider type="Home" />
-            </div>
-            <h1 className="sr-only">Gro-Delivery — Order fresh groceries and modern milkshakes online</h1>
-            <div className="relative z-20 text-center px-4">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-md">
-                Fresh Groceries, Faster Delivery
-              </h2>
-              <p className="mt-3 text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-                Order daily essentials and delightful milkshakes with lightning-fast delivery and great prices.
-              </p>
-              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-2xl mb-6">
+              FR<span className="text-primary italic">E</span>SHNESS <br />
+              AT YOUR <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-red-500">DOORSTEP</span>
+            </h1>
+
+            <p className="text-base sm:text-xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+              Elevate your daily essentials with our premium selection of farm-fresh groceries
+              and artisanal handcrafted milkshakes.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href="/productlist"
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-5 py-3 text-white font-medium shadow-lg hover:from-orange-600 hover:to-red-600 transition-colors w-full sm:w-auto justify-center"
-                  aria-label="Shop groceries now"
+                  className="group relative flex items-center gap-3 bg-primary px-10 py-4 rounded-2xl text-white font-bold text-lg shadow-[0_10px_40px_-10px_rgba(255,138,0,0.5)] transition-all overflow-hidden"
                 >
-                  Shop Groceries
-                  <ArrowRight className="w-4 h-4" />
+                  <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+                  Get Started
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link
-                  href="#categories"
-                  onClick={(e) => { e.preventDefault(); const el = document.getElementById('categories'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/90 text-gray-900 px-5 py-3 font-medium shadow hover:bg-white w-full sm:w-auto justify-center"
-                  aria-label="Browse categories"
+              </motion.div>
+
+              <button
+                onClick={() => {
+                  const el = document.getElementById('categories');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="group flex items-center gap-2 px-10 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg hover:bg-white hover:text-black transition-all"
+              >
+                Explore More
+                <motion.div
+                  animate={{ y: [0, 5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  Browse Categories
-                </Link>
-              </div>
+                  <ChevronUp className="w-5 h-5 rotate-180" />
+                </motion.div>
+              </button>
             </div>
-          </section>
-          <div id="categories" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-            {categoriesLoading ? (
-              <>
-                <CategorySectionSkeleton />
-                <CategorySectionSkeleton />
-                <CategorySectionSkeleton />
-              </>
-            ) : categories && categories.length > 0 ? (
-              categories.map((section, idx) => (
-                // @ts-ignore
-                <CategorySection section={section} key={idx} />
-              ))
-            ) : (
-              <>
-                {categoriesError ? (
-                  <>
-                    <CategorySectionSkeleton />
-                    <div className="text-center text-gray-400 py-6">Unable to load categories right now.</div>
-                  </>
-                ) : (
-                  <div className="text-center text-gray-400 py-12">No categories available.</div>
-                )}
-              </>
-            )}
-          </div>
+          </motion.div>
 
+          {/* Bottom Fade Gradient */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
+        </section>
 
-          {/* Footer */}
-          <footer className="bg-gray-900 text-white mt-16 hidden md:block">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                      G
-                    </div>
-                    <h3 className="text-xl font-bold">Gro-Delivery</h3>
-                  </div>
-                  <p className="text-gray-400 mb-4">
-                    Fresh groceries delivered to your doorstep. Quality products, quick delivery, happy customers.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-                  <div className="space-y-2">
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">About Us</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Contact</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">FAQs</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Support</a>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Categories</h4>
-                  <div className="space-y-2">
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Fruits & Vegetables</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Dairy Products</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Snacks & Beverages</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Personal Care</a>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
-                  <div className="space-y-2 text-gray-400">
-                    <p>📞 +91 98765 43210</p>
-                    <p>📧 info@gro-delivery.com</p>
-                    <p>📍 Jaipur, Rajasthan</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 Gro-Delivery. All rights reserved.</p>
-              </div>
+        {/* Categories Grid Section */}
+        <div id="categories" className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {categoriesLoading ? (
+            <div className="space-y-12">
+              <CategorySectionSkeleton />
+              <CategorySectionSkeleton />
             </div>
-          </footer>
-
-          {/* Scroll to Top Button */}
-          {showScrollTop && (
-            <button
-              onClick={scrollToTop}
-              className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white w-12 h-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 z-50 animate-bounce"
-            >
-              <ChevronUp className="w-6 h-6" />
-            </button>
+          ) : categoriesError ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-dashed">
+              <p className="text-gray-500">Unable to load categories. Please try refreshing.</p>
+              <button onClick={fetchCategories} className="mt-4 text-primary font-bold">Retry</button>
+            </div>
+          ) : categories.length > 0 ? (
+            <div className="space-y-12">
+              {categories.map((section, idx) => (
+                <CategorySection section={section} key={section._id || idx} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-gray-500 italic">No categories available at the moment.</p>
+            </div>
           )}
         </div>
-      </div>
-    </>
+
+        {/* Recently Viewed Feature */}
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-12">
+          <RecentlyViewedHome />
+        </div>
+      </main>
+
+      {/* Site Footer */}
+      <SiteFooter />
+
+      {/* Sticky Mobile Cart Pill */}
+      <AnimatePresence>
+        {state.items.length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] md:hidden"
+          >
+            <button
+              onClick={() => setCartOpen(true)}
+              className="flex items-center gap-3 bg-gray-900 text-white px-6 py-4 rounded-full shadow-2xl border border-white/10 backdrop-blur-xl"
+            >
+              <div className="relative">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {state.items.length}
+                </span>
+              </div>
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Cart Total</span>
+                <span className="text-sm font-bold">₹{state.items.reduce((total, i) => total + (i.price * i.quantity), 0)}</span>
+              </div>
+              <div className="h-6 w-[1px] bg-white/20 mx-1"></div>
+              <span className="text-sm font-black text-primary uppercase">View Cart</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-primary text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50 animate-bounce"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="w-7 h-7" />
+        </button>
+      )}
+    </div>
   );
 }
+
+const RecentlyViewedHome = () => {
+  const [recentProducts, setRecentProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const recent = JSON.parse(localStorage.getItem("recent_views") || "[]");
+    setRecentProducts(recent.slice(0, 6));
+  }, []);
+
+  if (recentProducts.length === 0) return null;
+
+  return (
+    <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Clock className="w-6 h-6 text-primary" />
+            Pick up where you left off
+          </h3>
+          <p className="text-gray-500 text-sm">Products you viewed recently</p>
+        </div>
+        <Link href="/products" className="text-primary font-bold hover:underline flex items-center gap-1">
+          See all products <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        {recentProducts.map((p: any) => (
+          <Link
+            key={p._id}
+            href={`/products/${p._id}`}
+            className="group block"
+          >
+            <div className="aspect-square rounded-2xl overflow-hidden mb-3 bg-gray-50 border border-gray-100 group-hover:border-primary transition-colors">
+              <img
+                src={p.images?.[0]}
+                alt={p.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+            </div>
+            <h4 className="text-sm font-semibold truncate group-hover:text-primary transition-colors text-gray-800">
+              {p.name}
+            </h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-primary font-bold text-sm">₹{p.price}</span>
+              {p.originalPrice > p.price && (
+                <span className="text-gray-400 line-through text-[10px]">₹{p.originalPrice}</span>
+              )}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default HomePage;

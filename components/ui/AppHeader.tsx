@@ -2,7 +2,6 @@
 import React from "react";
 import Link from "next/link";
 import { Menu, Heart, ShoppingCart, Search } from "lucide-react";
-import { ThemeToggleButton } from "../common/ThemeToggleButton";
 
 type Action = {
   key: string;
@@ -61,7 +60,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     >
       <header className="transition-all duration-300">
         <div className={[
-          "max-w-8xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-3",
+          "max-w-8xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 md:py-3",
           containerClassName,
         ].join(" ")}
         >
@@ -117,8 +116,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             )}
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-1.5 sm:gap-3 flex-nowrap sm:flex-wrap justify-end">
-              <ThemeToggleButton />
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-nowrap sm:flex-wrap justify-end">
               {actions.map((action) => {
                 const isProfile = action.key === "profile";
                 const content = (

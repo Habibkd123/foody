@@ -67,6 +67,16 @@ const ProductPage = () => {
     }
   }, [user?._id, product_id]);
 
+  // Recently Viewed Logic
+  useEffect(() => {
+    if (product) {
+      const recent = JSON.parse(localStorage.getItem('recent_views') || '[]');
+      const filtered = recent.filter((p: any) => p._id !== product._id);
+      const updated = [product, ...filtered].slice(0, 10);
+      localStorage.setItem('recent_views', JSON.stringify(updated));
+    }
+  }, [product]);
+
 
 
   useEffect(() => {
@@ -438,7 +448,21 @@ const ProductPage = () => {
         ]}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <nav className="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li className="inline-flex items-center">
+              <Link href="/home" className="hover:text-primary transition-colors">Home</Link>
+            </li>
+            <Plus className="w-3 h-3 mx-1 rotate-45" />
+            <li>
+              <Link href="/products" className="hover:text-primary transition-colors capitalize">{product?.category || 'Products'}</Link>
+            </li>
+            <Plus className="w-3 h-3 mx-1 rotate-45" />
+            <li className="font-bold text-gray-900 truncate max-w-[150px] sm:max-w-xs">{product?.name}</li>
+          </ol>
+        </nav>
+
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Images */}
@@ -578,6 +602,15 @@ const ProductPage = () => {
                 <TrendingUp className="w-4 h-4 mr-1" />
                 <span className="text-sm">Trending</span>
               </div>
+            </div>
+
+            {/* Urgency/Social Proof Banner */}
+            <div className="flex items-center gap-3 py-2 px-3 bg-red-50 border border-red-100 rounded-lg animate-pulse">
+              <span className="flex h-2 w-2 rounded-full bg-red-600"></span>
+              <p className="text-xs font-bold text-red-700 uppercase tracking-wider">
+                Limited Stock: Only {product?.stockCount || 5} units left!
+              </p>
+              <span className="text-[10px] text-red-600 ml-auto font-medium">12 people viewing this</span>
             </div>
 
             {/* Pricing */}
@@ -1089,6 +1122,9 @@ const ProductPage = () => {
             </div>
           )}
 
+          {/* Product Comparison Section */}
+          <ProductComparison currentProduct={product} />
+
           {/* FAQ Section */}
           <div className="mt-12 space-y-4">
             <h3 className="text-2xl font-bold">Frequently Asked Questions</h3>
@@ -1098,48 +1134,55 @@ const ProductPage = () => {
             },
             {
               question: "Is this rice suitable for diabetics?",
-              answer: "While this rice has a lower glycemic index than white rice due to its biofortification, we recommend consulting with your healthcare provider for dietary advice."
+              answer: "Consult your doctor, though it's lower GI."
             },
             {
-              question: "What is the cooking ratio for this rice?",
-              answer: "Use a 1:2 ratio (1 cup rice to 2 cups water). Cook for 15-20 minutes on medium heat until water is absorbed."
+              question: "What is the cooking ratio?",
+              answer: "Use 1:2 ratio of rice to water."
             }
             ].map((faq, index) => (
-              <details key={index} className="border rounded-lg p-4">
-                <summary className="font-semibold cursor-pointer hover:text-primary">
+              <details key={index} className="border rounded-lg p-4 group">
+                <summary className="font-semibold cursor-pointer hover:text-primary flex justify-between items-center list-none">
                   {faq.question}
+                  <span className="group-open:rotate-180 transition-transform">▼</span>
                 </summary>
-                <p className="mt-2 text-gray-700">{faq.answer}</p>
+                <p className="mt-2 text-gray-700 border-t pt-2">{faq.answer}</p>
               </details>
             ))}
           </div>
-        </div>
 
-        {/* Bottom Action Bar (Mobile Sticky) */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden z-50">
-          <div className="flex space-x-3">
-            <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
-              className={`p-3 rounded-xl border-2 ${isWishlisted ? "bg-secondary border-border" : "border-gray-300"
-                }`}
-            >
-              <Heart className={`w-6 h-6 ${isWishlisted ? "text-primary fill-current" : "text-gray-600"}`} />
-            </button>
-            <button
-              onClick={handleAddToCart}
-              disabled={adding || !product.inStock}
-              className="flex-1 bg-primary text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center disabled:bg-gray-400"
-            >
-              {adding ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Add to Cart
-                </>
-              )}
-            </button>
-          </div>
+          {/* Frequently Bought Together (Simulated) */}
+          <FrequentlyBoughtTogether currentProduct={product} onAddToCart={handleAddToCartFromGrid} />
+
+          {/* Recently Viewed Feature */}
+          <RecentlyViewedProducts currentId={product_id as string} />
+        </div>
+      </div>
+
+      {/* Bottom Action Bar (Mobile Sticky) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden z-50">
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setIsWishlisted(!isWishlisted)}
+            className={`p-3 rounded-xl border-2 ${isWishlisted ? "bg-secondary border-border" : "border-gray-300"
+              }`}
+          >
+            <Heart className={`w-6 h-6 ${isWishlisted ? "text-primary fill-current" : "text-gray-600"}`} />
+          </button>
+          <button
+            onClick={handleAddToCart}
+            disabled={adding || !product.inStock}
+            className="flex-1 bg-primary text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center disabled:bg-gray-400"
+          >
+            {adding ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                Add to Cart
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -1147,15 +1190,167 @@ const ProductPage = () => {
 
       {/* Floating Action Button */}
       <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className="fixed bottom-20 right-4 md:bottom-6 md:right-6 bg-primary text-white p-3 rounded-full shadow-soft hover:bg-primary transition-colors z-40"
       >
         <ChevronUp className="w-6 h-6" />
       </button>
-
     </div>
+  );
+};
 
+const FrequentlyBoughtTogether = ({ currentProduct, onAddToCart }: { currentProduct: any, onAddToCart: any }) => {
+  const [items, setItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/categories/productcategory`)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data)) {
+          const all = json.data.flatMap((c: any) => c.products || []);
+          const filtered = all.filter((p: any) => p._id !== currentProduct?._id && p._id !== undefined).slice(0, 2);
+          setItems(filtered);
+        }
+      })
+      .catch(() => setItems([]));
+  }, [currentProduct?._id]);
+
+  if (items.length === 0) return null;
+
+  const totalBundlePrice = (currentProduct?.price || 0) + items.reduce((acc, curr) => acc + (curr.price || 0), 0);
+
+  return (
+    <div className="mt-12 p-6 rounded-2xl border bg-gradient-to-br from-orange-50 to-white border-orange-100 shadow-sm">
+      <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-orange-800">
+        <Zap className="w-5 h-5 fill-current" />
+        Frequently Bought Together
+      </h3>
+      <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="flex items-center gap-3">
+            <img src={currentProduct?.images?.[0]} className="w-16 h-16 rounded-lg object-cover border-2 border-orange-200" alt="" />
+            <Plus className="w-5 h-5 text-gray-400" />
+            {items.map((item, idx) => (
+              <React.Fragment key={item._id}>
+                <img src={item.images?.[0]} className="w-16 h-16 rounded-lg object-cover border border-gray-200" alt="" />
+                {idx < items.length - 1 && <Plus className="w-5 h-5 text-gray-400" />}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm min-w-[200px]">
+          <div className="text-sm text-gray-600 mb-1">Bundle Price</div>
+          <div className="text-2xl font-bold text-gray-900 mb-3">₹{totalBundlePrice}</div>
+          <Button
+            className="w-full bg-orange-500 hover:bg-orange-600 font-bold"
+            onClick={() => {
+              onAddToCart(currentProduct);
+              items.forEach(i => onAddToCart(i));
+            }}
+          >
+            Add Bundle to Cart
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RecentlyViewedProducts = ({ currentId }: { currentId: string }) => {
+  const [recentProducts, setRecentProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const recent = JSON.parse(localStorage.getItem("recent_views") || "[]");
+    setRecentProducts(recent.filter((p: any) => p._id !== currentId).slice(0, 4));
+  }, [currentId]);
+
+  if (recentProducts.length === 0) return null;
+
+  return (
+    <div className="mt-16 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+      <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+        <Clock className="w-5 h-5 text-primary" />
+        Recently Viewed
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {recentProducts.map((p) => (
+          <Link
+            key={p._id}
+            href={`/products/${p._id}`}
+            className="group bg-white rounded-xl p-3 border border-transparent hover:border-primary transition-all shadow-sm overflow-hidden"
+          >
+            <div className="aspect-square rounded-lg overflow-hidden mb-3">
+              <img
+                src={p.images?.[0]}
+                alt={p.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+            </div>
+            <h4 className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+              {p.name}
+            </h4>
+            <p className="text-primary font-bold text-sm">₹{p.price}</p>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 };
 
 export default ProductPage;
+
+const ProductComparison = ({ currentProduct }: { currentProduct: any }) => {
+  const [competitor, setCompetitor] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`/api/categories/productcategory`)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data)) {
+          const all = json.data.flatMap((c: any) => c.products || []);
+          const other = all.find((p: any) => p._id !== currentProduct?._id);
+          setCompetitor(other);
+        }
+      });
+  }, [currentProduct?._id]);
+
+  if (!competitor) return null;
+
+  return (
+    <div className="mt-16 overflow-hidden rounded-2xl border border-gray-200 shadow-sm bg-white">
+      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <h3 className="text-xl font-bold">Why choose this Product?</h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 text-sm">
+              <th className="px-6 py-4 font-bold border-b">Features</th>
+              <th className="px-6 py-4 font-bold border-b text-primary text-xs sm:text-sm">{currentProduct.name}</th>
+              <th className="px-6 py-4 font-bold border-b text-gray-500 font-medium  text-xs sm:text-sm">Top Alternative</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            <tr>
+              <td className="px-6 py-4 border-b font-medium">Price</td>
+              <td className="px-6 py-4 border-b font-bold text-gray-900">₹{currentProduct.price}</td>
+              <td className="px-6 py-4 border-b text-gray-600">₹{competitor.price}</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 border-b font-medium">Rating</td>
+              <td className="px-6 py-4 border-b flex items-center gap-1 font-bold">
+                {currentProduct.rating} <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              </td>
+              <td className="px-6 py-4 border-b text-gray-600 italic">Lower</td>
+            </tr>
+            <tr>
+              <td className="px-6 py-4 border-b font-medium">Delivery</td>
+              <td className="px-6 py-4 border-b text-green-600 font-bold">{currentProduct.deliveryInfo?.freeDelivery ? 'Free' : 'Fast'}</td>
+              <td className="px-6 py-4 border-b text-gray-600">Standard</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};

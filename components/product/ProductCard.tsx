@@ -2,8 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { Heart, ShoppingCart, Star, CheckCircle } from "lucide-react";
+import { Heart, ShoppingCart, Star, CheckCircle, Eye, ArrowUpRight, Plus } from "lucide-react";
 import { Product } from "@/types/global";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductCardProps {
   product: Product;
@@ -42,147 +43,148 @@ const ProductCard: React.FC<ProductCardProps> = ({
   showQuickActions,
   showQuantityControls,
   handleToggleWishlist,
-  handleShare,
   handleAddToCart,
-  updateQuantity,
 }) => {
+  const discount = product.originalPrice && product.originalPrice > product.price
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
   return (
-    <div
-      className={`bg-white relative border border-gray-200 rounded-xl shadow-sm transition-all duration-300 overflow-hidden group`}
-      style={{
-        animationDelay: `${index * 80}ms`,
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.05, duration: 0.5 }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      className="group relative bg-white dark:bg-card border border-gray-100 dark:border-white/5 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden"
     >
-      {/* Image Container with Enhanced Hover Effects */}
-      <Link
-        href={`/products/${product._id}`}
-        className="block relative overflow-hidden"
-      >
-        <div className="aspect-square bg-gray-50 flex items-center justify-center  rounded-t-xl relative overflow-hidden">
-         <img
-  src={product.images[0]}
-  alt={product.name}
-  className="w-full h-full object-cover rounded-t-xl"
-  loading="lazy"
-  sizes="(min-width:1536px) 20vw, (min-width:1280px) 25vw, (min-width:1024px) 33vw, 50vw"
-/>
+      {/* Badges & Actions */}
+      <div className="absolute top-3 left-3 right-3 z-30 flex justify-between items-start pointer-events-none">
+        {discount > 0 ? (
+          <div className="px-2.5 py-1 rounded-full bg-primary text-white text-[10px] font-black tracking-tight shadow-lg shadow-primary/20 pointer-events-auto lowercase">
+            SALE {discount}%
+          </div>
+        ) : (
+          <div />
+        )}
 
-        </div>
-      </Link>
-
-      {/* Quick Action Buttons */}
-      {showQuickActions && (
-        <div className="absolute top-2 right-2 z-30">
-          <button
+        {showQuickActions && (
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               handleToggleWishlist();
             }}
-            className={`p-1.5 bg-white rounded-full shadow-sm border text-xs transition-colors ${
-              isWishlisted
-                ? "border-red-400 text-red-500"
-                : "border-gray-200 text-gray-400 hover:text-red-500"
-            }`}
-          >
-            <Heart
-              className={`w-4 h-4 ${
-                isWishlisted ? "fill-current" : ""
+            className={`p-2 rounded-full backdrop-blur-md shadow-lg pointer-events-auto transition-colors ${isWishlisted
+              ? "bg-red-500 text-white"
+              : "bg-white/80 dark:bg-black/50 text-gray-400 hover:text-red-500"
               }`}
-            />
-          </button>
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
+          </motion.button>
+        )}
+      </div>
+
+      {/* Image Container */}
+      <Link href={`/products/${product._id}`} className="block relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-800/50">
+        <img
+          src={product.images[0] || "/placeholder-product.png"}
+          alt={product.name}
+          className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-700 ease-out"
+          loading="lazy"
+        />
+
+        {/* Quick View Overlay (Desktop) */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex items-center justify-center gap-3">
+          <div className="p-3 rounded-full bg-white text-gray-900 shadow-xl hover:scale-110 transition-transform">
+            <Eye className="w-5 h-5" />
+          </div>
         </div>
-      )}
+      </Link>
 
       {/* Content */}
-      <div className="p-2 sm:p-4">
-        <Link href={`/products/${product._id}`}>
-          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm sm:text-base leading-snug">
-            {product.name}
-          </h3>
-        </Link>
-
-      {product.rating>0&&
-        <div className="flex items-center gap-1 mb-2">
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-3 h-3 ${
-                  i < Math.floor(product.rating)
-                    ? "text-yellow-400 fill-current"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
+      <div className="p-3 md:p-5">
+        <div className="flex justify-between items-start gap-2 mb-2">
+          <Link href={`/products/${product._id}`} className="flex-1">
+            <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2 text-sm md:text-base group-hover:text-primary transition-colors h-[2.5rem] md:h-[3rem]">
+              {product.name}
+            </h3>
+          </Link>
+          <div className="p-1 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+            <ArrowUpRight className="w-4 h-4 text-gray-400" />
           </div>
-          <span className="text-[11px] text-gray-600 font-medium">
-            {product.rating?.toFixed(1) ?? "-"}
-          </span>
-        </div>}
+        </div>
 
-        {/* Price */}
-        <div className="mb-4 flex items-baseline justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg sm:text-xl font-bold text-gray-900">
-              ₹{product?.price?.toLocaleString()}
+        <div className="flex items-center gap-1.5 mb-3">
+          <div className="flex text-yellow-500">
+            <Star className="w-3.5 h-3.5 fill-current" />
+          </div>
+          <span className="text-xs font-black text-gray-900 dark:text-white">
+            {product.rating > 0 ? product.rating.toFixed(1) : "4.8"}
+          </span>
+          <span className="text-[10px] text-gray-400 font-medium">
+            ({product.totalReviews || "120"}+)
+          </span>
+        </div>
+
+        {/* Price Row */}
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex flex-col">
+            <span className="text-lg md:text-xl font-black text-gray-900 dark:text-white">
+              ₹{product.price.toLocaleString()}
             </span>
-            {product?.originalPrice && product.originalPrice > product.price && (
-              <span className="text-xs text-gray-400 line-through">
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-xs text-gray-400 line-through -mt-1">
                 ₹{product.originalPrice.toLocaleString()}
               </span>
             )}
-           
-
           </div>
-             {/* Quantity Controls */}
-            {showQuantityControls && !inCart && (
-              <div className="flex items-center mb-2 sm:mb-3 text-[11px] sm:text-xs">
-                <span className="text-xs sm:text-sm font-medium text-gray-700">Qty: {currentQuantity}</span>
+
+          <AnimatePresence mode="wait">
+            <motion.button
+              key={wasJustAdded ? "added" : inCart ? "incart" : "add"}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              whileHover={!isAdding ? { scale: 1.05 } : {}}
+              whileTap={!isAdding ? { scale: 0.95 } : {}}
+              onClick={(e) => {
+                e.preventDefault();
+                handleAddToCart();
+              }}
+              disabled={isAdding}
+              className={`relative h-10 md:h-12 px-4 md:px-6 rounded-xl md:rounded-2xl font-black text-xs md:text-sm uppercase tracking-wider shadow-lg transition-all ${wasJustAdded
+                ? "bg-green-500 text-white shadow-green-500/20"
+                : inCart
+                  ? "bg-primary text-white shadow-primary/20"
+                  : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-black dark:hover:bg-gray-200"
+                } ${isAdding ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            >
+              <div className="flex items-center gap-2">
+                {isAdding ? (
+                  <span className="animate-pulse">...</span>
+                ) : wasJustAdded ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : inCart ? (
+                  <>
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>{cartQuantity}</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Add</span>
+                  </>
+                )}
               </div>
-            )}
+            </motion.button>
+          </AnimatePresence>
         </div>
-
-      
-        {/* Add to Cart */}
-        <button
-          onClick={handleAddToCart}
-          disabled={isAdding}
-          className={`w-full py-2 px-3 sm:py-2.5 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition-colors ${
-            wasJustAdded
-              ? "bg-green-500 text-white"
-              : inCart
-              ? "bg-blue-100 text-blue-700"
-              : "bg-orange-500 text-white hover:bg-orange-600"
-          } ${isAdding ? "opacity-80 cursor-not-allowed" : "cursor-pointer"}`}
-        >
-          {isAdding ? (
-            <span>Adding...</span>
-          ) : wasJustAdded ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              <span>Added</span>
-            </>
-          ) : inCart ? (
-            <>
-              <ShoppingCart className="w-4 h-4" />
-              <span>In Cart ({cartQuantity})</span>
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-4 h-4" />
-              <span>Add to Cart</span>
-            </>
-          )}
-        </button>
-
-        {/* Extra info on hover */}
-        {/* <div className="mt-2 text-[11px] text-gray-500">
-          <span>Delivery in 15-30 min · In stock</span>
-        </div> */}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

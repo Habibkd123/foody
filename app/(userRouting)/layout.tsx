@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import UserLayoutClient from '@/components/layout/UserLayoutClient';
 
 export const metadata: Metadata = {
   title: {
@@ -23,5 +24,5 @@ export const metadata: Metadata = {
 };
 
 export default function UserRoutingLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <UserLayoutClient>{children}</UserLayoutClient>
 }

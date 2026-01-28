@@ -333,28 +333,28 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sparkles, Trophy, Candy, Popcorn, Coffee, UtensilsCrossed, Package, LayoutGrid } from "lucide-react";
 import clsx from "clsx";
 import { getProductsByNavSearch } from "./APICall/category";
 import { useProductsContext } from "@/context/AllProductContext";
 
 type NavItem = {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   hasDropdown?: boolean;
   dropdownItems?: string[];
 };
 
 const navItems: NavItem[] = [
-  { label: "New Arrivals", icon: "https://bokksumarket.com/cdn/shop/collections/icon_new_arrival_small.svg?v=1752737439" },
-  { label: "Best Sellers", icon: "https://bokksumarket.com/cdn/shop/collections/icon_best_seller_small.svg?v=1752737885" },
-  { label: "Sweets", icon: "https://bokksumarket.com/cdn/shop/collections/Sweets_8a86e80d-8a38-4cfd-bbed-0e7b260e4ae6_small.svg?v=1752738009", hasDropdown: true, dropdownItems: ["Kit Kat", "Pocky", "Oreos", "Mochi", "Candy", "Chocolate", "All Sweets"] },
-  { label: "Snacks", icon: "https://bokksumarket.com/cdn/shop/collections/Snacks_small.svg?v=1752738169", hasDropdown: true, dropdownItems: ["Rice Crackers", "Senbei", "Chips", "Wasabi Peas", "Seaweed Snacks", "All Snacks"] },
-  { label: "Drinks", icon: "https://bokksumarket.com/cdn/shop/collections/Drinks_small.svg?v=1752738381", hasDropdown: true, dropdownItems: ["Ramune", "Matcha", "Green Tea", "Coffee", "Soft Drinks", "All Drinks"] },
-  { label: "Pantry", icon: "https://bokksumarket.com/cdn/shop/collections/Pantry_small.svg?v=1752738242", hasDropdown: true, dropdownItems: ["Instant Ramen", "Curry Packs", "Seasonings", "Sauces", "Rice", "Noodles", "All Pantry"] },
-  { label: "Groceries", icon: "https://bokksumarket.com/cdn/shop/collections/Pantry_small.svg?v=1752738242", hasDropdown: true, dropdownItems: ["Fresh Produce", "Frozen Foods", "Dairy", "Bread & Bakery", "Eggs", "Tofu", "All Groceries"] },
-  { label: "Value Packs", icon: "https://bokksumarket.com/cdn/shop/collections/icon_value_pack_small.svg?v=1752738312" },
-  { label: "See All", icon: "https://bokksumarket.com/cdn/shop/collections/Sweets_small.svg?v=1752737283" },
+  { label: "New Arrivals", icon: <Sparkles className="w-5 h-5" /> },
+  { label: "Best Sellers", icon: <Trophy className="w-5 h-5" /> },
+  { label: "Sweets", icon: <Candy className="w-5 h-5" />, hasDropdown: true, dropdownItems: ["Kit Kat", "Pocky", "Oreos", "Mochi", "Candy", "Chocolate", "All Sweets"] },
+  { label: "Snacks", icon: <Popcorn className="w-5 h-5" />, hasDropdown: true, dropdownItems: ["Rice Crackers", "Senbei", "Chips", "Wasabi Peas", "Seaweed Snacks", "All Snacks"] },
+  { label: "Drinks", icon: <Coffee className="w-5 h-5" />, hasDropdown: true, dropdownItems: ["Ramune", "Matcha", "Green Tea", "Coffee", "Soft Drinks", "All Drinks"] },
+  { label: "Pantry", icon: <UtensilsCrossed className="w-5 h-5" />, hasDropdown: true, dropdownItems: ["Instant Ramen", "Curry Packs", "Seasonings", "Sauces", "Rice", "Noodles", "All Pantry"] },
+  { label: "Groceries", icon: <Package className="w-5 h-5" />, hasDropdown: true, dropdownItems: ["Fresh Produce", "Frozen Foods", "Dairy", "Bread & Bakery", "Eggs", "Tofu", "All Groceries"] },
+  { label: "Value Packs", icon: <Package className="w-5 h-5" /> },
+  { label: "See All", icon: <LayoutGrid className="w-5 h-5" /> },
 ];
 
 const Navbar: React.FC = () => {
@@ -382,8 +382,8 @@ const Navbar: React.FC = () => {
         console.log("response", response);
         if (response.success) {
           setProductsData(response.products);
-        }else{
-        setProductsData([])
+        } else {
+          setProductsData([])
         }
       } catch (error) {
         console.log(error);
@@ -434,8 +434,13 @@ const Navbar: React.FC = () => {
                     if (isMobile && item.hasDropdown) toggleMobileDropdown();
                   }}
                 >
-                  <Image src={item.icon} alt={item.label} width={24} height={24} />
-                  <span className="text-sm font-semibold hover:text-primary">
+                  <div className={clsx(
+                    "transition-colors duration-200",
+                    selected === item.label ? "text-primary" : "text-gray-400 group-hover:text-primary"
+                  )}>
+                    {item.icon}
+                  </div>
+                  <span className="text-sm font-semibold hover:text-primary whitespace-nowrap">
                     {item.label}
                   </span>
                   {item.hasDropdown && (
@@ -451,23 +456,23 @@ const Navbar: React.FC = () => {
                 </div>
 
                 {item.hasDropdown && isDropdownOpen && item.dropdownItems && (
-  <div
-    className={clsx(
-      "bg-card border border-border rounded-md shadow-soft md:absolute md:top-full md:left-0 md:w-40",
-      isMobile ? "mt-2 w-full" : "py-2"
-    )}
-  >
-    {item.dropdownItems.map((dropItem) => (
-      <div
-        key={dropItem}
-        className="px-4 py-2 text-sm text-foreground hover:bg-secondary cursor-pointer"
-        onClick={() => setSelected(dropItem)}
-      >
-        {dropItem}
-      </div>
-    ))}
-  </div>
-)}
+                  <div
+                    className={clsx(
+                      "bg-card border border-border rounded-md shadow-soft md:absolute md:top-full md:left-0 md:w-40",
+                      isMobile ? "mt-2 w-full" : "py-2"
+                    )}
+                  >
+                    {item.dropdownItems.map((dropItem) => (
+                      <div
+                        key={dropItem}
+                        className="px-4 py-2 text-sm text-foreground hover:bg-secondary cursor-pointer"
+                        onClick={() => setSelected(dropItem)}
+                      >
+                        {dropItem}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
               </div>
             );
