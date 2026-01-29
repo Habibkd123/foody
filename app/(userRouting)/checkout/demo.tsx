@@ -1,8 +1,8 @@
 "use client"
 import { useState } from "react";
 import { ChevronDown, CreditCard, Smartphone, Building, Wallet, Check, Star, Banknote, Globe } from "lucide-react";
-import { useOrder } from "@/context/OrderContext";
-import { useAuthStorage } from "@/hooks/useAuth";
+import { useCartStore } from "@/lib/store/useCartStore";
+import { useUserStore } from "@/lib/store/useUserStore";
 
 // Types
 interface DigitalWallet {
@@ -40,16 +40,16 @@ interface PaymentSectionProps {
 
 export default function PaymentPage() {
   const [expanded, setExpanded] = useState<string>("wallets");
-  const { user } = useAuthStorage();
+  const { user } = useUserStore();
   const [phone, setPhone] = useState<string>("");
   const isPhoneValid = /^\d{10}$/.test(phone);
-  let { state } = useOrder();
+  const state = useCartStore();
   console.log(state);
-  
+
 
   const toggle = (section: string) => setExpanded(expanded === section ? "" : section);
-  let totalAmount = state?.items?.reduce((t, i) => t + i.price * i.quantity, 0) + (state.tip || 0) + (state.deliveryCharge || 0) + (state.handlingCharge || 0) + (state.donation || 0);
-  
+  let totalAmount = state?.items?.reduce((t: any, i: any) => t + i.price * i.quantity, 0) + (state.tip || 0) + (state.deliveryCharge || 0) + (state.handlingCharge || 0);
+
 
   const paymentApps: PaymentApp[] = [
     { name: "Paytm", color: "bg-blue-500", logo: "https://b.zmtcdn.com/zpaykit/af07d421bc6da0f623672f3044a882901567742922.png" },
@@ -58,30 +58,26 @@ export default function PaymentPage() {
   ];
 
   const PaymentSection: React.FC<PaymentSectionProps> = ({ id, title, icon, children, isActive, disabled, scrolled }) => (
-    <div className={`relative border-2 rounded-2xl overflow-hidden transition-all duration-500 ease-in-out transform hover:scale-[1.02] ${
-      isActive ? 'border-orange-400 shadow-2xl shadow-emerald-100' : 'border-gray-200 hover:border-gray-300'
-    }`}>
+    <div className={`relative border-2 rounded-2xl overflow-hidden transition-all duration-500 ease-in-out transform hover:scale-[1.02] ${isActive ? 'border-orange-400 shadow-2xl shadow-emerald-100' : 'border-gray-200 hover:border-gray-300'
+      }`}>
       <div
         onClick={() => toggle(id)}
         className="relative cursor-pointer p-6 flex justify-between items-center bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-300"
       >
         <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-full transition-all duration-300 ${
-            isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'
-          }`}>
+          <div className={`p-2 rounded-full transition-all duration-300 ${isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'
+            }`}>
             {icon}
           </div>
           <h2 className="text-xl font-bold text-gray-800">{title}</h2>
         </div>
-        <div className={`transform transition-transform duration-300 ${
-          isActive ? 'rotate-180 text-emerald-600' : 'text-gray-400'
-        }`}>
+        <div className={`transform transition-transform duration-300 ${isActive ? 'rotate-180 text-emerald-600' : 'text-gray-400'
+          }`}>
           <ChevronDown size={24} />
         </div>
       </div>
-      <div className={`overflow-${scrolled ? 'auto' : 'hidden'} transition-all duration-500 ease-in-out ${
-        isActive ? `${!scrolled ? 'max-h-96' : 'h-[70vh]'} opacity-100` : 'max-h-0 opacity-0'
-      }`}>
+      <div className={`overflow-${scrolled ? 'auto' : 'hidden'} transition-all duration-500 ease-in-out ${isActive ? `${!scrolled ? 'max-h-96' : 'h-[70vh]'} opacity-100` : 'max-h-0 opacity-0'
+        }`}>
         <div className="p-6 pt-0 bg-gradient-to-b from-white to-gray-50" aria-disabled={disabled}>
           {children}
         </div>
@@ -100,18 +96,18 @@ export default function PaymentPage() {
     const res = await fetch("/api/order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        items: products, 
+      body: JSON.stringify({
+        items: products,
         orderId: "YOUR_ORDER_ID_HERE",
         total: totalAmount,
         method: paymentMethod,
-        userId: user._id 
+        userId: user?._id
       }),
     });
-    
+
     const data = await res.json();
     console.log(data);
-    
+
     if (data.url) {
       window.location.href = data.url;
     } else {
@@ -129,16 +125,16 @@ export default function PaymentPage() {
 
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <div className="w-full lg:w-2/3 space-y-6">
-          
+
 
             {/* Credit/Debit Cards */}
             <PaymentSection id="cards" disabled={false} scrolled={false} title="Credit or Debit Cards" icon={<CreditCard size={20} />} isActive={expanded === "cards"}>
               <div className="space-y-6">
-              
+
               </div>
             </PaymentSection>
 
-            
+
 
             {/* UPI Payment */}
             <PaymentSection id="upi" disabled={false} scrolled={false} title="UPI Payment" icon={<Smartphone size={20} />} isActive={expanded === "upi"}>
@@ -162,7 +158,7 @@ export default function PaymentPage() {
                   placeholder="yourname@upi"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
-                <button 
+                <button
                   onClick={() => handleStripeCheckout('upi')}
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                 >
@@ -185,7 +181,7 @@ export default function PaymentPage() {
                     <p className="text-sm text-gray-500 text-center">
                       Please keep exact change handy to help us serve you better
                     </p>
-                    <button 
+                    <button
                       onClick={() => handleStripeCheckout('cash_on_delivery')}
                       className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                     >
@@ -236,12 +232,6 @@ export default function PaymentPage() {
                         <span className="font-semibold text-gray-800">₹{state.tip}</span>
                       </div>
                     )}
-                    {state?.donation&&state?.donation > 0 && (
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div><p className="font-medium text-gray-800">Donation</p></div>
-                        <span className="font-semibold text-gray-800">₹{state.donation}</span>
-                      </div>
-                    )}
                     {state?.deliveryCharge > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div><p className="font-medium text-gray-800">Delivery Charge</p></div>
@@ -264,7 +254,7 @@ export default function PaymentPage() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => handleStripeCheckout('card')}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                 >

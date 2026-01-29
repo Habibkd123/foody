@@ -1,3 +1,4 @@
+"use client";
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -8,8 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/context/AuthContext"
-import { useAuthStorage } from "@/hooks/useAuth"
+import { useUserStore } from "@/lib/store/useUserStore"
 
 interface AuthSystemProps {
   onClose: () => void
@@ -18,7 +18,8 @@ interface AuthSystemProps {
 }
 
 export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthSystemProps) {
-  let { userRole } = useAuthStorage();
+  const { user, checkAuth } = useUserStore();
+  const userRole = user?.role;
   console.log("User Role in AuthSystem:", userRole);
 
   const [currentStep, setCurrentStep] = useState<
@@ -162,15 +163,21 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
       if (result.success && result) {
         console.log('Login successful, token:', result.token);
 
+        // Refresh the local store state
+        await checkAuth();
+
         // Important: Perform a full reload to ensure middleware sees the cookie
-        if (userRole == "user") {
+        if (result.user?.role === "user") {
           window.location.href = '/productlist';
-        } else if (userRole == "admin") {
+        } else if (result.user?.role === "admin") {
           window.location.href = '/admin';
-        } else if (userRole == "restaurant") {
+        } else if (result.user?.role === "restaurant") {
           window.location.href = '/restaurant';
+        } else if (result.user?.role === "driver") {
+          window.location.href = '/driver';
+        } else {
+          window.location.reload();
         }
-        window.location.reload();
         return result;
       } else {
         throw new Error('Invalid response from server');
@@ -183,15 +190,17 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
 
   useEffect(() => {
     if (userRole == "user") {
-      window.location.href = '/productlist';
+      router.push('/productlist');
     } else if (userRole == "admin") {
-      window.location.href = '/admin';
+      router.push('/admin');
     } else if (userRole == "restaurant") {
-      window.location.href = '/restaurant';
+      router.push('/restaurant');
+    } else if (userRole == "driver") {
+      router.push('/driver');
     } else {
       setCurrentStep("login")
     }
-  }, [userRole]);
+  }, [userRole, router]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -553,6 +562,7 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
                   >
                     <option value="user">User</option>
                     <option value="restaurant">Restaurant</option>
+                    <option value="driver">Rider (Delivery Partner)</option>
                   </select>
                   {errors.role && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.role}</p>}
                 </div>

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Heart, ShoppingCart, Star, CheckCircle, Eye, ArrowUpRight, Plus } from "lucide-react";
+import Image from "next/image";
 import { Product } from "@/types/global";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -90,11 +91,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Image Container */}
       <Link href={`/products/${product._id}`} className="block relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-800/50">
-        <img
+        <Image
           src={product.images[0] || "/placeholder-product.png"}
           alt={product.name}
-          className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-700 ease-out"
-          loading="lazy"
+          fill
+          className="object-contain p-4 group-hover:scale-110 transition-transform duration-700 ease-out"
         />
 
         {/* Quick View Overlay (Desktop) */}
@@ -123,10 +124,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <Star className="w-3.5 h-3.5 fill-current" />
           </div>
           <span className="text-xs font-black text-gray-900 dark:text-white">
-            {product.rating > 0 ? product.rating.toFixed(1) : "4.8"}
+            {product.rating > 0 ? product.rating.toFixed(1) : "5.0"}
           </span>
           <span className="text-[10px] text-gray-400 font-medium">
-            ({product.totalReviews || "120"}+)
+            ({product.totalReviews || "10"}+)
           </span>
         </div>
 

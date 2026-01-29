@@ -5,8 +5,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Plus, Star, Heart } from "lucide-react"
 import { motion } from "framer-motion"
-import { useAuthStorage } from "@/hooks/useAuth"
-import { useCartOrder } from "@/context/OrderContext"
+import { useUserStore } from "@/lib/store/useUserStore"
+import { useCartStore } from "@/lib/store/useCartStore"
 import { useCustomToast } from "@/hooks/useCustomToast"
 
 interface ProductItem {
@@ -30,8 +30,8 @@ interface CategorySectionProps {
 export const CategorySection = ({ section }: CategorySectionProps) => {
     const products = Array.isArray(section?.products) ? section.products : []
     const [expanded, setExpanded] = useState(false)
-    const { user } = useAuthStorage()
-    const { addToCart } = useCartOrder()
+    const { user } = useUserStore()
+    const { addItem: addToCart } = useCartStore()
     const toast = useCustomToast()
 
     if (products.length === 0) return null
@@ -58,12 +58,13 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
         }
 
         try {
-            const response: any = await addToCart(user._id, cartItem)
-            if (response && response.success) {
-                toast.cartAdded(item.name)
-            } else {
-                toast.error("Cart Error", (response && response.message) || "Failed to add item")
-            }
+            addToCart(cartItem)
+            toast.cartAdded(item.name)
+            // if (response && response.success) {
+            //     toast.cartAdded(item.name)
+            // } else {
+            //     toast.error("Cart Error", (response && response.message) || "Failed to add item")
+            // }
         } catch (error) {
             toast.error("Cart Error", "Failed to add item to cart")
         }
@@ -73,9 +74,17 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
         <section className="mb-12 md:mb-16" aria-labelledby={`category-${section?.name || 'section'}`}>
             <div className="flex justify-between items-end mb-6 md:mb-8">
                 <div>
-                    <h2 id={`category-${section?.name || 'section'}`} className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
-                        {section?.name}
-                    </h2>
+                    <div className="flex items-center gap-4">
+                        <h2 id={`category-${section?.name || 'section'}`} className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
+                            {section?.name}
+                        </h2>
+                        <Link
+                            href={{ pathname: '/productlist', query: { category: section?.name } }}
+                            className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1 rounded-full text-xs font-bold transition-all uppercase tracking-tighter"
+                        >
+                            View
+                        </Link>
+                    </div>
                     <div className="flex items-center gap-2 mt-2">
                         <span className="h-1 w-12 bg-primary rounded-full"></span>
                         <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">
@@ -142,7 +151,7 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
 
                                 <div className="flex items-center gap-1">
                                     <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">4.5</span>
+                                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{item.rating?.toFixed(1) || '5.0'}</span>
                                 </div>
 
                                 <div className="flex items-center justify-between pt-2">

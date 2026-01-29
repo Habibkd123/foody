@@ -9,8 +9,9 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useSidebar } from '@/context/SidebarContext';
-import { useAuthStorage } from '@/hooks/useAuth';
+import { useUserStore } from '@/lib/store/useUserStore';
 import { useTheme } from '@/context/ThemeContext';
+
 const ThemeToggleButton = () => {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
@@ -29,7 +30,10 @@ const ThemeToggleButton = () => {
 // User Dropdown
 const UserDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useAuthStorage();
+  const { logout, user } = useUserStore();
+
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U');
+
   return (
     <div className="relative">
       <button
@@ -37,15 +41,19 @@ const UserDropdown = () => {
         className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
       >
         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-          <span className="text-sm font-medium text-white">A</span>
+          <span className="text-sm font-medium text-white">{userInitial}</span>
         </div>
         <ChevronDown className="h-4 w-4 text-gray-500" />
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+          <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.name || user?.email}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</div>
+          </div>
           <div className="p-2">
-            <button onClick={logout} className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center space-x-2">
+            <button onClick={() => logout()} className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md flex items-center space-x-2">
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </button>

@@ -170,11 +170,20 @@ import {
   BarChart3,
   CheckSquare,
   AlertCircle,
-  Users,
-  DollarSign,
-  Bell,
+  Search,
+  Settings,
+  Star,
+  MapPin,
   Store,
   Utensils,
+  Users,
+  Bell,
+  DollarSign,
+  Package,
+  List,
+  FileText,
+  MessageSquare,
+  LifeBuoy
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -194,6 +203,9 @@ const navigationItems: NavItem[] = [
   { id: "disputes", label: "Disputes", icon: AlertCircle, href: "/admin/disputes" },
   { id: "restaurants", label: "Restaurant Approval", icon: Store, href: "/admin/restaurants" },
   { id: "food-approval", label: "Food Approval", icon: Utensils, href: "/admin/food-approval" },
+  { id: "reviews", label: "Customer Reviews", icon: Star, href: "/admin/reviews" },
+  { id: "driver-analytics", label: "Driver Analytics", icon: BarChart3, href: "/admin/drivers/analytics" },
+  { id: "fleet-tracking", label: "Fleet Tracking", icon: MapPin, href: "/admin/drivers/tracking" },
   { id: "users", label: "Users", icon: Users, href: "/admin/users" },
   { id: "notifications", label: "Notifications", icon: Bell, href: "/admin/notifications" },
   { id: "sales", label: "Sales", icon: DollarSign, href: "/admin/sales" },

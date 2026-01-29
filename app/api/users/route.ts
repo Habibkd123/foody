@@ -4,9 +4,9 @@ import { isEmailVerified, verifyOTP, clearOTP } from '@/app/api/auth/otpStore';
 import connectDB from '@/lib/mongodb';
 import User from '@/app/models/User'; // Your existing model
 import { createUserSchema, userQuerySchema } from '@/lib/user-validations';
-import { 
-  handleUserError, 
-  formatUserResponse, 
+import {
+  handleUserError,
+  formatUserResponse,
   createUserSuccessResponse,
   createUserErrorResponse,
   hashPassword,
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const queryData = Object.fromEntries(searchParams.entries());
 
-    const { 
-      page = 1, 
-      limit = 20, 
+    const {
+      page = 1,
+      limit = 20,
       role,
       search,
       sortBy = 'createdAt',
@@ -121,8 +121,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only allow user / restaurant signup from public registration
-    const normalizedRole = role === 'restaurant' ? 'restaurant' : 'user';
+    // Only allow user / restaurant / driver signup from public registration
+    let normalizedRole: 'user' | 'restaurant' | 'driver' = 'user';
+    if (role === 'restaurant') normalizedRole = 'restaurant';
+    if (role === 'driver') normalizedRole = 'driver';
 
     if (normalizedRole === 'restaurant') {
       if (!restaurantName || !restaurantOwnerName || !restaurantAddress || !openingTime || !closingTime) {
@@ -166,13 +168,20 @@ export async function POST(request: NextRequest) {
       role: normalizedRole,
       restaurant: normalizedRole === 'restaurant'
         ? {
-            status: 'pending',
-            name: restaurantName,
-            ownerName: restaurantOwnerName,
-            address: restaurantAddress,
-            openingTime,
-            closingTime,
-          }
+          status: 'pending',
+          name: restaurantName,
+          ownerName: restaurantOwnerName,
+          address: restaurantAddress,
+          openingTime,
+          closingTime,
+        }
+        : undefined,
+      driverDetails: normalizedRole === 'driver'
+        ? {
+          status: 'pending',
+          isVerified: false,
+          isAvailable: false,
+        }
         : undefined,
     });
 

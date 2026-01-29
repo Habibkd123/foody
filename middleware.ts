@@ -154,7 +154,7 @@
 //   const allowedRoutes = roleRoutes[userRole || ""] || [];
 //   const hasAccess = allowedRoutes.some((route) => path.startsWith(route));
 
-  
+
 //   // Restrict access for unauthorized roles
 //   if (!hasAccess) {
 //     console.log("Access denied for", userRole, "to", path);
@@ -254,8 +254,10 @@ export function middleware(request: NextRequest) {
       userRole === "admin"
         ? "/admin"
         : userRole === "restaurant"
-        ? "/restaurant"
-        : "/products";
+          ? "/restaurant"
+          : userRole === "driver"
+            ? "/driver"
+            : "/products";
 
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }
@@ -278,6 +280,10 @@ export function middleware(request: NextRequest) {
     ],
     restaurant: [
       "/restaurant",
+    ],
+    driver: [
+      "/driver",
+      "/orders",
     ],
     user: [
       "/",

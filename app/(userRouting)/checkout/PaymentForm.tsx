@@ -5,8 +5,8 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { useAuthStorage } from "@/hooks/useAuth";
-import { useOrder } from "@/context/OrderContext";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useCartStore } from "@/lib/store/useCartStore";
 
 interface PaymentFormProps {
   totalAmount: number;
@@ -15,22 +15,27 @@ interface PaymentFormProps {
 export default function PaymentForm({ totalAmount }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const { user } = useAuthStorage();
-  const { state } = useOrder();
+  const {
+    items,
+    tip,
+    deliveryCharge,
+    handlingCharge,
+    couponCode,
+    notes,
+    address,
+  } = useCartStore();
+  const { user } = useUserStore();
   const [message, setMessage] = useState<string | null>(null);
-  const [user_id, setUserId] = useState('')
   const [isLoading, setIsLoading] = useState(false);
 
 
   useEffect(() => {
-    let result=   state.items;
-    console.log("result", result.map((i: any) => ({
+    console.log("items", items.map((i: any) => ({
       product: i?.id,
       quantity: i.quantity,
       price: i.price,
     })))
-    setUserId(user?._id)
-  }, [user?._id])
+  }, [items]);
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
@@ -55,8 +60,8 @@ export default function PaymentForm({ totalAmount }: PaymentFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user:user_id,
-          items: state.items.map((i: any) => ({
+          user: user?._id || '',
+          items: items.map((i: any) => ({
             product: i?.productId || String(i?.id).split(':')[0],
             quantity: i.quantity,
             price: i.price,
@@ -64,15 +69,15 @@ export default function PaymentForm({ totalAmount }: PaymentFormProps) {
             addons: i.addons,
           })),
           total: totalAmount,
-          tip: state?.tip || 0,
-          deliveryCharge: state?.deliveryCharge || 0,
-          handlingCharge: state?.handlingCharge || 0,
-          donation: state?.donation || 0,
-          couponCode: state?.couponCode || '',
+          tip: tip || 0,
+          deliveryCharge: deliveryCharge || 0,
+          handlingCharge: handlingCharge || 0,
+          donation: 0,
+          couponCode: couponCode || '',
           paymentId: paymentIntent.id,
-          delivery: state?.address?.label || "No address provided",
-          deliveryLocation: { lat: (state as any)?.address?.lat, lng: (state as any)?.address?.lng },
-          notes: state?.notes || '',
+          delivery: address?.label || "No address provided",
+          deliveryLocation: { lat: (address as any)?.lat, lng: (address as any)?.lng },
+          notes: notes || '',
           method: "card",
           orderId: paymentIntent.id,
           sessionId: paymentIntent.id,

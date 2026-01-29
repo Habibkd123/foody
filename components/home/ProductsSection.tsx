@@ -2,6 +2,7 @@
 
 import React from "react"
 import { motion } from "framer-motion"
+import Image from "next/image"
 import { Search, Star, Heart, Plus, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -83,13 +84,14 @@ export default function ProductsSection({
                 transition={{ delay: index * 0.05, duration: 0.3 }}
               >
                 <Card className="group rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800">
-                  
+
                   {/* IMAGE */}
-                  <div className="relative overflow-hidden rounded-t-2xl">
-                    <img
+                  <div className="relative h-44 w-full overflow-hidden rounded-t-2xl">
+                    <Image
                       src={product.images?.[0] || "/placeholder.png"}
                       alt={product.name}
-                      className="w-full h-44 object-cover group-hover:scale-105 transition-all duration-500"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-all duration-500"
                     />
 
                     {/* DISCOUNT BADGE */}
@@ -106,9 +108,8 @@ export default function ProductsSection({
                       className="absolute top-3 right-3 rounded-full bg-white/80 dark:bg-gray-700/70 backdrop-blur-md hover:bg-white shadow-lg"
                     >
                       <Heart
-                        className={`w-5 h-5 transition-all ${
-                          isWishlisted ? "text-red-500 fill-red-500" : "text-gray-500"
-                        }`}
+                        className={`w-5 h-5 transition-all ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-500"
+                          }`}
                       />
                     </Button>
                   </div>

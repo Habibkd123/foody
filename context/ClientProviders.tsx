@@ -1,15 +1,10 @@
 'use client';
 
-import { WishListProvider } from '@/context/WishListsContext';
-import { FilterProvider } from '@/context/FilterContext';
-import { CartProvider } from '@/context/CartContext';
-import { AddressProvider } from '@/context/AddressContext';
-import { OrderProvider } from '@/context/OrderContext';
-import { ProductsProvider } from '@/context/AllProductContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { SidebarProvider } from '@/context/SidebarContext';
-import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ui/ToastProvider';
+import QueryProvider from '@/lib/query-provider';
+import { AuthInit } from '@/components/AuthInit';
 import React, { ReactNode } from 'react';
 
 interface ClientProvidersProps {
@@ -18,26 +13,15 @@ interface ClientProvidersProps {
 
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
-    <ProductsProvider>
+    <QueryProvider>
       <ThemeProvider>
-        <WishListProvider>
-          <FilterProvider>
-            <CartProvider>
-              <AddressProvider>
-                <OrderProvider>
-                  <SidebarProvider>
-                    <AuthProvider>
-                      <ToastProvider>
-                        {children}
-                      </ToastProvider>
-                    </AuthProvider>
-                  </SidebarProvider>
-                </OrderProvider>
-              </AddressProvider>
-            </CartProvider>
-          </FilterProvider>
-        </WishListProvider>
+        <SidebarProvider>
+          <AuthInit />
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </SidebarProvider>
       </ThemeProvider>
-    </ProductsProvider>
+    </QueryProvider>
   );
 }

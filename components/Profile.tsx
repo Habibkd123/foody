@@ -7,39 +7,46 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WishListContext } from "@/context/WishListsContext";
-import { Trash2, Package, Heart, MapPin, User, Edit, LogOut, TrendingUp, Clock, CheckCircle } from "lucide-react";
-import { useAuthStorage } from "@/hooks/useAuth";
-import { getUserOrders } from "./APICall/order";
-import { useCartOrder } from "@/context/OrderContext";
+import { Trash2, Package, Heart, MapPin, User, Edit, LogOut, TrendingUp, Clock, CheckCircle, Star } from "lucide-react";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useAddressQuery } from "@/hooks/useAddressQuery";
+import { useWishlistQuery } from "@/hooks/useWishlistQuery";
+import { useOrdersQuery } from "@/hooks/useOrdersQuery";
 import { Address } from "@/types/global";
-import DeliveryAddressPage from "./AddAddressModal";
-import EditProfileModal from "./EditProfileModal";
 import { useSearchParams } from "next/navigation";
-import RaiseDisputeModal from "./RaiseDisputeModal";
-import DisputeDetailsModal from "./DisputeDetailsModal";
+import dynamic from "next/dynamic";
+
+const DeliveryAddressPage = dynamic(() => import("./AddAddressModal"), { ssr: false });
+const EditProfileModal = dynamic(() => import("./EditProfileModal"), { ssr: false });
+const RaiseDisputeModal = dynamic(() => import("./RaiseDisputeModal"), { ssr: false });
+const DisputeDetailsModal = dynamic(() => import("./DisputeDetailsModal"), { ssr: false });
 
 const Profile = () => {
   const searchParams = useSearchParams();
+  const { user, logout, setUser } = useUserStore();
+
   const {
-    address,
-    setDistance,
+    addresses,
+    isLoading: isAddressesLoading,
     addAddress,
     updateAddress,
-    deleteAddress,
-    getAddresses,
-    loading
-  } = useCartOrder();
-  
-  const { wishListsData, setWistListsData } = React.useContext<any>(WishListContext);
-  const { user, setUser, updateUser, logout } = useAuthStorage();
-  
-  const [orders, setOrders] = useState<any[]>([]);
-  const [addresses, setAddresses] = useState<Address[]>([]);
+    deleteAddress
+  } = useAddressQuery(user?._id);
+
+  const {
+    data: wishListsData = [],
+    removeFromWishlist,
+    isLoading: isWishlistLoading
+  } = useWishlistQuery(user?._id);
+
+  const {
+    data: orders = [],
+    isLoading: isOrdersLoading
+  } = useOrdersQuery(user?._id);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [editProfileModal, setEditProfileModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [tabValue, setTabValue] = useState<string>('profile');
   const [raiseDisputeOpen, setRaiseDisputeOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -48,33 +55,6 @@ const Profile = () => {
   const [disputeDetailsOpen, setDisputeDetailsOpen] = useState(false);
   const [selectedDisputeId, setSelectedDisputeId] = useState<string | null>(null);
 
-  // Update addresses when context address changes
-  useEffect(() => {
-    if (address) {
-      if (Array.isArray(address)) {
-        setAddresses(address);
-      } else {
-        // If address is a single object, wrap it in an array
-        setAddresses([address]);
-      }
-    }
-  }, [address]);
-
-  // Load addresses when component mounts
-  useEffect(() => {
-    if (user?._id) {
-      setIsLoading(true);
-      handleGetAllAddress();
-    }
-  }, [user?._id]);
-
-  // Load orders when component mounts
-  useEffect(() => {
-    if (user?._id) {
-      handleUserOrders();
-    }
-  }, [user?._id]);
-
   // Sync tab from query param (?tab=orders)
   useEffect(() => {
     const t = searchParams?.get('tab');
@@ -82,21 +62,6 @@ const Profile = () => {
       setTabValue(t);
     }
   }, [searchParams]);
-
-  // Set loading to false when data is loaded
-  useEffect(() => {
-    if (orders || addresses || wishListsData) {
-      setIsLoading(false);
-    }
-  }, [orders, addresses, wishListsData]);
-
-  const handleGetAllAddress = async () => {
-    try {
-      await getAddresses(user?._id);
-    } catch (error) {
-      console.error('Error loading addresses:', error);
-    }
-  };
 
   const handleUserDisputes = async () => {
     try {
@@ -125,41 +90,33 @@ const Profile = () => {
     setRaiseDisputeOpen(true);
   };
 
-  const handleUserOrders = async () => {
+  const handleRemoveWishlist = async (productId: string) => {
+    if (!user?._id) return;
     try {
-      if (!user?._id) return;
-
-      let response = await getUserOrders(user?._id);
-      console.log("response", response);
-
-      if (response?.success) {
-        setOrders(response.data);
-      } else {
-        alert(response?.error || JSON.stringify(response));
-      }
+      await removeFromWishlist({ userId: user._id, productId });
     } catch (error) {
-      console.log("error", error);
+      console.error('Error removing from wishlist:', error);
     }
-  };
-
-  const handleRemove = (id: number) => {
-    setWistListsData(wishListsData.filter((item: any) => item.id !== id));
   };
 
   const handleLogout = () => {
     logout();
-    window.location.reload();
+    window.location.href = '/';
   };
 
-  const handleAddAddress = async (newAddress: Address) => {
+  const handleSaveAddress = async (newAddress: Address) => {
     try {
-      await addAddress(user?._id, newAddress);
+      if (editingAddress) {
+        const addressId = editingAddress._id;
+        if (!addressId) throw new Error("Address ID not found");
+        await updateAddress({ addressId, updates: newAddress });
+      } else {
+        await addAddress(newAddress);
+      }
       setShowAddModal(false);
       setEditingAddress(null);
-      // Refresh addresses list
-      await handleGetAllAddress();
     } catch (error) {
-      console.error('Error adding address:', error);
+      console.error('Error saving address:', error);
       throw error;
     }
   };
@@ -172,9 +129,7 @@ const Profile = () => {
   const handleDeleteAddress = async (addressId: string) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
       try {
-        await deleteAddress(user?._id, addressId);
-        // Refresh addresses list
-        await handleGetAllAddress();
+        await deleteAddress(addressId);
       } catch (error) {
         console.error('Error deleting address:', error);
         alert('Failed to delete address. Please try again.');
@@ -184,6 +139,7 @@ const Profile = () => {
 
   const firstInitial = (user?.firstName?.[0] || "U").toUpperCase();
   const lastInitial = (user?.lastName?.[0] || "").toUpperCase();
+  const isLoading = isAddressesLoading || isWishlistLoading || isOrdersLoading;
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -205,7 +161,7 @@ const Profile = () => {
                 <CheckCircle className="w-4 h-4 text-white" />
               </div>
             </div>
-            
+
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
                 {(user?.firstName || "") + (user?.lastName ? ` ${user?.lastName}` : "") || "Guest"}
@@ -223,21 +179,25 @@ const Profile = () => {
                   <TrendingUp className="w-3 h-3 mr-1" />
                   Active
                 </Badge>
+                <Badge className="bg-yellow-400 text-gray-900 border-none">
+                  <Star className="w-3 h-3 mr-1 fill-current" />
+                  {user?.loyaltyPoints || 0} Points
+                </Badge>
               </div>
             </div>
-            
+
             <div className="flex flex-col space-y-3">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-white text-orange-600 hover:bg-orange-50 font-semibold shadow-lg"
                 onClick={() => setEditProfileModal(true)}
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
+              <Button
+                size="lg"
+                variant="outline"
                 className="border-white text-dark hover:bg-white hover:text-orange-600 font-semibold"
                 onClick={handleLogout}
               >
@@ -271,7 +231,7 @@ const Profile = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -285,7 +245,7 @@ const Profile = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -302,26 +262,27 @@ const Profile = () => {
             </>
           )}
         </div>
+
         {/* Modern Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
           <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
             <TabsList className="grid w-full grid-cols-5 mb-8 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
-              <TabsTrigger 
-                value="profile" 
+              <TabsTrigger
+                value="profile"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
               >
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </TabsTrigger>
-              <TabsTrigger 
-                value="orders" 
+              <TabsTrigger
+                value="orders"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
               >
                 <Package className="w-4 h-4 mr-2" />
                 Orders
               </TabsTrigger>
-              <TabsTrigger 
-                value="disputes" 
+              <TabsTrigger
+                value="disputes"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
                 onClick={() => {
                   if (!disputes || disputes.length === 0) {
@@ -332,15 +293,15 @@ const Profile = () => {
                 <Clock className="w-4 h-4 mr-2" />
                 Disputes
               </TabsTrigger>
-              <TabsTrigger 
-                value="favorites" 
+              <TabsTrigger
+                value="favorites"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
               >
                 <Heart className="w-4 h-4 mr-2" />
                 Favorites
               </TabsTrigger>
-              <TabsTrigger 
-                value="addresses" 
+              <TabsTrigger
+                value="addresses"
                 className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md rounded-lg transition-all"
               >
                 <MapPin className="w-4 h-4 mr-2" />
@@ -384,7 +345,7 @@ const Profile = () => {
                   </div>
                   <Separator className="my-6" />
                   <div className="flex justify-end space-x-3">
-                    <Button 
+                    <Button
                       className="bg-orange-500 hover:bg-orange-600"
                       onClick={() => setEditProfileModal(true)}
                     >
@@ -418,21 +379,20 @@ const Profile = () => {
                               })}
                             </p>
                             <p className="text-sm mt-1">
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              <span className={`px-2 py-1 rounded text-xs ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                 order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                order.status === 'out_for_delivery' ? 'bg-blue-100 text-blue-800' :
-                                order.status === 'processing' ? 'bg-purple-100 text-purple-800' :
-                                order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
+                                  order.status === 'out_for_delivery' ? 'bg-blue-100 text-blue-800' :
+                                    order.status === 'processing' ? 'bg-purple-100 text-purple-800' :
+                                      order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
+                                }`}>
                                 {order.status}
                               </span>
                             </p>
                             {/* Tracking Steps */}
                             <div className="mt-3">
                               {(() => {
-                                const steps = ['placed','processing','out_for_delivery','completed'];
+                                const steps = ['placed', 'processing', 'out_for_delivery', 'completed'];
                                 const status = String(order.status || '').toLowerCase();
                                 const idx = Math.max(0, steps.indexOf(steps.includes(status) ? status : 'processing'));
                                 return (
@@ -480,7 +440,6 @@ const Profile = () => {
               onOpenChange={setRaiseDisputeOpen}
               order={selectedOrder}
               onCreated={() => {
-                handleUserOrders();
                 handleUserDisputes();
               }}
             />
@@ -559,16 +518,16 @@ const Profile = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {wishListsData.map((item: any) => (
-                    <Card key={item.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden">
+                    <Card key={item._id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden">
                       <div className="relative">
                         <img
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.title}
+                          src={item.images?.[0] || "/placeholder.svg"}
+                          alt={item.name}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <button
-                          onClick={() => handleRemove(item.id)}
+                          onClick={() => handleRemoveWishlist(item._id)}
                           className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-50 hover:text-red-500"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -576,12 +535,12 @@ const Profile = () => {
                       </div>
                       <CardContent className="p-4">
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                          {item.title}
+                          {item.name}
                         </h4>
                         <div className="flex items-center justify-between">
                           <p className="text-xl font-bold text-orange-600 dark:text-orange-400">₹{item.price}</p>
                           <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
-                            Add to Cart
+                            View Product
                           </Button>
                         </div>
                       </CardContent>
@@ -643,7 +602,7 @@ const Profile = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEditAddress(adrs)}
-                                disabled={loading}
+                                disabled={isLoading}
                                 className="hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600"
                               >
                                 <Edit className="w-4 h-4 mr-1" />
@@ -655,7 +614,7 @@ const Profile = () => {
                                   variant="outline"
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300"
                                   onClick={() => handleDeleteAddress(adrs._id)}
-                                  disabled={loading}
+                                  disabled={isLoading}
                                 >
                                   <Trash2 className="w-4 h-4 mr-1" />
                                   Delete
@@ -672,7 +631,7 @@ const Profile = () => {
                         setShowAddModal(true);
                       }}
                       className="w-full bg-orange-500 hover:bg-orange-600 font-semibold"
-                      disabled={loading}
+                      disabled={isLoading}
                     >
                       <MapPin className="w-4 h-4 mr-2" />
                       Add New Address
@@ -693,7 +652,7 @@ const Profile = () => {
                         setShowAddModal(true);
                       }}
                       className="w-full bg-orange-500 hover:bg-orange-600 font-semibold"
-                      disabled={loading}
+                      disabled={isLoading}
                     >
                       <MapPin className="w-4 h-4 mr-2" />
                       Add Your First Address
@@ -704,7 +663,7 @@ const Profile = () => {
             </TabsContent>
           </Tabs>
         </div>
-        </div>
+      </div>
 
       {showAddModal && (
         <DeliveryAddressPage
@@ -715,16 +674,14 @@ const Profile = () => {
             setEditingAddress(null);
           }}
           setShowAddModal={setShowAddModal}
-          handleAddAddress={handleAddAddress}
+          handleAddAddress={handleSaveAddress}
           editingAddress={editingAddress || undefined}
         />
       )}
-      
+
       <EditProfileModal
         open={editProfileModal}
         onClose={() => setEditProfileModal(false)}
-        user={user}
-        setUser={setUser}
       />
     </section>
   );

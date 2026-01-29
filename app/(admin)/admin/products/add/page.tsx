@@ -1,11 +1,12 @@
-
+"use client";
 import React from 'react'
-import ProductPage from '@/components/AdminProducts'
+import dynamic from 'next/dynamic'
+const ProductPage = dynamic(() => import('@/components/AdminProducts'), { ssr: false })
 
 const page = () => {
   return (
     <div>
-      <ProductPage  />
+      <ProductPage />
     </div>
   )
 }

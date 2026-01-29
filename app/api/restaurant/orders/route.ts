@@ -54,11 +54,13 @@ export async function GET(request: NextRequest) {
     const orders = await Order.find(filter)
       .populate('user', 'firstName lastName email phone')
       .populate('items.product', 'name price images restaurantId')
+      .populate('rider', 'firstName lastName phone')
       .sort({ createdAt: -1 })
       .lean();
 
     const mapped = orders.map((o: any) => {
       const customerName = `${o.user?.firstName || ''} ${o.user?.lastName || ''}`.trim() || 'Customer';
+      const riderName = o.rider ? `${o.rider.firstName || ''} ${o.rider.lastName || ''}`.trim() : null;
       const items = (o.items || []).map((it: any) => ({
         name: it?.product?.name || 'Item',
         quantity: it.quantity,
@@ -73,6 +75,10 @@ export async function GET(request: NextRequest) {
           email: o.user?.email || '',
           phone: o.user?.phone,
         },
+        rider: o.rider ? {
+          name: riderName,
+          phone: o.rider.phone,
+        } : null,
         items,
         total: o.total,
         status: o.status,

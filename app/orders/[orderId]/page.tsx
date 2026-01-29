@@ -3,46 +3,79 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import RaiseDisputeModal from "@/components/RaiseDisputeModal";
+import { useOrderDetailsQuery } from "@/hooks/useOrderDetailsQuery";
+import { useCustomToast } from "@/hooks/useCustomToast";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { BellRing, CheckCircle2, Truck, Star } from "lucide-react";
 
 export default function OrderDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const orderIdParam = useMemo(() => String(params?.orderId || ""), [params]);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState<any | null>(null);
+  const { user } = useUserStore();
+  const toast = useCustomToast();
+  const { data: order, isLoading: loading, error: queryError, updateOrder, refetch } = useOrderDetailsQuery(orderIdParam);
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [review, setReview] = useState<any>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [restaurantRating, setRestaurantRating] = useState(0);
+  const [restaurantComment, setRestaurantComment] = useState('');
+  const [driverRating, setDriverRating] = useState(0);
+  const [driverComment, setDriverComment] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
-  const load = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      if (!orderIdParam) {
-        setError("Invalid order id");
-        return;
-      }
-      const res = await fetch(`/api/orders/${orderIdParam}`, { method: "GET" });
-      const json = await res.json();
-      if (!res.ok || !json?.success) {
-        throw new Error(json?.error || "Failed to fetch order");
-      }
-      setOrder(json.data);
-      setNotesDraft(json.data?.notes || '');
-    } catch (e: any) {
-      setError(e?.message || "Failed to fetch order");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const error = queryError instanceof Error ? queryError.message : null;
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderIdParam]);
+    let socket: any;
+
+    const initSocket = async () => {
+      if (!user?._id) return;
+
+      // Ensure socket server is up
+      await fetch('/api/socket', { method: 'POST' });
+
+      const { io } = await import('socket.io-client');
+      socket = io({
+        path: '/api/socket',
+        addTrailingSlash: false,
+      });
+
+      socket.on('connect', () => {
+        console.log('Customer connected to socket:', socket.id);
+        socket.emit('join', user._id);
+      });
+
+      socket.on('orderStatusUpdate', (data: any) => {
+        if (data.orderId === orderIdParam || data.orderNumber === orderIdParam) {
+          toast.info(
+            'Order Update!',
+            data.message
+          );
+          // Play sound
+          try { new Audio('/sounds/notification.mp3').play(); } catch (e) { }
+          // Refresh order data
+          refetch();
+        }
+      });
+    };
+
+    initSocket();
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
+  }, [user?._id, orderIdParam]);
+
+  useEffect(() => {
+    if (order?.notes) {
+      setNotesDraft(order.notes);
+    }
+  }, [order?.notes]);
 
   if (loading) {
     return (
@@ -75,17 +108,10 @@ export default function OrderDetailsPage() {
   const humanId = order?.orderId || (order?._id ? String(order._id).slice(-6) : "");
 
   const saveNotes = async () => {
+    if (!order?._id) return;
     try {
-      if (!order?._id) return;
       setSavingNotes(true);
-      const res = await fetch(`/api/orders/${order._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: notesDraft }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json?.success) throw new Error(json?.error || 'Failed to save notes');
-      await load();
+      await updateOrder({ id: order._id, data: { notes: notesDraft } });
     } catch (e: any) {
       alert(e?.message || 'Failed to save notes');
     } finally {
@@ -94,23 +120,69 @@ export default function OrderDetailsPage() {
   };
 
   const updateStatus = async (nextStatus: string) => {
+    if (!order?._id) return;
     try {
-      if (!order?._id) return;
       setUpdatingStatus(true);
-      const res = await fetch(`/api/orders/${order._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json?.success) throw new Error(json?.error || 'Failed to update status');
-      await load();
+      await updateOrder({ id: order._id, data: { status: nextStatus } });
     } catch (e: any) {
       alert(e?.message || 'Failed to update status');
     } finally {
       setUpdatingStatus(false);
     }
   };
+
+  const fetchReview = async () => {
+    if (!orderIdParam) return;
+    try {
+      const res = await fetch(`/api/orders/${orderIdParam}/review`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setReview(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching review:', error);
+    }
+  };
+
+  const submitReview = async () => {
+    if (!user?._id || !orderIdParam) return;
+    if (restaurantRating === 0) {
+      toast.error('Rating Required', 'Please provide a rating for the restaurant');
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      const res = await fetch(`/api/orders/${orderIdParam}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user._id,
+          restaurantRating,
+          restaurantComment,
+          driverRating,
+          driverComment
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Review Submitted', 'Thank you for your feedback!');
+        setReview(data.data);
+        setShowReviewForm(false);
+      } else {
+        toast.error('Submission Failed', data.message);
+      }
+    } catch (error: any) {
+      toast.error('Error', error.statusText || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReview();
+  }, [orderIdParam]);
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">
@@ -154,14 +226,14 @@ export default function OrderDetailsPage() {
         <div className="rounded-md border p-3">
           <div className="text-sm font-medium mb-2">Update Status</div>
           <div className="flex flex-wrap gap-2">
-            {['pending','processing','out_for_delivery','completed','cancelled'].map((s) => (
+            {['pending', 'processing', 'out_for_delivery', 'completed', 'cancelled'].map((s) => (
               <button
                 key={s}
                 disabled={updatingStatus}
                 onClick={() => updateStatus(s)}
                 className={`px-3 py-1.5 rounded-md border text-sm ${String(order.status || '').toLowerCase() === s ? 'bg-gray-900 text-white' : 'bg-white'}`}
               >
-                {s.replace(/_/g,' ')}
+                {s.replace(/_/g, ' ')}
               </button>
             ))}
           </div>
@@ -311,6 +383,93 @@ export default function OrderDetailsPage() {
             {order.refundStatus && (
               <div className="text-sm">Refund: {order.refundStatus}{order.refundAmount ? ` (₹${Number(order.refundAmount).toFixed(2)})` : ''}</div>
             )}
+
+            {/* Review Section */}
+            {order.status === 'delivered' && (
+              <div className="mt-6 pt-6 border-t">
+                <h3 className="text-lg font-semibold mb-4">Order Feedback</h3>
+
+                {review ? (
+                  <div className="space-y-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">Restaurant Rating</span>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={`w-4 h-4 ${s <= review.restaurantRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {review.restaurantComment && <p className="text-sm italic">"{review.restaurantComment}"</p>}
+
+                    {review.driverRating && (
+                      <>
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                          <span className="font-medium text-sm">Driver Rating</span>
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star key={s} className={`w-4 h-4 ${s <= review.driverRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                            ))}
+                          </div>
+                        </div>
+                        {review.driverComment && <p className="text-sm italic">"{review.driverComment}"</p>}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-lg border border-orange-100 dark:border-orange-800/30">
+                    <p className="text-sm text-orange-800 dark:text-orange-300 mb-4">How was your experience? Your feedback helps us improve!</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Rate Food & Restaurant</label>
+                        <div className="flex gap-1 mb-2">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <button key={s} onClick={() => setRestaurantRating(s)} className="p-1">
+                              <Star className={`w-6 h-6 ${s <= restaurantRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 hover:text-yellow-200'}`} />
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="What did you like or dislike? (Optional)"
+                          className="w-full text-sm p-2 border rounded-md"
+                          value={restaurantComment}
+                          onChange={(e) => setRestaurantComment(e.target.value)}
+                        />
+                      </div>
+
+                      {order.rider && (
+                        <div>
+                          <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Rate Delivery Partner</label>
+                          <div className="flex gap-1 mb-2">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <button key={s} onClick={() => setDriverRating(s)} className="p-1">
+                                <Star className={`w-6 h-6 ${s <= driverRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 hover:text-yellow-200'}`} />
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Any comments for the driver? (Optional)"
+                            className="w-full text-sm p-2 border rounded-md"
+                            value={driverComment}
+                            onChange={(e) => setDriverComment(e.target.value)}
+                          />
+                        </div>
+                      )}
+
+                      <button
+                        onClick={submitReview}
+                        disabled={submittingReview}
+                        className="w-full bg-orange-500 text-white font-bold py-2 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                      >
+                        {submittingReview ? 'Submitting...' : 'Submit Feedback'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="mt-2">
               <div className="text-sm font-medium mb-1">Internal Notes</div>
               <textarea
@@ -364,7 +523,6 @@ export default function OrderDetailsPage() {
         order={order}
         onCreated={() => {
           setDisputeOpen(false);
-          load();
         }}
       />
     </div>

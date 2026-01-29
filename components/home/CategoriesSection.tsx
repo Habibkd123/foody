@@ -2,6 +2,7 @@
 
 import React from "react"
 import { Product } from "@/types/global"
+import Image from "next/image"
 
 type Category = {
   _id?: string
@@ -66,39 +67,38 @@ export default function CategoriesSection({
             {loading
               ? [...Array(8)].map((_, i) => <SkeletonCard key={i} />)
               : categories.map((cat) => {
-                  const catId = (cat._id || cat.id) as string
+                const catId = (cat._id || cat.id) as string
 
-                  return (
-                    <div
-                      key={catId}
-                      onClick={() => setSelectedCategory(catId)}
-                      className={`
+                return (
+                  <div
+                    key={catId}
+                    onClick={() => setSelectedCategory(catId)}
+                    className={`
                         snap-start min-w-[110px] max-w-[130px] cursor-pointer 
                         p-4 rounded-xl text-center transition-all duration-300
-                        ${
-                          isSelected(catId)
-                            ? "bg-primary text-white scale-[1.02]"
-                            : "bg-card dark:bg-gray-900 shadow-sm"
-                        }
+                        ${isSelected(catId)
+                        ? "bg-primary text-white scale-[1.02]"
+                        : "bg-card dark:bg-gray-900 shadow-sm"
+                      }
                       `}
-                    >
-                      <div className="w-14 h-14 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                        {cat.image ? (
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => (e.currentTarget.style.display = "none")}
-                          />
-                        ) : (
-                          <span className="text-3xl">{cat.icon || getCategoryIcon(cat.name)}</span>
-                        )}
-                      </div>
-
-                      <p className="font-semibold mt-2 text-sm">{cat.name}</p>
+                  >
+                    <div className="relative w-14 h-14 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                      {cat.image ? (
+                        <Image
+                          src={cat.image}
+                          alt={cat.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-3xl">{cat.icon || getCategoryIcon(cat.name)}</span>
+                      )}
                     </div>
-                  )
-                })}
+
+                    <p className="font-semibold mt-2 text-sm">{cat.name}</p>
+                  </div>
+                )
+              })}
           </div>
         </div>
 
@@ -107,38 +107,37 @@ export default function CategoriesSection({
           {loading
             ? [...Array(12)].map((_, i) => <SkeletonCard key={i} />)
             : categories.map((cat) => {
-                const catId = (cat._id || cat.id) as string
+              const catId = (cat._id || cat.id) as string
 
-                return (
-                  <div
-                    key={catId}
-                    onClick={() => setSelectedCategory(catId)}
-                    className={`
+              return (
+                <div
+                  key={catId}
+                  onClick={() => setSelectedCategory(catId)}
+                  className={`
                       cursor-pointer rounded-xl p-5 text-center transition-all duration-300
-                      ${
-                        isSelected(catId)
-                          ? "bg-primary text-white scale-[1.03]"
-                          : "bg-card dark:bg-gray-900 shadow hover:shadow-md hover:scale-[1.04]"
-                      }
+                      ${isSelected(catId)
+                      ? "bg-primary text-white scale-[1.03]"
+                      : "bg-card dark:bg-gray-900 shadow hover:shadow-md hover:scale-[1.04]"
+                    }
                     `}
-                  >
-                    <div className="w-16 h-16 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                      {cat.image ? (
-                        <img
-                          src={cat.image}
-                          alt={cat.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => (e.currentTarget.style.display = "none")}
-                        />
-                      ) : (
-                        <span className="text-4xl">{cat.icon || getCategoryIcon(cat.name)}</span>
-                      )}
-                    </div>
-
-                    <h3 className="font-semibold mt-3">{cat.name}</h3>
+                >
+                  <div className="relative w-16 h-16 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                    {cat.image ? (
+                      <Image
+                        src={cat.image}
+                        alt={cat.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-4xl">{cat.icon || getCategoryIcon(cat.name)}</span>
+                    )}
                   </div>
-                )
-              })}
+
+                  <h3 className="font-semibold mt-3">{cat.name}</h3>
+                </div>
+              )
+            })}
         </div>
       </div>
     </section>

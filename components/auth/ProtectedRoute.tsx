@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useUserStore } from '@/lib/store/useUserStore';
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
@@ -10,7 +10,8 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ children, adminOnly = false }: ProtectedRouteProps) {
-  const { isAuthenticated, isAdmin, loading, refreshAuth } = useAuth();
+  const { user, isAuthenticated, isLoading: loading, checkAuth: refreshAuth } = useUserStore();
+  const isAdmin = user?.role === 'admin';
   const router = useRouter();
   const pathname = usePathname();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -21,7 +22,7 @@ export default function ProtectedRoute({ children, adminOnly = false }: Protecte
         try {
           // Double check auth state with the server
           await refreshAuth();
-          
+
           if (!isAuthenticated) {
             router.push(`/login?from=${encodeURIComponent(pathname)}`);
           } else if (adminOnly && !isAdmin) {

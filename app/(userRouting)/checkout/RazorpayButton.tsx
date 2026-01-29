@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useAuthStorage } from "@/hooks/useAuth";
-import { useOrder } from "@/context/OrderContext";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useCartStore } from "@/lib/store/useCartStore";
 
 declare global {
   interface Window {
@@ -14,8 +14,16 @@ interface RazorpayButtonProps {
 }
 
 export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
-  const { user } = useAuthStorage();
-  const { state } = useOrder();
+  const { user } = useUserStore();
+  const {
+    items,
+    tip,
+    deliveryCharge,
+    handlingCharge,
+    couponCode,
+    notes,
+    address,
+  } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [scriptReady, setScriptReady] = useState(false);
 
@@ -59,7 +67,7 @@ export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
         prefill: {
           name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Customer',
           email: user?.email || '',
-          contact: user?.phone || ''
+          contact: (user as any)?.phoneNumber || (user as any)?.phone || ''
         },
         handler: async function (response: any) {
           console.log("newdatafor razarpay", response)
@@ -72,7 +80,7 @@ export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               user: user?._id,
-              items: state.items.map((i: any) => ({
+              items: items.map((i: any) => ({
                 product: i?.productId || String(i?.id).split(':')[0],
                 quantity: i.quantity,
                 price: i.price,
@@ -80,15 +88,15 @@ export default function RazorpayButton({ totalAmount }: RazorpayButtonProps) {
                 addons: i.addons,
               })),
               total: totalAmount,
-              tip: state?.tip || 0,
-              deliveryCharge: state?.deliveryCharge || 0,
-              handlingCharge: state?.handlingCharge || 0,
-              donation: state?.donation || 0,
-              couponCode: state?.couponCode || '',
+              tip: tip || 0,
+              deliveryCharge: deliveryCharge || 0,
+              handlingCharge: handlingCharge || 0,
+              donation: 0,
+              couponCode: couponCode || '',
               method: 'razorpay',
-              notes: state?.notes || '',
-              address: state?.address?.area,
-              deliveryLocation: { lat: (state as any)?.address?.lat, lng: (state as any)?.address?.lng },
+              notes: notes || '',
+              address: address?.area,
+              deliveryLocation: { lat: (address as any)?.lat, lng: (address as any)?.lng },
               orderId: order.id,
             })
           });

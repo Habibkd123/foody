@@ -1,6 +1,7 @@
 // Image Gallery Component
 "use client";
 import React, { useState } from 'react';
+import Image from 'next/image';
 import {
   Heart,
   ShoppingCart,
@@ -17,12 +18,11 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useWishListContext } from '@/context/WishListsContext';
-import { useCart } from '@/context/CartContext';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useOrder } from '@/context/OrderContext';
-import { useProductsContext } from '@/context/AllProductContext';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useWishlistQuery } from '@/hooks/useWishlistQuery';
+import { useCartStore } from '@/lib/store/useCartStore';
+import { useProductsQuery } from '@/hooks/useProductsQuery';
 import { Product } from '@/types/global';
 
 interface Review {
@@ -35,9 +35,7 @@ interface Review {
   helpful: number;
 }
 
-interface CartItem extends Product {
-  quantity: number;
-}
+import type { CartLine } from '@/types/global';
 
 const ImageGallery: React.FC<{ images: string[]; productName: string }> = ({ images, productName }) => {
   const [currentImage, setCurrentImage] = useState<number>(0);
@@ -54,10 +52,11 @@ const ImageGallery: React.FC<{ images: string[]; productName: string }> = ({ ima
     <div className="space-y-4">
       {/* Main Image */}
       <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden group">
-        <img
+        <Image
           src={images[currentImage]}
           alt={productName}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {images.length > 1 && (
           <>
@@ -93,15 +92,16 @@ const ImageGallery: React.FC<{ images: string[]; productName: string }> = ({ ima
             <button
               key={index}
               onClick={() => setCurrentImage(index)}
-              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImage
+              className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImage
                 ? 'border-orange-500 shadow-lg'
                 : 'border-gray-200 hover:border-gray-300'
                 }`}
             >
-              <img
+              <Image
                 src={image}
                 alt={`${productName} ${index + 1}`}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </button>
           ))}
@@ -191,11 +191,11 @@ const ReviewsSection: React.FC<{ reviews: Review[]; rating: number; totalReviews
 
 // Main Product Details Component
 const ProductDetailsPage: React.FC = () => {
-  const { wishListsData, setWistListsData } = useWishListContext();
-  const { productsData, setProductsData } = useProductsContext();
+  const { user } = useUserStore();
+  const { data: wishListsData = [], addToWishlist, removeFromWishlist } = useWishlistQuery(user?._id);
+  const { data: productsData = [] } = useProductsQuery();
   const { product_id }: any = useParams();
-  const { addToCart } = useCart();
-  const { state, dispatch } = useOrder();
+  const { addItem } = useCartStore();
   const router = useRouter();
 
   const handleGo = () => {
@@ -204,7 +204,7 @@ const ProductDetailsPage: React.FC = () => {
 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedTab, setSelectedTab] = useState<'description' | 'specifications' | 'reviews'>('description');
-  
+
   // Find the product by ID
   const product = productsData.find((item: Product) => item.id == product_id);
 
@@ -232,16 +232,27 @@ const ProductDetailsPage: React.FC = () => {
     setQuantity((prev) => Math.max(1, Math.min(prev + change, maxQty)));
   };
 
-  const toggleWishlist = (): void => {
+  const toggleWishlist = async (): Promise<void> => {
+    if (!user?._id) {
+      router.push('/login');
+      return;
+    }
     if (isInWishlist) {
-      setWistListsData(prev => prev.filter(item => item.id !== product.id));
+      await removeFromWishlist({ userId: user._id, productId: product._id || String(product.id) });
     } else {
-      setWistListsData(prev => [...prev, product]);
+      await addToWishlist({ userId: user._id, productId: product._id || String(product.id) });
     }
   };
 
   const handleAddToCart = (): void => {
-    addToCart(product, quantity);
+    addItem({
+      ...product,
+      id: `${product._id || product.id}:base`,
+      productId: product._id || String(product.id),
+      quantity,
+      image: product.images[0],
+      configKey: 'base'
+    });
   };
 
   return (

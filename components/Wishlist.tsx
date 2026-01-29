@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import Image from 'next/image';
 
 type WishlistItem = {
   id: number;
@@ -29,11 +30,14 @@ const Wishlist: React.FC<WishlistProps> = ({ items, onRemove }) => {
               key={item.id}
               className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-48 object-cover"
-              />
+              <div className="relative h-48 w-full">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold">{item.title}</h3>
                 <p className="text-sm text-gray-500 mb-2">₹{item.price}</p>

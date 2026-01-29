@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAuthStorage } from "@/hooks/useAuth";
+import { useUserStore } from "@/lib/store/useUserStore";
 import { useCustomToast } from "@/hooks/useCustomToast";
 
 function playBeep() {
@@ -30,7 +30,7 @@ function playBeep() {
 }
 
 export default function RestaurantNotifications() {
-  const { user } = useAuthStorage();
+  const { user } = useUserStore();
   const toast = useCustomToast();
 
   const [soundEnabled, setSoundEnabled] = useState(true);

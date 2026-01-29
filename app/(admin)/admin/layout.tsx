@@ -4,7 +4,7 @@ import { useSidebar } from '@/context/SidebarContext';
 import Header from "@/components/header/Header"
 import Sidebar from "@/components/Sidebar"
 import { usePathname } from 'next/navigation';
-import { useAuthStorage } from '@/hooks/useAuth';
+import { useUserStore } from '@/lib/store/useUserStore';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const { isExpanded, isMobile } = useSidebar()
   const [showHeader, setShowHeader] = useState(true);
-  const { user } = useAuthStorage()
+  const { user } = useUserStore()
   useLayoutEffect(() => {
     if (!user) {
       router.push('/login')

@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { MapPin, X } from 'lucide-react';
 
 import { GoogleMap, Marker, useLoadScript, Autocomplete } from "@react-google-maps/api";
-import { useOrder } from '@/context/OrderContext';
+import { useCartStore } from '@/lib/store/useCartStore';
 import { Address } from '@/types/global';
 const libraries: any = ["places"];
 
@@ -30,9 +30,9 @@ const LocationSelector: React.FC = () => {
   const [closestShop, setClosestShop] = useState<{ name: string, distance: number } | null>(null);
   const [currentLocationAddress, setCurrentLocationAddress] = useState<string>('');
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
-const [geoError, setGeoError] = useState<string | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
-  const { dispatch, state } = useOrder();
+  const { setAddress, setDistance, address: storeAddress, distance: storeDistance } = useCartStore();
   const autocompleteRef = useRef<any>(null);
 
   const { isLoaded } = useLoadScript({
@@ -49,32 +49,28 @@ const [geoError, setGeoError] = useState<string | null>(null);
         const formatted = results[0].formatted_address;
         setCurrentLocationAddress(formatted);
 
-        // @ts-ignore
-        dispatch({
-          type: "SET_ADDRESS",
-          address: {
-            userId: '',
-            label: formatted,
-            flatNumber: results[0].address_components.find(comp => comp.types.includes('street_number'))?.long_name || '',
-            floor: results[0].address_components.find(comp => comp.types.includes('subpremise'))?.long_name || '',
-            landmark: results[0].address_components.find(comp => comp.types.includes('route'))?.long_name || '',
-            name: '',
-            phone: 0,
-            street: formatted,
-            lat,
-            lng,
-            area: results[0].address_components.find(comp =>
-              comp.types.includes('sublocality_level_1') ||
-              comp.types.includes('locality')
-            )?.long_name || '',
-            city: results[0].address_components.find(comp => comp.types.includes('locality'))?.long_name || '',
-            state: results[0].address_components.find(comp => comp.types.includes('administrative_area_level_1'))?.long_name || '',
-            zipCode: results[0].address_components.find(comp => comp.types.includes('postal_code'))?.long_name || '',
-          } as Address
-        });
+        setAddress({
+          userId: '',
+          label: formatted,
+          flatNumber: results[0].address_components.find(comp => comp.types.includes('street_number'))?.long_name || '',
+          floor: results[0].address_components.find(comp => comp.types.includes('subpremise'))?.long_name || '',
+          landmark: results[0].address_components.find(comp => comp.types.includes('route'))?.long_name || '',
+          name: '',
+          phone: 0,
+          street: formatted,
+          lat,
+          lng,
+          area: results[0].address_components.find(comp =>
+            comp.types.includes('sublocality_level_1') ||
+            comp.types.includes('locality')
+          )?.long_name || '',
+          city: results[0].address_components.find(comp => comp.types.includes('locality'))?.long_name || '',
+          state: results[0].address_components.find(comp => comp.types.includes('administrative_area_level_1'))?.long_name || '',
+          zipCode: results[0].address_components.find(comp => comp.types.includes('postal_code'))?.long_name || '',
+        } as Address);
       }
     });
-  }, [dispatch]);
+  }, [setAddress]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
@@ -99,30 +95,26 @@ const [geoError, setGeoError] = useState<string | null>(null);
         setMarker({ lat, lng });
         setLocationInput(place.formatted_address || '');
 
-        // @ts-ignore
-        dispatch({
-          type: "SET_ADDRESS",
-          address: {
-            userId: '',
-            street: place.formatted_address || '',
-            flatNumber:  place.address_components.find((comp: any) => comp.types.includes('street_number'))?.long_name || '',
-            floor: place.address_components.find((comp: any) => comp.types.includes('subpremise'))?.long_name || '',
-            landmark: place.address_components.find((comp: any) => comp.types.includes('route'))?.long_name || '',
-            name: '',
-            phone: 0,
-            label: place.formatted_address || '',
-            lat,
-            lng,
-            area: place.name || '',
-            city: '',
-            state: '',
-            zipCode: '',
-          } as Address,
-        });
+        setAddress({
+          userId: '',
+          street: place.formatted_address || '',
+          flatNumber: place.address_components.find((comp: any) => comp.types.includes('street_number'))?.long_name || '',
+          floor: place.address_components.find((comp: any) => comp.types.includes('subpremise'))?.long_name || '',
+          landmark: place.address_components.find((comp: any) => comp.types.includes('route'))?.long_name || '',
+          name: '',
+          phone: 0,
+          label: place.formatted_address || '',
+          lat,
+          lng,
+          area: place.name || '',
+          city: '',
+          state: '',
+          zipCode: '',
+        } as Address);
 
         // Calculate distance from default center
         const distance = calculateDistance(lat, lng, defaultCenter.lat, defaultCenter.lng);
-        dispatch({ type: "SET_DISTANCE", distance });
+        setDistance(distance);
 
         setIsOpen(false);
       }
@@ -147,7 +139,7 @@ const [geoError, setGeoError] = useState<string | null>(null);
         getAddressFromLatLng(userLat, userLng);
 
         const distance = calculateDistance(userLat, userLng, defaultCenter.lat, defaultCenter.lng);
-        dispatch({ type: "SET_DISTANCE", distance });
+        setDistance(distance);
 
         setIsLoadingLocation(false);
       },
@@ -157,7 +149,7 @@ const [geoError, setGeoError] = useState<string | null>(null);
 
         // @ts-ignore
         let errorMessage = "Unable to retrieve your location";
-        
+
         if (error.code === error.PERMISSION_DENIED) {
           errorMessage = "Location access was denied. Using default location.";
         } else if (error.code === error.POSITION_UNAVAILABLE) {
@@ -165,10 +157,10 @@ const [geoError, setGeoError] = useState<string | null>(null);
         } else if (error.code === error.TIMEOUT) {
           errorMessage = "The request to get your location timed out. Using default location.";
         }
-        
+
         // Show error message to user (you can use a toast notification here)
         console.warn(errorMessage);
-        
+
         // Fallback to default center
         setMarker(defaultCenter);
         getAddressFromLatLng(defaultCenter.lat, defaultCenter.lng);
@@ -179,7 +171,7 @@ const [geoError, setGeoError] = useState<string | null>(null);
         maximumAge: 300000 // 5 minutes
       }
     );
-  }, [getAddressFromLatLng, dispatch]);
+  }, [getAddressFromLatLng, setDistance]);
 
   const useCurrentLocation = () => {
     getUserLocation();
@@ -188,12 +180,12 @@ const [geoError, setGeoError] = useState<string | null>(null);
 
   useEffect(() => {
     // Only get user location if no address is already set
-    if (!state.address && isLoaded) {
+    if (!storeAddress && isLoaded) {
       getUserLocation();
     }
-  }, [isLoaded, state.address, getUserLocation]);
+  }, [isLoaded, storeAddress, getUserLocation]);
 
-  const displayAddress = state.address?.street || currentLocationAddress || 'Select Location';
+  const displayAddress = storeAddress?.street || currentLocationAddress || 'Select Location';
   const truncatedAddress = displayAddress.length > 30
     ? displayAddress.substring(0, 30) + '...'
     : displayAddress;
@@ -267,9 +259,9 @@ const [geoError, setGeoError] = useState<string | null>(null);
             )}
 
             {/* Distance Display */}
-            {state.distance && (
+            {storeDistance && (
               <div className="text-xs text-green-600">
-                Distance from store: {state.distance.toFixed(2)} km
+                Distance from store: {storeDistance.toFixed(2)} km
               </div>
             )}
           </div>

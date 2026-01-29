@@ -8,19 +8,18 @@ import SidebarFilters from "@/components/SidebarFilters";
 
 import { Search, Heart, ShoppingCart, Menu, X, Filter, Star, ChevronUp, Bell, Settings, User, LogOut } from 'lucide-react';
 // eslint-disable-next-line import/no-unresolved
-import { useFilterContext } from "@/context/FilterContext";
-import { useWishListContext } from "@/context/WishListsContext";
-import AnnouncementBar from "@/components/AnnouncementBar";
-import LocationSelector from "@/components/LocationSelector";
+import { useFilterStore } from "@/lib/store/useFilterStore";
 import Link from "next/link";
 import AddCardList from "@/components/AddCards";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useCartOrder, useOrder } from "@/context/OrderContext";
-import { ProductsContext, useProductsContext } from "@/context/AllProductContext";
+import { useProductsQuery } from "@/hooks/useProductsQuery";
 import { Product } from "@/types/global";
-// import { productData } from "@/lib/Data";
-import { useAuthStorage } from '@/hooks/useAuth';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useWishlistQuery } from "@/hooks/useWishlistQuery";
+import { useCartStore } from "@/lib/store/useCartStore";
+import AnnouncementBar from "@/components/AnnouncementBar";
+import LocationSelector from "@/components/LocationSelector";
 import NotificationCenter from '@/components/NotificationCenter';
 import NotificationBanner from '@/components/NotificationBanner';
 import AppHeader from "@/components/ui/AppHeader";
@@ -37,15 +36,20 @@ const ProductGrid: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { filters, updateFilter } = useFilterContext();
-  const { wishListsData, setWistListsData, getUserWishList } = useWishListContext();
-  const { productsData } = useProductsContext();
+  const { filters, updateFilter } = useFilterStore();
+  const { data: productsData = [], isLoading: isProductsLoading } = useProductsQuery();
+  const { user, logout: storeLogout } = useUserStore();
+  const { data: wishListsData = [], addToWishlist, removeFromWishlist } = useWishlistQuery(user?._id);
+
+  const {
+    addItem: storeAddItem,
+    removeItem: storeRemoveItem,
+    updateQuantity: storeUpdateQty,
+    items: cartLines
+  } = useCartStore();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const { dispatch, state } = useOrder();
-  const { addToCart, removeFromCart, updateQuantity } = useCartOrder();
-  const { user, logout } = useAuthStorage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +61,7 @@ const ProductGrid: React.FC = () => {
   const [categoriesById, setCategoriesById] = useState<Record<string, string>>({});
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [selectedProductForOptions, setSelectedProductForOptions] = useState<any>(null);
+
 
   // Helper: select a category by id and sync URL
   const handleSelectCategory = useCallback((catId: string) => {
@@ -73,7 +78,7 @@ const ProductGrid: React.FC = () => {
       const newUrl = `${typeof window !== 'undefined' ? window.location.pathname : '/productlist'}${qs.toString() ? `?${qs.toString()}` : ''}`;
       // next/navigation router.replace accepts relative href
       router.replace(newUrl as any);
-    } catch {}
+    } catch { }
     // Small UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [router, updateFilter]);
@@ -123,11 +128,6 @@ const ProductGrid: React.FC = () => {
     [filters.category, categoryLabelMap]
   );
 
-  useEffect(() => {
-    if (user?._id) {
-      getUserWishList(user?._id);
-    }
-  }, [user?._id]);
 
   // Preselect category from query (?category=...) once (on initial 'all') - supports id, slug, or name
   useEffect(() => {
@@ -235,17 +235,16 @@ const ProductGrid: React.FC = () => {
     return true;
   });
 
-  const toggleWishlist = (item: any) => {
-    const exists = wishListsData.find((fav: any) => fav.id === item.id);
-    if (exists) {
-      setWistListsData(wishListsData.filter((fav: any) => fav.id !== item.id));
-    } else {
-      setWistListsData([...wishListsData, item]);
-      const wishlistIcon = document.querySelector(`[data-wishlist-${item.id}]`);
-      if (wishlistIcon) {
-        wishlistIcon.classList.add('animate-pulse');
-        setTimeout(() => wishlistIcon.classList.remove('animate-pulse'), 600);
+  const toggleWishlist = async (item: any) => {
+    const isWishlistedAlready = wishListsData.some((fav: any) => fav._id === item._id);
+    try {
+      if (isWishlistedAlready) {
+        await removeFromWishlist({ userId: user?._id || '', productId: item._id });
+      } else {
+        await addToWishlist({ userId: user?._id || '', productId: item._id });
       }
+    } catch (err) {
+      console.error("Error toggling wishlist:", err);
     }
   };
 
@@ -273,53 +272,32 @@ const ProductGrid: React.FC = () => {
       quantity: 1,
       image: item.images[0],
     };
-    let response = await addToCart(user?._id, cartItem);
-
-    // @ts-ignore
-    if (response.success) {
-      alert('Product added to cart successfully');
-    } else {
-      alert(response);
-    }
-  }, [addToCart, user?._id]);
+    storeAddItem(cartItem);
+    alert('Product added to cart successfully');
+  }, [storeAddItem, user?._id]);
 
   const removeFromCart1 = useCallback((itemId: any) => {
-    try {
-      let response = removeFromCart(user?._id, itemId);
-      // @ts-ignore
-      if (response.success) {
-        alert('Product removed from cart successfully');
-      } else {
-        // @ts-ignore
-        alert(response.message);
-      }
-    } catch (error) {
-      alert(error as any)
-    }
-  }, [removeFromCart, user?._id]);
+    storeRemoveItem(itemId);
+    alert('Product removed from cart successfully');
+  }, [storeRemoveItem]);
 
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const currentItem = state.items.find((item: any) => String(item.id) === String(itemId));
+    const currentItem = cartLines.find((item: any) => String(item.id) === String(itemId));
     if (currentItem) {
       const newQuantity = Math.max(0, currentItem.quantity + change);
-      if (newQuantity === 0) {
-        updateQuantity(user?._id, itemId as any, newQuantity);
-      } else {
-        dispatch({ type: 'UPDATE_QUANTITY', id: itemId as any, qty: newQuantity });
-        updateQuantity(user?._id, itemId as any, newQuantity);
-      }
+      storeUpdateQty(itemId, newQuantity);
     }
-  }, [dispatch, state.items, updateQuantity, user?._id]);
+  }, [cartLines, storeUpdateQty]);
 
   const isInCart = useCallback((product: Product) => {
-    return state.items.some((item: any) => (item.productId || String(item.id).split(':')[0]) === product._id);
-  }, [state.items]);
+    return cartLines.some((item: any) => (item.productId || String(item.id).split(':')[0]) === product._id);
+  }, [cartLines]);
 
   const getCartQuantity = useCallback((product: Product) => {
-    return state.items
+    return cartLines
       .filter((item: any) => (item.productId || String(item.id).split(':')[0]) === product._id)
       .reduce((sum: number, it: any) => sum + Number(it.quantity || 0), 0);
-  }, [state.items]);
+  }, [cartLines]);
 
   const getTotalPrice = () => {
     return cartItems.reduce((total: any, item: any) => total + item.price * item.quantity, 0);
@@ -340,8 +318,7 @@ const ProductGrid: React.FC = () => {
 
   const handleLogout = () => {
     try {
-      logout();
-      router.push('/login');
+      storeLogout();
     } catch (error) {
       window.location.href = '/login';
     }
@@ -371,7 +348,7 @@ const ProductGrid: React.FC = () => {
             quantity,
             image: item.images?.[0],
           };
-          await addToCart(user?._id, cartItem);
+          storeAddItem(cartItem);
           setOptionsOpen(false);
           setSelectedProductForOptions(null);
         }}
@@ -395,7 +372,8 @@ const ProductGrid: React.FC = () => {
             { key: 'location', icon: <div className="hidden md:block"><LocationSelector /></div> },
             { key: 'notify', icon: <NotificationCenter location="products" /> }] : []),
           { key: 'wishlist', href: '/wishlist', icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />, badgeCount: wishListsData ? wishListsData.length : 0 },
-          { key: 'cart', icon: (
+          {
+            key: 'cart', icon: (
               <div className={`transition-transform duration-300 ${cartAnimation ? 'scale-110' : 'scale-100'}`}>
                 <AddCardList
                   cartItems={cartItems}
@@ -414,7 +392,8 @@ const ProductGrid: React.FC = () => {
                   setCartOpen={setCartOpen}
                 />
               </div>
-            )},
+            )
+          },
           ...(user?._id ? [{
             key: 'profile',
             icon: (
@@ -542,7 +521,7 @@ const ProductGrid: React.FC = () => {
           <div className="flex-1">
             <div className="mb-4 lg:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-2">
-              
+
                 {filteredProducts.length === 0 && (
                   <p className="text-gray-500 animate-pulse">No products found. Try adjusting your filters.</p>
                 )}
@@ -604,7 +583,7 @@ const ProductGrid: React.FC = () => {
                 </div>
               )}
               <ProductCardGrid
-                isLoading={isLoading}
+                isLoading={isProductsLoading}
                 isInCart={isInCart}
                 getCartQuantity={getCartQuantity}
                 productLists={filteredProducts}

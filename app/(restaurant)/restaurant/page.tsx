@@ -1,10 +1,13 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
-import { DollarSign, Clock, CheckCircle, Utensils, Power } from 'lucide-react';
-import { useAuthStorage } from '@/hooks/useAuth';
+import { DollarSign, Clock, CheckCircle, Utensils, Power, Truck } from 'lucide-react';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useCustomToast } from '@/hooks/useCustomToast';
 
 const RestaurantDashboard = () => {
-    const { user } = useAuthStorage();
+    const { user } = useUserStore();
+    const toast = useCustomToast();
+
     const [isRestaurantOpen, setIsRestaurantOpen] = useState(true);
     const [effectiveStatus, setEffectiveStatus] = useState<{ isOpen: boolean; reason?: string; timingAutomationEnabled?: boolean; timingAutomationMode?: string } | null>(null);
     const [toggleLoading, setToggleLoading] = useState(false);
@@ -14,6 +17,7 @@ const RestaurantDashboard = () => {
     const [orders, setOrders] = useState<any[]>([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [ordersError, setOrdersError] = useState<string | null>(null);
+    const [onlineDriversCount, setOnlineDriversCount] = useState(0);
 
     const isApproved = !!user?.restaurant?.status && user.restaurant.status === 'approved';
 
@@ -46,6 +50,23 @@ const RestaurantDashboard = () => {
             setIsRestaurantOpen(user.restaurant.isOpen);
         }
     }, [user?.restaurant?.isOpen]);
+
+    useEffect(() => {
+        const fetchDrivers = async () => {
+            try {
+                const res = await fetch('/api/restaurant/drivers/available');
+                const data = await res.json();
+                if (data.success) {
+                    setOnlineDriversCount(data.data.length);
+                }
+            } catch (err) {
+                console.error("Error fetching drivers:", err);
+            }
+        };
+        fetchDrivers();
+        const t = setInterval(fetchDrivers, 60000);
+        return () => clearInterval(t);
+    }, []);
 
     useEffect(() => {
         let ignore = false;
@@ -157,12 +178,22 @@ const RestaurantDashboard = () => {
 
             socket.on('connect', () => {
                 console.log('Connected to socket', socket.id);
+                if (user?._id) socket.emit('join', user._id);
             });
 
             socket.on('newOrder', (newOrder: any) => {
                 console.log('New order received:', newOrder);
                 setOrders((prev) => [newOrder, ...prev]);
-                // Optional: Play sound here
+                toast.success('New Order!', `You have a new order #${newOrder.orderId}`);
+            });
+
+            socket.on('orderStatusUpdate', (data: any) => {
+                console.log('Order status update:', data);
+                toast.info('Order Status Updated', data.message);
+                // Update local orders state
+                setOrders((prev) => prev.map(o =>
+                    o._id === data.orderId ? { ...o, status: data.status } : o
+                ));
             });
         };
 
@@ -204,7 +235,7 @@ const RestaurantDashboard = () => {
         { title: 'Orders Today', value: String(ordersTodayCount), icon: Utensils, color: 'bg-blue-500' },
         { title: 'Earnings Today', value: `₹${earningsToday.toLocaleString()}`, icon: DollarSign, color: 'bg-green-500' },
         { title: 'Pending Orders', value: String(pendingOrdersCount), icon: Clock, color: 'bg-yellow-500' },
-        { title: 'Completed Orders', value: String(completedOrdersCount), icon: CheckCircle, color: 'bg-purple-500' },
+        { title: 'Drivers Online', value: String(onlineDriversCount), icon: Truck, color: 'bg-orange-500' },
     ];
 
     return (

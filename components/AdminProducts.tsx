@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -750,11 +749,10 @@ export default function ProductPage() {
                                                     }
                                                     setCategorySearch(label);
                                                 }}
-                                                className={`px-3 py-1 rounded-full text-sm border ${
-                                                    isSelected
+                                                className={`px-3 py-1 rounded-full text-sm border ${isSelected
                                                         ? 'bg-blue-600 text-white border-blue-600'
                                                         : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200'
-                                                }`}
+                                                    }`}
                                             >
                                                 {label}
                                             </button>

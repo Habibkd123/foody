@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, Package, Clock, CheckCircle, Eye, X, ChefHat, Truck, DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCustomToast } from "@/hooks/useCustomToast";
+import { Button } from "@/components/ui/button";
 
 interface RestaurantOrder {
     _id: string;
@@ -24,6 +25,10 @@ interface RestaurantOrder {
     createdAt: string;
     estimatedTime?: string;
     notes?: string;
+    rider?: {
+        name: string;
+        phone: string;
+    } | null;
 }
 
 const RestaurantOrdersPage = () => {
@@ -36,6 +41,9 @@ const RestaurantOrdersPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedOrder, setSelectedOrder] = useState<RestaurantOrder | null>(null);
     const [showOrderModal, setShowOrderModal] = useState(false);
+    const [availableDrivers, setAvailableDrivers] = useState<any[]>([]);
+    const [showDriverModal, setShowDriverModal] = useState(false);
+    const [assigning, setAssigning] = useState(false);
 
     const fetchOrders = async () => {
         try {
@@ -63,8 +71,21 @@ const RestaurantOrdersPage = () => {
         setLoading(false);
     };
 
+    const fetchAvailableDrivers = async () => {
+        try {
+            const res = await fetch('/api/restaurant/drivers/available');
+            const data = await res.json();
+            if (data.success) {
+                setAvailableDrivers(data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching drivers:", error);
+        }
+    };
+
     useEffect(() => {
         fetchOrders();
+        fetchAvailableDrivers();
     }, []);
 
     const handleViewOrder = (order: RestaurantOrder) => {
@@ -92,6 +113,33 @@ const RestaurantOrdersPage = () => {
             toast.info('Order Updated', `Order #${orderNo} status changed to ${data.data.status}`);
         } catch (error) {
             toast.error('Update Failed', (error as any)?.message || 'Error updating order status');
+        }
+    };
+
+    const handleAssignDriver = async (driverId: string) => {
+        if (!selectedOrder) return;
+
+        try {
+            setAssigning(true);
+            const res = await fetch(`/api/restaurant/orders/${selectedOrder._id}/assign`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ driverId }),
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Driver Assigned', 'A delivery partner has been assigned to this order');
+                setShowDriverModal(false);
+                setShowOrderModal(false);
+                fetchOrders();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error: any) {
+            toast.error('Assignment Failed', error.message);
+        } finally {
+            setAssigning(false);
         }
     };
 
@@ -206,64 +254,154 @@ const RestaurantOrdersPage = () => {
                 </div>
 
                 {showOrderModal && selectedOrder && (
-                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl p-6">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Order {selectedOrder.orderId}</h2>
+                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Order Details</h2>
                                 <button onClick={() => setShowOrderModal(false)} className="text-gray-600 hover:text-gray-900 dark:text-gray-300">
-                                    <X className="h-5 w-5" />
+                                    <X className="h-6 w-6" />
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Customer</h3>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedOrder.customer.name}</p>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedOrder.customer.email}</p>
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Customer Info</h3>
+                                    <p className="text-lg font-medium text-gray-900 dark:text-white">{selectedOrder.customer.name}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.customer.email}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{selectedOrder.customer.phone || 'No phone provided'}</p>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Status</h3>
-                                    <select
-                                        value={selectedOrder.status}
-                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                                            const next = e.target.value;
-                                            handleStatusUpdate(selectedOrder._id, next);
-                                            setSelectedOrder((prev) => prev ? { ...prev, status: next as any } : prev);
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-                                    >
-                                        <option value="pending">pending</option>
-                                        <option value="paid">paid</option>
-                                        <option value="processing">processing</option>
-                                        <option value="shipped">shipped</option>
-                                        <option value="delivered">delivered</option>
-                                        <option value="canceled">canceled</option>
-                                    </select>
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Delivery Partner</h3>
+                                    {selectedOrder.rider ? (
+                                        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 rounded-lg">
+                                            <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
+                                                <Truck className="h-5 w-5 text-green-600" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">{selectedOrder.rider.name}</p>
+                                                <p className="text-xs text-gray-600 dark:text-gray-400">{selectedOrder.rider.phone}</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+                                            <p className="text-xs text-gray-500 italic text-center">No driver assigned yet</p>
+                                        </div>
+                                    )}
                                 </div>
-
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Kitchen Notes</h3>
-                                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-3">
-                                      <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                                        {selectedOrder.notes?.trim() ? selectedOrder.notes : '—'}
-                                      </p>
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Order Status</h3>
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            value={selectedOrder.status}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                                const next = e.target.value;
+                                                handleStatusUpdate(selectedOrder._id, next);
+                                                setSelectedOrder((prev) => prev ? { ...prev, status: next as any } : prev);
+                                            }}
+                                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm"
+                                        >
+                                            <option value="pending">pending</option>
+                                            <option value="paid">paid</option>
+                                            <option value="processing">processing</option>
+                                            <option value="shipped">shipped</option>
+                                            <option value="delivered">delivered</option>
+                                            <option value="canceled">canceled</option>
+                                        </select>
+                                        <button
+                                            onClick={() => setShowDriverModal(true)}
+                                            className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors flex items-center gap-2"
+                                        >
+                                            <Truck className="h-4 w-4" />
+                                            Assign Driver
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-6">
-                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Items</h3>
-                                <div className="space-y-2">
-                                    {selectedOrder.items.map((it, idx) => (
-                                        <div key={idx} className="flex justify-between text-sm text-gray-800 dark:text-gray-200">
-                                            <span>{it.name} x {it.quantity}</span>
-                                            <span>${(it.price * it.quantity).toFixed(2)}</span>
+                            <div className="mb-8">
+                                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-4">Items Summary</h3>
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-gray-100 dark:bg-gray-800">
+                                            <tr>
+                                                <th className="px-4 py-2 text-left text-gray-600">Item</th>
+                                                <th className="px-4 py-2 text-center text-gray-600">Qty</th>
+                                                <th className="px-4 py-2 text-right text-gray-600">Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                            {selectedOrder.items.map((it, idx) => (
+                                                <tr key={idx}>
+                                                    <td className="px-4 py-2 text-gray-800 dark:text-gray-200">{it.name}</td>
+                                                    <td className="px-4 py-2 text-center text-gray-800 dark:text-gray-200">{it.quantity}</td>
+                                                    <td className="px-4 py-2 text-right text-gray-800 dark:text-gray-200">${(it.price * it.quantity).toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                        <tfoot className="bg-gray-100 dark:bg-gray-800 font-bold">
+                                            <tr>
+                                                <td colSpan={2} className="px-4 py-2 text-right">Total Amount</td>
+                                                <td className="px-4 py-2 text-right text-orange-600">${selectedOrder.total.toFixed(2)}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {selectedOrder.notes && (
+                                <div className="mb-4">
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Customer Notes</h3>
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 rounded-lg p-3 italic text-sm text-gray-700 dark:text-gray-300">
+                                        "{selectedOrder.notes}"
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {showDriverModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                            <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+                                <h3 className="font-bold text-gray-900 dark:text-white">Select Delivery Partner</h3>
+                                <button onClick={() => setShowDriverModal(false)} className="text-gray-500 hover:text-gray-700">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <div className="max-h-96 overflow-y-auto p-4 space-y-3">
+                                {availableDrivers.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <Truck className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                                        <p className="text-gray-500 text-sm">No available drivers nearby</p>
+                                    </div>
+                                ) : (
+                                    availableDrivers.map((driver) => (
+                                        <div
+                                            key={driver._id}
+                                            className="flex items-center justify-between p-3 border dark:border-gray-700 rounded-lg hover:border-orange-500 dark:hover:border-orange-500 cursor-pointer transition-colors group"
+                                            onClick={() => handleAssignDriver(driver._id)}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                                    <Truck className="h-5 w-5 text-orange-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-900 dark:text-white group-hover:text-orange-600">
+                                                        {driver.firstName} {driver.lastName}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 capitalize">{driver.driverDetails?.vehicleType} • {driver.driverDetails?.vehicleNumber}</p>
+                                                </div>
+                                            </div>
+                                            <Button size="sm" variant="outline" className="text-xs group-hover:bg-orange-600 group-hover:text-white">
+                                                Assign
+                                            </Button>
                                         </div>
-                                    ))}
-                                </div>
-                                <div className="mt-4 flex justify-end font-semibold text-gray-900 dark:text-white">
-                                    Total: ${selectedOrder.total.toFixed(2)}
-                                </div>
+                                    ))
+                                )}
+                            </div>
+                            <div className="p-4 bg-gray-50 dark:bg-gray-900 text-center text-xs text-gray-500">
+                                Drivers shown here are currently online and available to deliver.
                             </div>
                         </div>
                     </div>

@@ -408,9 +408,9 @@ export async function GET(request: NextRequest, context: any) {
 
       category: product.category
         ? {
-            id: product.category._id.toString(),
-            name: product.category.name
-          }
+          id: product.category._id.toString(),
+          name: product.category.name
+        }
         : {},
 
       discount: product.discount || 47,

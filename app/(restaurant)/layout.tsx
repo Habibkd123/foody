@@ -5,7 +5,7 @@ import Header from "@/components/header/Header"
 import RestaurantSidebar from "@/components/RestaurantSidebar"
 import RestaurantNotifications from "@/components/RestaurantNotifications"
 import { usePathname } from 'next/navigation';
-import { useAuthStorage } from '@/hooks/useAuth';
+import { useUserStore } from '@/lib/store/useUserStore';
 import { useRouter } from 'next/navigation';
 
 export default function RestaurantLayout({ children }: { children: React.ReactNode }) {
@@ -13,8 +13,8 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
   const router = useRouter()
   const { isExpanded, isMobile } = useSidebar()
   const [showHeader, setShowHeader] = useState(true);
-  const { user } = useAuthStorage()
-  
+  const { user } = useUserStore()
+
   useLayoutEffect(() => {
     if (!user) {
       router.push('/login')
@@ -34,7 +34,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
       return;
     }
   }, [user, pathname, router])
-  
+
   useEffect(() => {
     if (pathname === '/restaurant/food/add') {
       setShowHeader(false);

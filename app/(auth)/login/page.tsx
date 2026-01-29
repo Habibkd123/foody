@@ -1,36 +1,18 @@
-"use client"
-import React, { useEffect, useState, useLayoutEffect } from 'react'
+"use client";
+import React, { useState } from 'react'
 import AuthSystem from '@/components/auth-system'
-import UserDashboard from '@/components/user-dashboard'
-import AdminAuthSystem from '@/components/admin-auth-system'
-import AdminDashboard from '@/components/admin-dashboard'
 import { useRouter } from 'next/navigation'
-import { useAuthStorage } from '@/hooks/useAuth'
+import { useUserStore } from '@/lib/store/useUserStore'
 import { usePathname } from 'next/navigation';
+
 const page = () => {
   const router = useRouter()
-    const pathname = usePathname();
-  const [showDashboard, setShowDashboard] = useState(false)
+  const pathname = usePathname();
   const [showAuth, setShowAuth] = useState(false)
-  const [showAdminAuth, setShowAdminAuth] = useState(false)
-  const [showAdminDashboard, setShowAdminDashboard] = useState(false)
-  const [adminUser, setAdminUser] = useState<any>({
-    name: "",
-    email: "",
-    password: "",
-    role: "admin",
-    permissions: [],
-    lastLogin: "",
-    avatar: "",
-  })
-  const handleAdminLoginSuccess = (user: any) => {
-    setAdminUser(user)
-    setShowAdminAuth(false)
-    setShowAdminDashboard(true)
-  }
- const { user, userRole } = useAuthStorage()
- console.log("user", user, "userRole", userRole)
- 
+  const { user } = useUserStore();
+  const userRole = user?.role;
+  console.log("user", user, "userRole", userRole)
+
   // Redirect logic - only run once when component mounts if user is already logged in
   // useEffect(() => {
   //   if (user && (user?._id || user?.id) && userRole) {
@@ -44,7 +26,7 @@ const page = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 py-6 sm:py-10">
       <div className="w-full max-w-md">
-        <AuthSystem onClose={() => setShowAuth(false)} userRole1={userRole} onLoginSuccess={() => setShowDashboard(true)} />
+        <AuthSystem onClose={() => setShowAuth(false)} userRole1={userRole || ''} onLoginSuccess={() => console.log("Login success")} />
       </div>
     </div>
   )

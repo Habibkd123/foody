@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useAuthStorage } from "@/hooks/useAuth";
-import { useCartOrder } from "@/context/OrderContext";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useCartStore } from "@/lib/store/useCartStore";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
@@ -15,8 +15,8 @@ export default function SuccessPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [cartCleared, setCartCleared] = useState(false);
-  const { user } = useAuthStorage();
-  const { clearCart } = useCartOrder();
+  const { user } = useUserStore();
+  const { reset: clearCart } = useCartStore();
 
   useEffect(() => {
     if (!paymentIntent) return;
@@ -49,7 +49,7 @@ export default function SuccessPage() {
     const run = async () => {
       try {
         if (order && user?._id && !cartCleared) {
-          await clearCart(user._id);
+          clearCart();
           setCartCleared(true);
         }
       } catch {

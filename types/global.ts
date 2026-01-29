@@ -1,5 +1,5 @@
 export interface Product {
-  id: number;
+  id: number | string;
   _id?: string;
   name: string;
   price: number;
@@ -45,6 +45,7 @@ export interface CartItem extends Product {
   quantity: number;
   productId?: string;
   configKey?: string;
+  image?: string;
   variant?: { name: string; option: string };
   addons?: Array<{ group: string; option: string }>;
 }

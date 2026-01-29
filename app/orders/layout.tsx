@@ -3,41 +3,21 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuthStorage } from "@/hooks/useAuth";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useOrdersQuery } from "@/hooks/useOrdersQuery";
 
 export default function OrdersLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useAuthStorage();
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useUserStore();
+  const { data: orders = [], isLoading: loading, error: queryError } = useOrdersQuery(user?._id);
   const [query, setQuery] = useState("");
+
+  const error = queryError instanceof Error ? queryError.message : null;
 
   const activeId = useMemo(() => {
     const parts = pathname?.split("/") || [];
     return parts.length >= 3 ? parts[2] : "";
   }, [pathname]);
-
-  const load = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      if (!user?._id) return;
-      const res = await fetch(`/api/orders/user/${user._id}`, { method: "GET" });
-      const json = await res.json();
-      if (!res.ok || !json?.success) throw new Error(json?.error || "Failed to fetch orders");
-      setOrders(Array.isArray(json.data) ? json.data : []);
-    } catch (e: any) {
-      setError(e?.message || "Failed to fetch orders");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -88,7 +68,7 @@ export default function OrdersLayout({ children }: { children: React.ReactNode }
                     <Link key={id} href={href} className={`block p-3 hover:bg-gray-50 dark:hover:bg-gray-800 ${active ? 'bg-gray-50 dark:bg-gray-800' : ''}`}>
                       <div className="flex items-center justify-between">
                         <div className="font-medium">#{hid}</div>
-                        <div className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{status.replace(/_/g,' ')}</div>
+                        <div className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">{status.replace(/_/g, ' ')}</div>
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5">₹{total}</div>
                       <div className="text-[11px] text-gray-400">{new Date(o.createdAt).toLocaleDateString()}</div>

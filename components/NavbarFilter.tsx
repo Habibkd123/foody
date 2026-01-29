@@ -336,7 +336,7 @@ import Image from "next/image";
 import { Menu, X, Sparkles, Trophy, Candy, Popcorn, Coffee, UtensilsCrossed, Package, LayoutGrid } from "lucide-react";
 import clsx from "clsx";
 import { getProductsByNavSearch } from "./APICall/category";
-import { useProductsContext } from "@/context/AllProductContext";
+import { useProductStore } from "@/lib/store/useProductStore";
 
 type NavItem = {
   label: string;
@@ -364,7 +364,7 @@ const Navbar: React.FC = () => {
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState<string | null>(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
-  const { setProductsData } = useProductsContext();
+  const { setProductsData } = useProductStore();
 
   // 🔥 Fetch products whenever selected changes
   useEffect(() => {

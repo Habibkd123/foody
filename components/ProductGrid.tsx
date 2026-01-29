@@ -14,10 +14,10 @@ import {
     Bookmark,
     TrendingUp
 } from 'lucide-react';
-import { useWishListContext, WishListContext } from '@/context/WishListsContext';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useWishlistQuery } from '@/hooks/useWishlistQuery';
 import Link from 'next/link';
 import "./../components/cards.css"
-import { useAuthStorage } from '@/hooks/useAuth';
 import { Product } from '@/types/global';
 import ProductSkeletonGrid from '@/components/product/ProductSkeletonGrid';
 import ProductEmptyState from '@/components/product/ProductEmptyState';
@@ -53,26 +53,26 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
     showQuantityControls = true,
     animationDelay = true
 }) => {
-    const { wishListsData, addWishList, removeWishList } = useWishListContext();
-    const { user } = useAuthStorage()
+    const { user } = useUserStore();
+    const { data: wishListsData = [], addToWishlist, removeFromWishlist } = useWishlistQuery(user?._id);
     const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
     const [hoveredCard, setHoveredCard] = useState<string | null>(null);
     const [addingToCart, setAddingToCart] = useState<string | null>(null);
     const [justAdded, setJustAdded] = useState<string | null>(null);
     const imageRefs = useRef<{ [key: string]: HTMLImageElement | null }>({});
-    let userId = user?._id;
- 
+    const userId = user?._id;
+
 
     const handleAddToCart = async (product: Product) => {
-        if(product._id==undefined)return
+        if (product._id == undefined) return
         const quantity = quantities[product._id] || 1;
         setAddingToCart(product._id);
         product.quantity = quantity;
         try {
             await onAddToCart?.(product);
             setJustAdded(product._id);
-            
-            setQuantities((prev) => ({ ...prev, [product._id?? String(product.id)]: 1 }));
+
+            setQuantities((prev) => ({ ...prev, [product._id ?? String(product.id)]: 1 }));
             setTimeout(() => setJustAdded(null), 2000);
         } catch (error) {
             console.error("Failed to add to cart:", error);
@@ -83,12 +83,13 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
 
     // Toggle Wishlist
     const handleToggleWishlist = async (product: Product) => {
-        const isWishlisted = wishListsData.some((item) => item._id === product._id);
+        if (!userId || !product._id) return;
+        const isWishlisted = wishListsData.some((item) => (item._id || item.id) === (product._id || product.id));
         try {
             if (isWishlisted) {
-                await removeWishList(userId, product._id?? String(product.id));
+                await removeFromWishlist({ userId, productId: product._id });
             } else {
-                await addWishList(userId, product._id?? String(product.id));
+                await addToWishlist({ userId, productId: product._id });
             }
         } catch (error) {
             console.error("Error toggling wishlist:", error);

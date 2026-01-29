@@ -9,12 +9,10 @@ import { Button } from "@/components/ui/button"
 import SupportChat from "@/components/SupportChat"
 import { useRouter } from "next/navigation"
 import AddCardList from "@/components/AddCards"
-import { useAuthStorage } from "@/hooks/useAuth"
-import { useTheme } from "@/context/ThemeContext"
-import { useProductsContext } from "@/context/AllProductContext"
-import { useCartOrder } from "@/context/OrderContext"
-import { useOrder } from "@/context/OrderContext"
-import { useWishListContext } from "@/context/WishListsContext"
+import { useUserStore } from "@/lib/store/useUserStore"
+import { useWishlistQuery } from "@/hooks/useWishlistQuery"
+import { useProductsQuery } from "@/hooks/useProductsQuery"
+import { useCartStore } from "@/lib/store/useCartStore"
 import { useCustomToast } from "@/hooks/useCustomToast"
 import ToastProvider from "@/components/ui/ToastProvider"
 import FlashSales from "@/components/FlashSales"
@@ -43,18 +41,19 @@ function GroceryApp() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { productsData } = useProductsContext();
-  const [cartItems, setCartItems] = useState<Array<any>>([])
+  const { data: productsData = [], isLoading: isProductsLoading } = useProductsQuery();
+
   const [cartOpen, setCartOpen] = useState<boolean>(false)
   const [userData, setUserData] = useState<any | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [categories, setCategories] = useState<Array<any>>([])
-  const { token, user, setToken, setUser, logout } = useAuthStorage()
-  const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
-  const { wishListsData, addWishList, removeWishList, setWistListsData, getUserWishList } = useWishListContext();
-  const { dispatch, state } = useOrder();
-  let products = productsData
+
+  const { user, logout } = useUserStore();
+  const { data: wishListsData = [], addToWishlist, removeFromWishlist } = useWishlistQuery(user?._id);
+  const { items: cartItems, addItem, updateQuantity, removeItem } = useCartStore();
+
+  const products = productsData
 
   // Fetch categories from API
   const fetchCategories = async () => {
@@ -92,28 +91,28 @@ function GroceryApp() {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    if (user?._id) {
-      getUserWishList(user?._id);
-    }
-  }, [user?._id]);
 
   // Filter products based on category and search
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const name = product.name || "";
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesCategory && matchesSearch
   })
 
   // Enhanced wishlist toggle with animation
   const toggleWishlist = async (item: any) => {
-    const isWishlisted = wishListsData && wishListsData.some((item) => item?._id === item?._id);
+    if (!user?._id) {
+      toast.warning("Login Required", "Please login to manage wishlist");
+      return;
+    }
+    const isWishlisted = wishListsData && wishListsData.some((wItem: any) => wItem._id === item._id);
     try {
       if (isWishlisted) {
-        await removeWishList(user?._id, item?._id);
+        await removeFromWishlist({ userId: user._id, productId: item._id });
         toast.wishlistRemoved(item.name);
       } else {
-        await addWishList(user?._id, item?._id);
+        await addToWishlist({ userId: user._id, productId: item._id });
         toast.wishlistAdded(item.name);
       }
     } catch (error) {
@@ -123,77 +122,41 @@ function GroceryApp() {
   };
 
   // Enhanced add to cart with animation and better state management
-  const handleAddToCart = useCallback(async (item: any) => {
+  const handleAddToCart = useCallback((item: any) => {
     if (!user?._id) {
       toast.warning("Login Required", "Please login to add items to cart");
       return;
     }
-    const cartItem: any = {
-      id: item._id,
-      name: item.name,
-      price: item.price,
+    addItem({
+      ...item,
+      id: item._id || item.id,
+      productId: item._id || String(item.id),
       quantity: 1,
       image: item.images[0],
-    };
-    console.log("cartItem", cartItem)
-    try {
-      let response = await addToCart(user?._id, cartItem);
-      console.log("response", response)
-      // @ts-ignore
-      if (response.success) {
-        toast.cartAdded(item.name);
-      } else {
-        // @ts-ignore
-        toast.error("Cart Error", response?.message || "Failed to add item to cart");
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Cart Error", "Failed to add item to cart");
-    }
-  }, [cartItems, dispatch, user, addToCart]);
+    });
+    toast.cartAdded(item.name);
+  }, [user?._id, addItem, toast]);
 
-  const removeFromCart1 = useCallback(async (itemId: any) => {
-    try {
-      let response = await removeFromCart(user?._id, itemId);
-      console.log("response", response)
-      // @ts-ignore
-      if (response.success) {
-        toast.cartRemoved("Item from cart");
-      } else {
-        // @ts-ignore
-        toast.error("Cart Error", response?.message || "Failed to remove item from cart");
-      }
-    } catch (error) {
-      console.error("Error removing from cart:", error);
-      toast.error("Cart Error", "Failed to remove item from cart");
-    }
-  }, [cartItems, dispatch, user, removeFromCart]);
+  const removeFromCart1 = useCallback((itemId: any) => {
+    removeItem(itemId);
+    toast.cartRemoved("Item from cart");
+  }, [removeItem, toast]);
 
   // Enhanced quantity update that syncs with all states
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const productId = parseInt(itemId);
-    const currentItem = state.items.find((item: any) => item._id === productId);
-
-    if (currentItem) {
-      const newQuantity = Math.max(0, currentItem.quantity + change);
-
+    const item = cartItems.find((i: any) => (i._id || i.id) === itemId);
+    if (item) {
+      const newQuantity = Math.max(0, item.quantity + change);
       if (newQuantity === 0) {
-        // Remove item if quantity becomes 0
-        setCartItems(cartItems.filter((item: any) => item._id !== productId));
-        // dispatch({ type: "REMOVE_ITEM", id: productId });
-        updateQuantity(user?._id, productId, newQuantity);
+        removeItem(itemId);
       } else {
-        // Update quantity in both local state and global state
-        setCartItems(cartItems.map((item: any) =>
-          item.id === productId ? { ...item, quantity: newQuantity } : item
-        ));
-        dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
+        updateQuantity(itemId, newQuantity);
       }
     }
-  }, [cartItems, dispatch, user, updateQuantity]);
+  }, [cartItems, updateQuantity, removeItem]);
 
   const getTotalPrice = (): number => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total: number, item: any) => total + item.price * item.quantity, 0);
   };
 
   return (
@@ -249,7 +212,6 @@ function GroceryApp() {
                   removeFromCart={removeFromCart1}
                   updateQuantity={updateQuantity1}
                   getTotalPrice={getTotalPrice}
-                  setCartItems={setCartItems}
                   cartOpen={cartOpen}
                   setCartOpen={setCartOpen}
                 />

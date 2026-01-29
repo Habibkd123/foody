@@ -10,36 +10,58 @@ import AddressModal from './AddressModal';
 import AddAddressModal from './AddAddressModal';
 import CartSummary from './CartSummary';
 import Link from 'next/link';
-import { useAddress } from '@/context/AddressContext';
-import { useCartOrder, useOrder } from '@/context/OrderContext';
+import { useAddressQuery } from '@/hooks/useAddressQuery';
 import { useRouter } from 'next/navigation';
-import { useAuthStorage } from '@/hooks/useAuth';
-const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, updateQuantity, getTotalPrice, removeFromCart }: any) => {
-  const [addressOpen, setAddressOpen] = React.useState(false);
-  const { loadCart } = useCartOrder();
-  const { state, dispatch } = useOrder();
-  const { address, items, distance } = state
-  const router = useRouter()
-  const { user } = useAuthStorage()  // const {  distance } = useAddress();
-  const { defaultAddress: defaultAddr, setCurrentLocation } = useAddress();
-  console.log('state', user);
-  useEffect(() => {
-    const fun = async () => {
-      try {
-        let data = await loadCart(user?._id)
-        console.log('state', data);
-      }
-      catch (error) {
-        console.log(error)
-      }
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useCartStore } from '@/lib/store/useCartStore';
+import { Address } from '@/types/global';
 
+const AddCardList = ({ cartItems: propsCartItems, setCartItems, cartOpen, setCartOpen, type, updateQuantity: propsUpdateQuantity, getTotalPrice, removeFromCart: propsRemoveFromCart }: any) => {
+  const [addressOpen, setAddressOpen] = React.useState(false);
+  const { items, address, distance, setAddress: storeSetAddress } = useCartStore();
+  const router = useRouter()
+  const { user } = useUserStore()
+  const { addresses = [] } = useAddressQuery(user?._id);
+  const defaultAddr = addresses.find((a: any) => a.isDefault) || addresses[0];
+
+  const handleUseLocation = async () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) return;
+    try {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const current: any = {
+            userId: user?._id || '',
+            name: 'Current Location',
+            phone: 0,
+            city: 'Current',
+            state: '',
+            label: 'Current',
+            lat: latitude,
+            lng: longitude,
+            street: '',
+            area: '',
+            landmark: '',
+            zipCode: '',
+            flatNumber: '',
+            floor: '',
+          };
+          storeSetAddress(current);
+        },
+        (err) => {
+          console.warn('Geolocation error:', err);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } catch (e) {
+      console.warn('Failed to set current location');
     }
-    fun()
-  }, [user])
+  };
+
   const handleCheckout = async () => {
     if (!address && !defaultAddr) {
       try {
-        await setCurrentLocation();
+        await handleUseLocation();
       } catch { }
     }
     router.push('/checkout')
@@ -70,9 +92,7 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, upd
               <>
                 <div className="max-h-[50vh] overflow-y-auto pr-2">
                   <CartSummary
-                    updateQuantity={updateQuantity}
                     cartItems={items}
-                    removeFromCart={removeFromCart}
                   />
                 </div>
 
@@ -107,7 +127,7 @@ const AddCardList = ({ cartItems, setCartItems, cartOpen, setCartOpen, type, upd
                       <div className="flex flex-wrap items-center gap-2">
                         {!address && !defaultAddr && (
                           <Button
-                            onClick={() => setCurrentLocation()}
+                            onClick={() => handleUseLocation()}
                             variant="outline"
                             className="text-xs px-2 py-1"
                           >

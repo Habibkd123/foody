@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { useCartOrder, useOrder } from "@/context/OrderContext";
-import { useAuthStorage } from "@/hooks/useAuth";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useCartStore } from "@/lib/store/useCartStore";
 import { Input } from "./ui/input";
 const coupons = [
   {
@@ -24,16 +24,21 @@ const donations = [
 ];
 
 const CartSummary = ({ cartItems }: any) => {
-  const { dispatch } = useOrder();
-  const { addToCart, loading, error, removeFromCart, updateQuantity } = useCartOrder();
-  const { user } = useAuthStorage()
+  const { user } = useUserStore();
+  const {
+    updateQuantity,
+    removeItem: removeFromCart,
+    setDeliveryCharge: setStoreDeliveryCharge,
+    setHandlingCharge: setStoreHandlingCharge,
+    setTip: setStoreTip,
+  } = useCartStore();
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [customCoupon, setCustomCoupon] = useState("");
   const [includeDonation, setIncludeDonation] = useState(false);
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
   const [selectedTip, setSelectedTip] = useState<number>(0);
   const [customTipValue, setCustomTipValue] = useState<string>("");
-    const [pincode, setPincode] = useState("");
+  const [pincode, setPincode] = useState("");
   const [deliveryAvailability, setDeliveryAvailability] = useState(false);
   const getTotalPrice = () =>
     cartItems.reduce((total: number, item: any) => total + item.price * item.quantity, 0);
@@ -44,10 +49,10 @@ const CartSummary = ({ cartItems }: any) => {
   const donationAmount = includeDonation ? 1 : 0;
 
   useEffect(() => {
-    dispatch({ type: "SET_DELIVERY_CHARGE", deliveryCharge });
-    dispatch({ type: "SET_HANDLING_CHARGE", handlingCharge });
-    dispatch({ type: "SET_TIP", tip: selectedTip });
-  }, [deliveryCharge, handlingCharge, selectedTip, dispatch]);
+    setStoreDeliveryCharge(deliveryCharge);
+    setStoreHandlingCharge(handlingCharge);
+    setStoreTip(selectedTip);
+  }, [deliveryCharge, handlingCharge, selectedTip, setStoreDeliveryCharge, setStoreHandlingCharge, setStoreTip]);
 
   const grandTotal =
     getTotalPrice() + deliveryCharge + handlingCharge + donationAmount + selectedTip;
@@ -72,45 +77,45 @@ const CartSummary = ({ cartItems }: any) => {
     }
   };
 
-const handlePincodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const value = event.target.value;
-  setPincode(value);
+  const handlePincodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setPincode(value);
 
-  // Automatically check availability
-  if (value.length === 6) {
-    fetchDeliveryAvailability(value);
-  } else {
-    setDeliveryAvailability(false);
-  }
-};
+    // Automatically check availability
+    if (value.length === 6) {
+      fetchDeliveryAvailability(value);
+    } else {
+      setDeliveryAvailability(false);
+    }
+  };
 
-const fetchDeliveryAvailability = async (pincode: string) => {
-  if (!pincode || pincode.length !== 6) {
-    setDeliveryAvailability(false);
-    return;
-  }
+  const fetchDeliveryAvailability = async (pincode: string) => {
+    if (!pincode || pincode.length !== 6) {
+      setDeliveryAvailability(false);
+      return;
+    }
 
-  try {
-    const response = await fetch(`/api/pincode/${pincode}`);
-    if (!response.ok) throw new Error("Pincode not found");
+    try {
+      const response = await fetch(`/api/pincode/${pincode}`);
+      if (!response.ok) throw new Error("Pincode not found");
 
-    const data = await response.json();
-    setDeliveryAvailability(data.serviceable); // assuming your API returns { pincode, city, serviceable, ... }
-  } catch (err) {
-    console.error("Delivery check failed:", err);
-    setDeliveryAvailability(false);
-  }
-};
-const getEstimatedDeliveryDate = (daysToAdd = 2) => {
-  const today = new Date();
-  today.setDate(today.getDate() + daysToAdd);
+      const data = await response.json();
+      setDeliveryAvailability(data.serviceable); // assuming your API returns { pincode, city, serviceable, ... }
+    } catch (err) {
+      console.error("Delivery check failed:", err);
+      setDeliveryAvailability(false);
+    }
+  };
+  const getEstimatedDeliveryDate = (daysToAdd = 2) => {
+    const today = new Date();
+    today.setDate(today.getDate() + daysToAdd);
 
-  return today.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-};
+    return today.toLocaleDateString("en-IN", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+  };
 
   return (
     <div className="max-w-md mx-auto px-2 border rounded-lg shadow-md bg-white">
@@ -133,7 +138,7 @@ const getEstimatedDeliveryDate = (daysToAdd = 2) => {
               size="icon"
               variant="outline"
               className="h-8 w-8"
-              onClick={() => updateQuantity(user?._id, item.id, item.quantity - 1)}
+              onClick={() => updateQuantity(item.id, item.quantity - 1)}
             >
               <Minus className="h-3 w-3" />
             </Button>
@@ -142,7 +147,7 @@ const getEstimatedDeliveryDate = (daysToAdd = 2) => {
               size="icon"
               variant="outline"
               className="h-8 w-8"
-              onClick={() => updateQuantity(user?._id, item.id, item.quantity + 1)}
+              onClick={() => updateQuantity(item.id, item.quantity + 1)}
             >
               <Plus className="h-3 w-3" />
             </Button>
@@ -150,7 +155,7 @@ const getEstimatedDeliveryDate = (daysToAdd = 2) => {
               size="icon"
               variant="ghost"
               className="h-8 w-8 text-red-500"
-              onClick={() => removeFromCart(user?._id, item.id)}
+              onClick={() => removeFromCart(item.id)}
             >
               <Trash2 className="h-3 w-3" />
             </Button>
@@ -187,33 +192,33 @@ const getEstimatedDeliveryDate = (daysToAdd = 2) => {
           </div>
         )}
       </div>
- <div className="bg-gray-50 p-3 rounded-lg mb-4">
-          <label htmlFor="pincode" className="block text-sm font-medium text-gray-700">
-            Enter Pincode
-          </label>
-          <Input
-            id="pincode"
-            name="pincode"
-            type="text"
-            value={pincode}
-            onChange={handlePincodeChange}
-            className="mt-1 block w-full shadow-sm sm:text-sm"
-          />
+      <div className="bg-gray-50 p-3 rounded-lg mb-4">
+        <label htmlFor="pincode" className="block text-sm font-medium text-gray-700">
+          Enter Pincode
+        </label>
+        <Input
+          id="pincode"
+          name="pincode"
+          type="text"
+          value={pincode}
+          onChange={handlePincodeChange}
+          className="mt-1 block w-full shadow-sm sm:text-sm"
+        />
+      </div>
+      <p className={`text-sm font-semibold ${deliveryAvailability ? "text-green-600" : "text-red-500"}`}>
+        {pincode.length === 6
+          ? deliveryAvailability
+            ? "✅ Delivery Available"
+            : "❌ Delivery Not Available"
+          : "Enter valid 6-digit pincode"}
+      </p>
+      {pincode.length === 6 && deliveryAvailability && (
+        <div className="bg-green-50 p-3 rounded-lg mb-4">
+          <p className="text-sm font-medium text-green-700">
+            🚚 Estimated Delivery: <strong>{getEstimatedDeliveryDate(2)}</strong>
+          </p>
         </div>
-       <p className={`text-sm font-semibold ${deliveryAvailability ? "text-green-600" : "text-red-500"}`}>
-  {pincode.length === 6
-    ? deliveryAvailability
-      ? "✅ Delivery Available"
-      : "❌ Delivery Not Available"
-    : "Enter valid 6-digit pincode"}
-</p>
-{pincode.length === 6 && deliveryAvailability && (
-  <div className="bg-green-50 p-3 rounded-lg mb-4">
-    <p className="text-sm font-medium text-green-700">
-      🚚 Estimated Delivery: <strong>{getEstimatedDeliveryDate(2)}</strong>
-    </p>
-  </div>
-)}
+      )}
 
       {/* Total */}
       <div className="border-t pt-4 mt-4">

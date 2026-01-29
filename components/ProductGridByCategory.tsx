@@ -17,7 +17,8 @@ import {
     Grid,
     List
 } from 'lucide-react';
-import { useWishListContext, WishListContext } from '@/context/WishListsContext';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useWishlistQuery } from '@/hooks/useWishlistQuery';
 import Link from 'next/link';
 import { Product } from '../types/global';
 import "./../components/cards.css"
@@ -61,7 +62,8 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
     showCategoryFilter = true,
     groupByCategory = false
 }) => {
-    const { wishListsData } = useWishListContext();
+    const { user } = useUserStore();
+    const { data: wishListsData = [] } = useWishlistQuery(user?._id);
     const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
     const [hoveredCard, setHoveredCard] = useState<string | null>(null);
     const [addingToCart, setAddingToCart] = useState<string | null>(null);
@@ -85,7 +87,7 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
     // Group products by category if needed
     const groupedProducts = useMemo(() => {
         if (!groupByCategory) return { all: filteredProducts };
-        
+
         return filteredProducts.reduce((acc, product) => {
             const category = product.category;
             if (!acc[category]) {
@@ -153,22 +155,21 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
                     {filteredProducts.length} products
                 </span>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
                 {categories.map((category) => {
-                    const productCount = category === 'all' 
-                        ? productLists.length 
+                    const productCount = category === 'all'
+                        ? productLists.length
                         : productLists.filter(p => p.category === category).length;
-                    
+
                     return (
                         <button
                             key={category}
                             onClick={() => onCategoryChange?.(category)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
-                                selectedCategory === category
-                                    ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${selectedCategory === category
+                                ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-lg'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                         >
                             {category === 'all' ? 'All Categories' : category}
                             <span className="ml-2 text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
@@ -183,7 +184,7 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
 
     // Product Card Component
     const ProductCard = ({ product, index }: { product: Product; index: number }) => {
-        const isWishlisted = wishListsData&&wishListsData.some((item: any) => item.id === product.id);
+        const isWishlisted = wishListsData && wishListsData.some((item: any) => (item._id || item.id) === (product._id || product.id));
         const inCart = isInCart(product);
         const cartQuantity = getCartQuantity?.(product) || 0;
         const currentQuantity = quantities[product.id] || 1;
@@ -308,8 +309,8 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
                                     <Star
                                         key={i}
                                         className={`w-3 h-3 sm:w-4 sm:h-4 transition-all duration-200 ${i < Math.floor(product.rating)
-                                                ? 'text-yellow-400 fill-current scale-100'
-                                                : 'text-gray-300 scale-90'
+                                            ? 'text-yellow-400 fill-current scale-100'
+                                            : 'text-gray-300 scale-90'
                                             } ${isHovered && i < Math.floor(product.rating) ? 'animate-pulse' : ''}`}
                                     />
                                 ))}
@@ -370,10 +371,10 @@ const ProductGridByCategory: React.FC<ProductCardGridProps> = ({
                         onClick={() => handleAddToCart(product)}
                         disabled={isAdding}
                         className={`w-full py-2.5 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-sm relative overflow-hidden ${wasJustAdded
-                                ? 'bg-green-500 text-white'
-                                : inCart
-                                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
-                                    : 'bg-gradient-to-r from-orange-400 to-red-500 text-white hover:from-orange-500 hover:to-red-600 shadow-lg hover:shadow-xl'
+                            ? 'bg-green-500 text-white'
+                            : inCart
+                                ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
+                                : 'bg-gradient-to-r from-orange-400 to-red-500 text-white hover:from-orange-500 hover:to-red-600 shadow-lg hover:shadow-xl'
                             } ${isAdding ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                         {isAdding ? (

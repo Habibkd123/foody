@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe, StripeElementsOptions, Appearance } from "@stripe/stripe-js";
 import PaymentForm from "./PaymentForm";
-import { useAuthStorage } from "@/hooks/useAuth";
-import { useOrder, useCartOrder } from "@/context/OrderContext";
-import { useAddress } from "@/context/AddressContext";
+import { useUserStore } from "@/lib/store/useUserStore";
+import { useCartStore } from "@/lib/store/useCartStore";
+import { useAddressQuery } from "@/hooks/useAddressQuery";
 import { Star } from "lucide-react";
 import RazorpayButton from "./RazorpayButton";
 import NotificationBanner from "@/components/NotificationBanner";
@@ -19,33 +19,35 @@ export default function CheckoutPage() {
   const [couponInput, setCouponInput] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
-  const { state, dispatch } = useOrder();
-  const { user } = useAuthStorage();
-  const { loadCart, getAddresses } = useCartOrder();
-  const { defaultAddress, loadAddresses } = useAddress();
+  const {
+    items,
+    tip,
+    deliveryCharge,
+    handlingCharge,
+    discountAmount,
+    couponCode,
+    notes,
+    address,
+    setNotes,
+    setCoupon,
+    clearCoupon: storeClearCoupon
+  } = useCartStore();
+  const { user } = useUserStore();
+  const { addresses, isLoading: isAddrLoading } = useAddressQuery(user?._id);
+  const defaultAddress = addresses.find(a => a.isDefault);
 
-  // Ensure cart and address are loaded on refresh
-  useEffect(() => {
-    if (user?._id) {
-      loadCart(user._id);
-      getAddresses(user._id);
-      loadAddresses(user._id);
-    }
-  }, [user?._id, loadCart, getAddresses, loadAddresses]);
-
-  const itemsSubtotal = state?.items?.reduce((t, i) => t + i.price * i.quantity, 0) || 0;
-  const totalItemsQty = state?.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
-  const discountAmount = Number(state?.discountAmount || 0);
-  const payableItemsSubtotal = Math.max(0, itemsSubtotal - discountAmount);
+  const itemsSubtotal = items.reduce((t, i) => t + i.price * i.quantity, 0) || 0;
+  const totalItemsQty = items.reduce((sum, i) => sum + i.quantity, 0) || 0;
+  const finalDiscount = Number(discountAmount || 0);
+  const payableItemsSubtotal = Math.max(0, itemsSubtotal - finalDiscount);
 
   const totalAmount =
     payableItemsSubtotal +
-    (state?.tip || 0) +
-    (state?.deliveryCharge || 0) +
-    (state?.handlingCharge || 0) +
-    (state?.donation || 0);
+    (tip || 0) +
+    (deliveryCharge || 0) +
+    (handlingCharge || 0);
 
-  const primaryProductId = state?.items?.[0]?.productId || (state?.items?.[0]?.id ? String(state.items[0].id).split(':')[0] : undefined);
+  const primaryProductId = items[0]?.productId || (items[0]?.id ? String(items[0].id).split(':')[0] : undefined);
 
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
@@ -70,7 +72,7 @@ export default function CheckoutPage() {
         return;
       }
       const nextDiscount = Number(data?.data?.discount || 0);
-      dispatch({ type: 'SET_COUPON', couponCode: code, discountAmount: nextDiscount });
+      setCoupon(code, nextDiscount);
     } catch (e: any) {
       setCouponError(e?.message || 'Failed to apply coupon');
     } finally {
@@ -79,11 +81,11 @@ export default function CheckoutPage() {
   };
 
   const clearCoupon = () => {
-    dispatch({ type: 'CLEAR_COUPON' });
+    storeClearCoupon();
     setCouponError(null);
   };
 
-  const effectiveAddress = (state?.address as any) || (defaultAddress as any) || null;
+  const effectiveAddress = (address as any) || (defaultAddress as any) || null;
   const addrLabel = effectiveAddress?.label || 'Selected';
   const addrLines: string[] = [];
   if (effectiveAddress) {
@@ -145,16 +147,16 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-3 sm:px-6 py-5 sm:py-10">
       {/* ✅ HEADER */}
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 shadow-sm px-3 sm:px-6 py-3 sm:py-4 rounded-2xl mb-6 sm:mb-10">
-         <div className="flex items-center gap-2 group">
-            <img
-              src="/logoGro.png"
-              className="w-10 h-10 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-              alt="logo"
-            />
-            <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text">
-              Gro-Delivery
-            </h1>
-          </div>
+        <div className="flex items-center gap-2 group">
+          <img
+            src="/logoGro.png"
+            className="w-10 h-10 rounded-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+            alt="logo"
+          />
+          <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text">
+            Gro-Delivery
+          </h1>
+        </div>
         <div className="text-white/90 text-sm sm:text-base">
           <span className="font-semibold">Need help?</span> support@gostay.com
         </div>
@@ -199,8 +201,8 @@ export default function CheckoutPage() {
                   <h3 className="font-semibold text-gray-800 mb-2">Kitchen Notes</h3>
                   <div className="text-xs text-gray-500 mb-2">Examples: Less spicy, No onion, Extra sauce</div>
                   <textarea
-                    value={state?.notes || ''}
-                    onChange={(e) => dispatch({ type: 'SET_NOTES', notes: e.target.value })}
+                    value={notes || ''}
+                    onChange={(e) => setNotes(e.target.value)}
                     rows={3}
                     placeholder="Add any special instructions for the kitchen"
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
@@ -255,7 +257,7 @@ export default function CheckoutPage() {
                       >
                         {couponLoading ? 'Applying...' : 'Apply'}
                       </button>
-                      {!!state?.couponCode && (
+                      {!!couponCode && (
                         <button
                           onClick={clearCoupon}
                           type="button"
@@ -268,15 +270,15 @@ export default function CheckoutPage() {
                     {couponError && (
                       <div className="mt-2 text-sm text-red-600">{couponError}</div>
                     )}
-                    {!!state?.couponCode && !couponError && (
+                    {!!couponCode && !couponError && (
                       <div className="mt-2 text-sm text-emerald-700">
-                        Applied: <span className="font-semibold">{String(state.couponCode).toUpperCase()}</span>
+                        Applied: <span className="font-semibold">{String(couponCode).toUpperCase()}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    {state?.items?.map((item, index) => {
+                    {items?.map((item, index) => {
                       const lineTotal = (item.price * item.quantity).toFixed(2);
                       return (
                         <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -286,38 +288,31 @@ export default function CheckoutPage() {
                       );
                     })}
 
-                    {state?.tip > 0 && (
+                    {tip > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <p className="font-medium text-gray-800">Tip</p>
-                        <span className="font-semibold text-gray-800">₹{Number(state.tip).toFixed(2)}</span>
+                        <span className="font-semibold text-gray-800">₹{Number(tip).toFixed(2)}</span>
                       </div>
                     )}
 
-                    {(state?.donation ?? 0) > 0 && (
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <p className="font-medium text-gray-800">Donation</p>
-                        <span className="font-semibold text-gray-800">₹{Number(state?.donation ?? 0).toFixed(2)}</span>
-                      </div>
-                    )}
-
-                    {state?.deliveryCharge > 0 && (
+                    {deliveryCharge > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <p className="font-medium text-gray-800">Delivery Charge</p>
-                        <span className="font-semibold text-gray-800">₹{Number(state.deliveryCharge).toFixed(2)}</span>
+                        <span className="font-semibold text-gray-800">₹{Number(deliveryCharge).toFixed(2)}</span>
                       </div>
                     )}
 
-                    {state?.handlingCharge > 0 && (
+                    {handlingCharge > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <p className="font-medium text-gray-800">Handling Charge</p>
-                        <span className="font-semibold text-gray-800">₹{Number(state.handlingCharge).toFixed(2)}</span>
+                        <span className="font-semibold text-gray-800">₹{Number(handlingCharge).toFixed(2)}</span>
                       </div>
                     )}
 
-                    {discountAmount > 0 && (
+                    {finalDiscount > 0 && (
                       <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <p className="font-medium text-gray-800">Discount</p>
-                        <span className="font-semibold text-emerald-700">-₹{discountAmount.toFixed(2)}</span>
+                        <span className="font-semibold text-emerald-700">-₹{finalDiscount.toFixed(2)}</span>
                       </div>
                     )}
                   </div>

@@ -22,18 +22,18 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
-import { useWishListContext, WishListContext } from '@/context/WishListsContext';
-import { useCartOrder, useOrder } from '@/context/OrderContext';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useWishlistQuery } from '@/hooks/useWishlistQuery';
+import { useCartStore } from '@/lib/store/useCartStore';
 import type { CartItem, CartLine, UserWishList } from '@/types/global';
 import AddressModal from '@/components/AddressModal';
 import AddCardList from '@/components/AddCards';
 import Link from 'next/link';
-import { useFilterContext } from '@/context/FilterContext';
+import { useFilterStore } from '@/lib/store/useFilterStore';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import LocationSelector from '@/components/LocationSelector';
 import { Product, } from '@/types/global';
-import { useAuthStorage } from '@/hooks/useAuth';
 // Enhanced type definitions
 interface WishlistItem {
   id: number;
@@ -57,17 +57,11 @@ type SortOption = 'name' | 'price' | 'rating' | 'dateAdded' | 'discount';
 type SortDirection = 'asc' | 'desc';
 
 const Wishlist: React.FC = () => {
-  const { wishListsData, removeWishList,getUserWishList } = useWishListContext();
-  const { user } = useAuthStorage()
-  const { addToCart, loading, error, removeFromCart,updateQuantity } = useCartOrder();
-  const { state, dispatch } = useOrder();
+  const { user } = useUserStore();
+  const { data: wishListsData = [], removeFromWishlist, isLoading: isWishlistLoading } = useWishlistQuery(user?._id);
+  const { items: cartLines, addItem, removeItem, updateQuantity } = useCartStore();
   const router = useRouter();
-  const { filters, updateFilter } = useFilterContext();
-useEffect(() => {
-  if(user?._id){
-    getUserWishList(user?._id);
-  }
-}, [user?._id]);
+  const { filters, updateFilter } = useFilterStore();
   // State management
   const [cartOpen, setCartOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
@@ -80,39 +74,27 @@ useEffect(() => {
   const [isLoading, setIsLoading] = useState(false);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
 
-  const [cartItems, setCartItems] = useState<CartItem[]>(
-    state.items.map((item) => ({
-      id: item.id,
-      name: item.name ?? '',
-      price: item.price,
-      originalPrice: item?.originalPrice ?? item.price,
-      discount: item.discount ?? 0,
-      images: item.images ?? '',
-      rating: item.rating ?? 0,
-      reviews: item.reviews ?? 0,
-      category: item.category ?? '',
-      inStock: item.inStock ?? true,
-      features: item.features ?? [],
-      specifications: item.specifications ?? {},
-      brand: item.brand ?? '',
-      sku: item.sku ?? '',
-      weight: item.weight ?? '',
-      dimensions: item.dimensions ?? '',
-      quantity: item.quantity,
-    } as CartItem))
-  );
+  const cartItems = useMemo(() => cartLines.map((item) => ({
+    id: item.id,
+    name: item.name ?? '',
+    price: item.price,
+    originalPrice: item?.originalPrice ?? item.price,
+    discount: item.discount ?? 0,
+    images: item.image ? [item.image] : [],
+    quantity: item.quantity,
+  }) as any), [cartLines]);
 
   // Enhanced wishlist operations
   const handleRemove = useCallback((id: any) => {
-    removeWishList(user?._id, id);
-  }, [removeWishList]);
+    removeFromWishlist({ userId: user?._id || '', productId: id });
+  }, [removeFromWishlist, user?._id]);
 
   const handleBulkRemove = useCallback(() => {
     selectedItems.forEach((itemId) => {
-      removeWishList(user?._id, itemId.toString());
+      removeFromWishlist({ userId: user?._id || '', productId: itemId.toString() });
     });
     setSelectedItems([]);
-  }, [selectedItems, removeWishList]);
+  }, [selectedItems, removeFromWishlist, user?._id]);
 
   const handleSelectAll = useCallback(() => {
     console.log("wishListsData", wishListsData)
@@ -125,30 +107,31 @@ useEffect(() => {
     }
   }, [selectedItems.length, wishListsData]);
 
-  const isInCart = useCallback((id: number) => {
-    return state.items.some((item: CartLine) => item.id === id);
-  }, [state.items]);
+  const isInCart = useCallback((id: string) => {
+    return cartLines.some((item) => (item.productId || String(item.id).split(':')[0]) === id);
+  }, [cartLines]);
 
   const addToCart1 = useCallback(async (item: Product) => {
     if (!user?._id) return;
 
     const cartItem: any = {
-      id: item._id,
+      id: `${item._id || item.id}:base`,
+      productId: item._id || String(item.id),
+      configKey: 'base',
       name: item.name,
       price: item.price,
       quantity: 1,
       image: item.images[0],
     };
 
-    let response = await addToCart(user?._id, cartItem);
-    console.log("response", response)
-  }, [cartItems, addToCart]);
+    addItem(cartItem);
+  }, [addItem, user?._id]);
 
   const addAllToCart = useCallback(() => {
     setIsLoading(true);
     selectedItems.forEach((itemId) => {
-      const item = wishListsData?.find((w: any) => parseInt(w._id, 10) === itemId);
-      if (item && !isInCart(itemId)) {
+      const item = wishListsData?.find((w: any) => String(w._id) === String(itemId) || String(w.id) === String(itemId));
+      if (item && !isInCart(item._id || String(item.id))) {
         addToCart1(item as any);
       }
     });
@@ -159,27 +142,13 @@ useEffect(() => {
   }, [selectedItems, wishListsData, isInCart, addToCart1]);
 
   const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const productId = parseInt(itemId);
-    const currentItem = state.items.find((item: any) => item._id === productId);
+    const currentItem = cartLines.find((item: any) => item.productId === itemId || String(item.id).split(':')[0] === itemId);
 
     if (currentItem) {
       const newQuantity = Math.max(0, currentItem.quantity + change);
-
-      if (newQuantity === 0) {
-        // Remove item if quantity becomes 0
-        setCartItems(cartItems.filter((item: any) => item._id !== productId));
-        // dispatch({ type: "REMOVE_ITEM", id: productId });
-        updateQuantity(user?._id, productId, newQuantity);
-      } else {
-        // Update quantity in both local state and global state
-        setCartItems(cartItems.map((item: any) =>
-          item.id === productId ? { ...item, quantity: newQuantity } : item
-        ));
-        dispatch({ type: "UPDATE_QUANTITY", id: productId, qty: newQuantity });
-        updateQuantity(user?._id, productId, newQuantity);
-      }
+      updateQuantity(currentItem.id, newQuantity);
     }
-  }, [cartItems, dispatch, state.items]);
+  }, [cartLines, updateQuantity]);
 
   const getTotalPrice = useCallback(() => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -593,11 +562,10 @@ useEffect(() => {
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-3 h-3 ${
-                                i < Math.floor(product.rating || 0)
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`}
+                              className={`w-3 h-3 ${i < Math.floor(product.rating || 0)
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-300'
+                                }`}
                             />
                           ))}
                         </div>
@@ -706,11 +674,10 @@ useEffect(() => {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${
-                                  i < Math.floor(product.rating || 0)
-                                    ? 'text-yellow-400 fill-current'
-                                    : 'text-gray-300'
-                                }`}
+                                className={`w-4 h-4 ${i < Math.floor(product.rating || 0)
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-300'
+                                  }`}
                               />
                             ))}
                           </div>
@@ -967,7 +934,7 @@ useEffect(() => {
         <AddressModal
           addressOpen={addressOpen}
           setAddressOpen={setAddressOpen}
-          // type={type}
+        // type={type}
         />
       )}
 

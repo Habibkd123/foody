@@ -5,23 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuthStorage } from "@/hooks/useAuth";
+import { useUserStore } from "@/lib/store/useUserStore";
 import { Camera, Upload, Edit, Loader2 } from "lucide-react";
 
 interface EditProfileModalProps {
   open: boolean;
   onClose: () => void;
-  user: any;
-  setUser: (user: any) => void;
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ open, onClose, user, setUser }) => {
-  const { updateUser } = useAuthStorage();
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ open, onClose }) => {
+  const { user, updateUser } = useUserStore();
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
-    // email: user?.email || "",
-    // phone: user?.phone || "",
     image: user?.image || "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -31,11 +27,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ open, onClose, user
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const updatedUser = await updateUser(formData);
-      setUser(updatedUser);
-      
+      await updateUser(formData);
       onClose();
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -103,7 +97,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ open, onClose, user
             Edit Profile
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar Section */}
           <div className="flex flex-col items-center space-y-4">

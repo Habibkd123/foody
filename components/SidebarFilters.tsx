@@ -1,7 +1,7 @@
 // export default SidebarFilters;
 import React, { useState, useEffect, useCallback } from 'react';
 import { Filter, Star, X, ChevronDown, ChevronUp, Search, Trash2, Check } from 'lucide-react';
-import { useFilterContext } from '@/context/FilterContext';
+import { useFilterStore } from '@/lib/store/useFilterStore';
 import { getCategories } from './APICall/category';
 
 interface SidebarFiltersProps {
@@ -11,8 +11,8 @@ interface SidebarFiltersProps {
 }
 
 const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClose, productsData }) => {
-  const { filters, updateFilter, toggleArrayFilter } = useFilterContext();
-  
+  const { filters, updateFilter, toggleArrayFilter } = useFilterStore();
+
   // Enhanced state management
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
@@ -22,7 +22,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({ isMobile = false, onClo
   const [categorySearch, setCategorySearch] = useState('');
   const [animatingFilters, setAnimatingFilters] = useState<string[]>([]);
   const [filterCounts, setFilterCounts] = useState({ categories: 0, priceRanges: 0, ratings: 0 });
-const [categoryData, setCategoryData] = useState<any>([]);
+  const [categoryData, setCategoryData] = useState<any>([]);
   // Basic grocery and bakery categories only
   const categories = [
     { key: 'all', label: 'All Products', icon: '🛒', color: 'bg-gray-100' },
@@ -58,28 +58,28 @@ const [categoryData, setCategoryData] = useState<any>([]);
   const filteredCategories = categories.filter(cat =>
     cat.label.toLowerCase().includes(categorySearch.toLowerCase())
   );
-const getCategoryData= useCallback(async()=>{
-  try {
-    let payload={
-      search:categorySearch,
-      limit:10,
-      page:1,
-      sort:"asc"
+  const getCategoryData = useCallback(async () => {
+    try {
+      let payload = {
+        search: categorySearch,
+        limit: 10,
+        page: 1,
+        sort: "asc"
+      }
+      const response = await getCategories(payload)
+      console.log("response", response)
+      if (response.success) {
+        setCategoryData(response.data.categories)
+      }
+    } catch (error) {
+      console.log(error)
     }
-    const response=await getCategories(payload)
-    console.log("response",response)
-    if(response.success){
-      setCategoryData(response.data.categories)
-    }
-  } catch (error) {
-    console.log(error)
-  }
-},[categorySearch])
+  }, [categorySearch])
 
 
-useEffect(()=>{
-  getCategoryData()
-},[getCategoryData])
+  useEffect(() => {
+    getCategoryData()
+  }, [getCategoryData])
 
   // Calculate active filter counts
   useEffect(() => {
@@ -102,13 +102,13 @@ useEffect(()=>{
   const handleFilterChange = (type: string, value: any, isToggle = false) => {
     const filterId = `${type}-${value}`;
     setAnimatingFilters(prev => [...prev, filterId]);
-    
+
     if (isToggle) {
       toggleArrayFilter(type as any, value);
     } else {
       updateFilter(type as any, value);
     }
-    
+
     setTimeout(() => {
       setAnimatingFilters(prev => prev.filter(id => id !== filterId));
     }, 300);
@@ -125,19 +125,19 @@ useEffect(()=>{
 
   const totalActiveFilters = filterCounts.categories + filterCounts.priceRanges + filterCounts.ratings;
 
-  const containerClasses = isMobile 
-    ? "w-full bg-white rounded-xl shadow-lg border border-gray-100 backdrop-blur-sm" 
+  const containerClasses = isMobile
+    ? "w-full bg-white rounded-xl shadow-lg border border-gray-100 backdrop-blur-sm"
     : "w-72 bg-white rounded-xl shadow-lg p-6 h-fit sticky top-24 border border-gray-100 backdrop-blur-sm";
 
   // Section Header Component
-  const SectionHeader = ({ 
-    title, 
-    count, 
-    section, 
-    icon 
-  }: { 
-    title: string; 
-    count: number; 
+  const SectionHeader = ({
+    title,
+    count,
+    section,
+    icon
+  }: {
+    title: string;
+    count: number;
     section: keyof typeof expandedSections;
     icon: React.ReactNode;
   }) => (
@@ -179,7 +179,7 @@ useEffect(()=>{
             )}
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {totalActiveFilters > 0 && (
             <button
@@ -190,7 +190,7 @@ useEffect(()=>{
               <Trash2 className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform duration-300" />
             </button>
           )}
-          
+
           {isMobile && onClose && (
             <button
               onClick={onClose}
@@ -205,16 +205,15 @@ useEffect(()=>{
       <div className={`space-y-4 ${isMobile ? 'p-4 pt-0' : ''}`}>
         {/* Categories Section */}
         <div className="border border-gray-100 rounded-lg overflow-hidden">
-          <SectionHeader 
-            title="Categories" 
+          <SectionHeader
+            title="Categories"
             count={filterCounts.categories}
             section="categories"
             icon={<span className="text-lg">🏪</span>}
           />
-          
-          <div className={`transition-all duration-500 ease-in-out ${
-            expandedSections.categories ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          } overflow-hidden`}>
+
+          <div className={`transition-all duration-500 ease-in-out ${expandedSections.categories ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            } overflow-hidden`}>
             <div className="p-3 pt-0">
               {/* Category Search */}
               <div className="relative mb-3">
@@ -229,16 +228,15 @@ useEffect(()=>{
               </div>
 
               <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                {categoryData.map((cat:any, index:any) => {
+                {categoryData.map((cat: any, index: any) => {
                   const isActive = filters.category === cat._id;
                   const isAnimating = animatingFilters.includes(`category-${cat._id}`);
-                  
+
                   return (
-                    <label 
-                      key={cat._id} 
-                      className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${
-                        isActive ? 'bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200' : 'hover:bg-gray-50'
-                      } ${isAnimating ? 'scale-105' : 'scale-100'}`}
+                    <label
+                      key={cat._id}
+                      className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${isActive ? 'bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200' : 'hover:bg-gray-50'
+                        } ${isAnimating ? 'scale-105' : 'scale-100'}`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="relative">
@@ -249,24 +247,22 @@ useEffect(()=>{
                           checked={isActive}
                           onChange={() => handleFilterChange('category', cat._id)}
                         />
-                        <div className={`w-5 h-5 rounded-full border-2 transition-all duration-300 ${
-                          isActive 
-                            ? 'border-orange-500 bg-orange-500' 
-                            : 'border-gray-300 hover:border-orange-400'
-                        }`}>
+                        <div className={`w-5 h-5 rounded-full border-2 transition-all duration-300 ${isActive
+                          ? 'border-orange-500 bg-orange-500'
+                          : 'border-gray-300 hover:border-orange-400'
+                          }`}>
                           {isActive && (
                             <Check className="w-3 h-3 text-white absolute top-0.5 left-0.5" />
                           )}
                         </div>
                       </div>
-                      
+
                       <div className={`ml-3 p-2 rounded-lg ${cat.color} transition-all duration-300`}>
                         <img className="w-6 h-6 rounded-full" src={cat.image} alt={cat.name} />
                       </div>
-                      
-                      <span className={`ml-3 text-sm font-medium transition-colors duration-300 ${
-                        isActive ? 'text-orange-700' : 'text-gray-700'
-                      }`}>
+
+                      <span className={`ml-3 text-sm font-medium transition-colors duration-300 ${isActive ? 'text-orange-700' : 'text-gray-700'
+                        }`}>
                         {cat.name}
                       </span>
                     </label>
@@ -279,27 +275,25 @@ useEffect(()=>{
 
         {/* Price Range Section */}
         <div className="border border-gray-100 rounded-lg overflow-hidden">
-          <SectionHeader 
-            title="Price Range" 
+          <SectionHeader
+            title="Price Range"
             count={filterCounts.priceRanges}
             section="priceRanges"
             icon={<span className="text-lg">💰</span>}
           />
-          
-          <div className={`transition-all duration-500 ease-in-out ${
-            expandedSections.priceRanges ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
-          } overflow-hidden`}>
+
+          <div className={`transition-all duration-500 ease-in-out ${expandedSections.priceRanges ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
+            } overflow-hidden`}>
             <div className="p-3 pt-0 space-y-2">
               {priceRanges.map((range, index) => {
                 const isActive = filters.priceRanges.includes(range.key);
                 const isAnimating = animatingFilters.includes(`priceRanges-${range.key}`);
-                
+
                 return (
-                  <label 
-                    key={range.key} 
-                    className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${
-                      isActive ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200' : 'hover:bg-gray-50'
-                    } ${isAnimating ? 'scale-105' : 'scale-100'}`}
+                  <label
+                    key={range.key}
+                    className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${isActive ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200' : 'hover:bg-gray-50'
+                      } ${isAnimating ? 'scale-105' : 'scale-100'}`}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="relative">
@@ -309,24 +303,22 @@ useEffect(()=>{
                         checked={isActive}
                         onChange={() => handleFilterChange('priceRanges', range.key, true)}
                       />
-                      <div className={`w-5 h-5 rounded border-2 transition-all duration-300 ${
-                        isActive 
-                          ? 'border-blue-500 bg-blue-500' 
-                          : 'border-gray-300 hover:border-blue-400'
-                      }`}>
+                      <div className={`w-5 h-5 rounded border-2 transition-all duration-300 ${isActive
+                        ? 'border-blue-500 bg-blue-500'
+                        : 'border-gray-300 hover:border-blue-400'
+                        }`}>
                         {isActive && (
                           <Check className="w-3 h-3 text-white absolute top-0.5 left-0.5" />
                         )}
                       </div>
                     </div>
-                    
+
                     <div className={`ml-3 px-2 py-1 rounded ${range.color}`}>
                       <span className="text-xs font-medium">₹</span>
                     </div>
-                    
-                    <span className={`ml-3 text-sm font-medium transition-colors duration-300 ${
-                      isActive ? 'text-blue-700' : 'text-gray-700'
-                    }`}>
+
+                    <span className={`ml-3 text-sm font-medium transition-colors duration-300 ${isActive ? 'text-blue-700' : 'text-gray-700'
+                      }`}>
                       {range.label}
                     </span>
                   </label>
@@ -338,27 +330,25 @@ useEffect(()=>{
 
         {/* Rating Section */}
         <div className="border border-gray-100 rounded-lg overflow-hidden">
-          <SectionHeader 
-            title="Customer Rating" 
+          <SectionHeader
+            title="Customer Rating"
             count={filterCounts.ratings}
             section="ratings"
             icon={<Star className="w-5 h-5 text-yellow-500 fill-current" />}
           />
-          
-          <div className={`transition-all duration-500 ease-in-out ${
-            expandedSections.ratings ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
-          } overflow-hidden`}>
+
+          <div className={`transition-all duration-500 ease-in-out ${expandedSections.ratings ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
+            } overflow-hidden`}>
             <div className="p-3 pt-0 space-y-2">
               {ratings.map((rating, index) => {
                 const isActive = filters.ratings.includes(rating.value);
                 const isAnimating = animatingFilters.includes(`ratings-${rating.value}`);
-                
+
                 return (
-                  <label 
-                    key={rating.value} 
-                    className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${
-                      isActive ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' : 'hover:bg-gray-50'
-                    } ${isAnimating ? 'scale-105' : 'scale-100'}`}
+                  <label
+                    key={rating.value}
+                    className={`flex items-center cursor-pointer p-3 rounded-lg transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 ${isActive ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200' : 'hover:bg-gray-50'
+                      } ${isAnimating ? 'scale-105' : 'scale-100'}`}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="relative">
@@ -368,33 +358,30 @@ useEffect(()=>{
                         checked={isActive}
                         onChange={() => handleFilterChange('ratings', rating.value, true)}
                       />
-                      <div className={`w-5 h-5 rounded border-2 transition-all duration-300 ${
-                        isActive 
-                          ? 'border-green-500 bg-green-500' 
-                          : 'border-gray-300 hover:border-green-400'
-                      }`}>
+                      <div className={`w-5 h-5 rounded border-2 transition-all duration-300 ${isActive
+                        ? 'border-green-500 bg-green-500'
+                        : 'border-gray-300 hover:border-green-400'
+                        }`}>
                         {isActive && (
                           <Check className="w-3 h-3 text-white absolute top-0.5 left-0.5" />
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="ml-3 flex items-center">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 transition-colors duration-300 ${
-                              i < rating.value 
-                                ? 'text-yellow-400 fill-current' 
-                                : 'text-gray-300'
-                            }`}
+                            className={`w-4 h-4 transition-colors duration-300 ${i < rating.value
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-300'
+                              }`}
                           />
                         ))}
                       </div>
-                      <span className={`ml-2 text-sm font-medium transition-colors duration-300 ${
-                        isActive ? 'text-green-700' : 'text-gray-600'
-                      }`}>
+                      <span className={`ml-2 text-sm font-medium transition-colors duration-300 ${isActive ? 'text-green-700' : 'text-gray-600'
+                        }`}>
                         {rating.label}
                       </span>
                     </div>
@@ -410,17 +397,16 @@ useEffect(()=>{
           <div className="flex gap-2">
             <button
               onClick={clearAllFilters}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
-                totalActiveFilters > 0 
-                  ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200' 
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              } ${animatingFilters.includes('clear-all') ? 'animate-pulse' : ''}`}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${totalActiveFilters > 0
+                ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                } ${animatingFilters.includes('clear-all') ? 'animate-pulse' : ''}`}
               disabled={totalActiveFilters === 0}
             >
               <Trash2 className="w-4 h-4 inline mr-2" />
               Clear All
             </button>
-            
+
             {isMobile && (
               <button
                 onClick={onClose}

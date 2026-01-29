@@ -6,8 +6,9 @@ import { TrendingUp, Star, Heart, ShoppingCart, Eye, ArrowRight } from "lucide-r
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { useProductsContext } from "@/context/AllProductContext"
+import { useProductsQuery } from "@/hooks/useProductsQuery"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface TrendingProductsProps {
   onAddToCart: (product: Product) => void
@@ -15,19 +16,14 @@ interface TrendingProductsProps {
 }
 
 export default function TrendingProducts({ onAddToCart, onToggleWishlist }: TrendingProductsProps) {
-  const { productsData } = useProductsContext()
-  const [trendingProducts, setTrendingProducts] = useState<Product[]>([])
+  const { data: productsData = [] } = useProductsQuery()
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-let router = useRouter()
-  useEffect(() => {
-    // Simulate trending products based on rating and sales
-    const trending = productsData
-      .filter(product => product.rating && product.rating >= 4.0)
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      .slice(0, 10)
-    
-    setTrendingProducts(trending)
-  }, [productsData])
+  const router = useRouter()
+
+  const trendingProducts = productsData
+    .filter(product => product.rating && product.rating >= 4.0)
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 10)
 
   const categories = [
     { id: 'all', name: 'All Trending', color: 'bg-primary' },
@@ -36,8 +32,8 @@ let router = useRouter()
     { id: 'masala', name: 'Spices', color: 'bg-primary' },
   ]
 
-  const filteredProducts = selectedCategory === 'all' 
-    ? trendingProducts 
+  const filteredProducts = selectedCategory === 'all'
+    ? trendingProducts
     : trendingProducts.filter(product => product.category === selectedCategory)
 
   return (
@@ -62,11 +58,10 @@ let router = useRouter()
               <Button
                 key={category.id}
                 variant={selectedCategory === category.id ? "default" : "outline"}
-                className={`rounded-full px-6 py-2 transition-all duration-300 ${
-                  selectedCategory === category.id
-                    ? `${category.color} text-white hover:shadow-soft-lg transform scale-105`
-                    : 'hover:bg-secondary hover:border-border'
-                }`}
+                className={`rounded-full px-6 py-2 transition-all duration-300 ${selectedCategory === category.id
+                  ? `${category.color} text-white hover:shadow-soft-lg transform scale-105`
+                  : 'hover:bg-secondary hover:border-border'
+                  }`}
                 onClick={() => setSelectedCategory(category.id)}
               >
                 {category.name}
@@ -79,29 +74,30 @@ let router = useRouter()
         <div className="relative">
           <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
             {filteredProducts.map((product, index) => (
-              <div 
-                key={product._id} 
+              <div
+                key={product._id}
                 className="flex-none w-72 group"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <Card className="h-full hover:shadow-soft-lg transition-all duration-300 overflow-hidden border-border hover:scale-105">
                   <CardContent className="p-0">
                     {/* Product Image with trending badge */}
-                    <div className="relative">
+                    <div className="relative h-56 w-full">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent z-10"></div>
-                      <img
+                      <Image
                         src={product.images?.[0] || "/placeholder.svg"}
                         alt={product.name}
-                        className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      
+
                       {/* Trending Badge */}
                       <div className="absolute top-3 left-3 z-20">
                         <Badge className="bg-primary hover:bg-primary text-white px-3 py-1 animate-pulse">
                           🔥 Trending
                         </Badge>
                       </div>
-                      
+
                       {/* Rating Badge */}
                       <div className="absolute top-3 right-3 z-20">
                         <div className="bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
@@ -133,7 +129,7 @@ let router = useRouter()
                       <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                         {product.name}
                       </h3>
-                      
+
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -142,7 +138,7 @@ let router = useRouter()
                             ({product.reviews?.length || 0})
                           </span>
                         </div>
-                        
+
                         {/* Stock indicator */}
                         <Badge variant="secondary" className="text-xs">
                           In Stock
@@ -158,7 +154,7 @@ let router = useRouter()
                             </span>
                           )}
                         </div>
-                        
+
                         {product.discount && product.discount > 0 && (
                           <Badge className="bg-secondary text-foreground">
                             {product.discount}% OFF
@@ -167,7 +163,7 @@ let router = useRouter()
                       </div>
 
                       {/* Add to Cart Button */}
-                      <Button 
+                      <Button
                         className="w-full bg-primary hover:bg-primary text-white font-semibold group"
                         onClick={() => onAddToCart(product)}
                       >
@@ -182,7 +178,7 @@ let router = useRouter()
           </div>
 
           {/* Navigation Arrows */}
-          <button 
+          <button
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-30"
             onClick={() => {
               const container = document.querySelector('.scrollbar-hide')
@@ -191,7 +187,7 @@ let router = useRouter()
           >
             <ArrowRight className="w-5 h-5 rotate-180" />
           </button>
-          <button 
+          <button
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-30"
             onClick={() => {
               const container = document.querySelector('.scrollbar-hide')
@@ -204,9 +200,9 @@ let router = useRouter()
 
         {/* View All Button */}
         <div className="text-center mt-8">
-          <Button 
+          <Button
             onClick={() => router.push('/productlist')}
-            variant="outline" 
+            variant="outline"
             className="border-border text-primary hover:bg-secondary hover:border-border group"
           >
             View All Trending Products

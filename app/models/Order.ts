@@ -81,8 +81,8 @@ const OrderSchema = new Schema<IOrder>({
   // payment: { type: Schema.Types.ObjectId, ref: 'Payment' },
   paymentId: { type: String, required: true },
   delivery: { type: Schema.Types.ObjectId, ref: 'Delivery' },
-  rider: { type: Schema.Types.ObjectId, ref: 'Rider' },
-  method: { type: String, enum: ["card", "upi",'razorpay'], default: "card" },
+  rider: { type: Schema.Types.ObjectId, ref: 'User' },
+  method: { type: String, enum: ["card", "upi", 'razorpay'], default: "card" },
 }, { timestamps: true });
 
 export default mongoose.models.Order || model<IOrder>('Order', OrderSchema);

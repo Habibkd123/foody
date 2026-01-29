@@ -6,28 +6,30 @@ import Script from "next/script";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import HeroSlider from "@/components/ui/HeroSlider";
 import { useRouter } from "next/navigation";
-import { useFilterContext } from "@/context/FilterContext";
-import { useWishListContext } from "@/context/WishListsContext";
-import LocationSelector from "@/components/LocationSelector";
+import { useFilterStore } from "@/lib/store/useFilterStore";
+import { useWishlistQuery } from "@/hooks/useWishlistQuery";
 import Link from "next/link";
 import NavbarFilter from "@/components/NavbarFilter";
 import { Heart, ChevronUp, ArrowRight, ShoppingBag, Clock } from 'lucide-react';
+import dynamic from "next/dynamic";
+
+const LocationSelector = dynamic(() => import("@/components/LocationSelector"), { ssr: false });
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuthStorage } from "@/hooks/useAuth";
+import { useUserStore } from "@/lib/store/useUserStore";
 import NotificationCenter from "@/components/NotificationCenter";
 import AppHeader from "@/components/ui/AppHeader";
 import NotificationBanner from "@/components/NotificationBanner";
 import AddCardList from "@/components/AddCards";
-import { useCartOrder, useOrder } from "@/context/OrderContext";
+import { useCartStore } from "@/lib/store/useCartStore";
 import { Product } from "@/types/global";
 import { CategorySection, CategorySectionSkeleton } from "@/components/home/CategoryGridSection";
 import SiteFooter from "@/components/home/SiteFooter";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
-  const { filters, updateFilter } = useFilterContext();
-  const { wishListsData } = useWishListContext();
-  const { user, logout } = useAuthStorage();
+  const { filters, updateFilter } = useFilterStore();
+  const { user, logout } = useUserStore();
+  const { data: wishListsData = [] } = useWishlistQuery(user?._id);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -38,8 +40,12 @@ const HomePage: React.FC = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
 
-  const { state } = useOrder();
-  const { removeFromCart, updateQuantity } = useCartOrder();
+  const {
+    items: cartStoreItems,
+    removeItem: removeFromCart,
+    updateQuantity: updateCartQuantity,
+    getTotalAmount
+  } = useCartStore();
 
   const fetchCategories = async () => {
     setCategoriesLoading(true);
@@ -79,26 +85,15 @@ const HomePage: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("G-user");
-    localStorage.removeItem("token");
     logout();
     router.push('/login');
   };
 
-  const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const productId = itemId;
-    const currentItem = state.items.find((item: any) => (item._id || item.id) === productId);
-    if (currentItem) {
-      const newQuantity = Math.max(0, (currentItem.quantity || 0) + change);
-      updateQuantity(user?._id, productId, newQuantity);
-    }
-  }, [state.items, updateQuantity, user?._id]);
-
   const getCartQuantity = useCallback((product: any) => {
     const pid = product?._id ?? product?.id;
-    const cartItem = state.items.find((item: any) => (item._id ?? item.id) === pid);
+    const cartItem = cartStoreItems.find((item: any) => (item._id ?? item.id) === pid);
     return cartItem ? cartItem.quantity : 0;
-  }, [state.items]);
+  }, [cartStoreItems]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -118,10 +113,8 @@ const HomePage: React.FC = () => {
         }}
       />
 
-      {/* Announcement Bar */}
       <AnnouncementBar />
 
-      {/* App Header */}
       <AppHeader
         logoSrc="/logoGro.png"
         title="Gro-Delivery"
@@ -144,12 +137,11 @@ const HomePage: React.FC = () => {
             icon: (
               <AddCardList
                 cartItems={cartItems}
-                removeFromCart={(id: any) => removeFromCart(user?._id, id)}
+                removeFromCart={(id: any) => removeFromCart(id)}
                 updateQuantity={(itemId: any, newQuantity: any) => {
-                  const currentQty = getCartQuantity({ id: itemId });
-                  updateQuantity1(itemId.toString(), newQuantity - currentQty);
+                  updateCartQuantity(itemId, newQuantity);
                 }}
-                getTotalPrice={() => state.items.reduce((total, i) => total + i.price * i.quantity, 0)}
+                getTotalPrice={() => getTotalAmount()}
                 setCartItems={setCartItems}
                 cartOpen={cartOpen}
                 setCartOpen={setCartOpen}
@@ -172,7 +164,6 @@ const HomePage: React.FC = () => {
         ]}
       />
 
-      {/* Profile Dropdown Menu */}
       {profileMenuOpen && (
         <div className="fixed right-4 top-16 z-[60] bg-card border border-border shadow-soft-lg rounded-lg w-56">
           <div className="p-3 border-b border-border">
@@ -185,8 +176,8 @@ const HomePage: React.FC = () => {
                 height={40}
               />
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{(user as any)?.firstName + " " + (user as any)?.lastName || 'Your Account'}</p>
-                <p className="text-xs text-muted-foreground truncate">{(user as any)?.email || ''}</p>
+                <p className="text-sm font-medium truncate">{user?.name || (user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'Your Account')}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
             </div>
           </div>
@@ -197,19 +188,15 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Main Content */}
       <main className="flex-1">
-        {/* Notification Banner */}
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
           <NotificationBanner location="home" />
         </div>
 
-        {/* Navigation Filter Bar - Desktop Only */}
         <nav className="hidden md:block sticky top-16 z-40 backdrop-blur-md bg-white/80 border-b border-border">
           <NavbarFilter />
         </nav>
 
-        {/* Floating Background Decorations */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden h-full w-full">
           <motion.div
             animate={{
@@ -233,14 +220,12 @@ const HomePage: React.FC = () => {
           />
         </div>
 
-        {/* Hero Section */}
         <section className="relative h-[65vh] sm:h-[75vh] lg:h-[85vh] flex items-center justify-center overflow-hidden mx-2 sm:mx-4 md:mx-6 lg:mx-8 mt-4 rounded-[2.5rem] shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-10 transition-opacity duration-700"></div>
           <div className="absolute inset-0">
             <HeroSlider type="Home" />
           </div>
 
-<<<<<<< HEAD
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -269,31 +254,6 @@ const HomePage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-=======
-          {/* Navigation Filter (sticky under header) */}
-          <nav className="hidden md:block sticky top-20 z-40 backdrop-blur-md bg-background/90 border-b border-border" aria-label="Product filters">
-            <NavbarFilter />
-          </nav>
-
-
-          <section
-            id="home"
-            className="relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
-            <div className="absolute inset-0 bg-cover bg-center bg-no-repeat">
-              <HeroSlider type="Home" />
-            </div>
-            <h1 className="sr-only">Gro-Delivery — Order fresh groceries and modern milkshakes online</h1>
-            <div className="relative z-20 text-center px-4">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white drop-shadow-md">
-                Fresh Groceries, Faster Delivery
-              </h2>
-              <p className="mt-3 text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-                Order daily essentials and delightful milkshakes with lightning-fast delivery and great prices.
-              </p>
-              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
->>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
                 <Link
                   href="/productlist"
                   className="group relative flex items-center gap-3 bg-primary px-10 py-4 rounded-2xl text-white font-bold text-lg shadow-[0_10px_40px_-10px_rgba(255,138,0,0.5)] transition-all overflow-hidden"
@@ -302,7 +262,6 @@ const HomePage: React.FC = () => {
                   Get Started
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
-<<<<<<< HEAD
               </motion.div>
 
               <button
@@ -316,59 +275,16 @@ const HomePage: React.FC = () => {
                 <motion.div
                   animate={{ y: [0, 5, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
-=======
-                <Link
-                  href="#categories"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const el = document.getElementById('categories');
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/90 text-gray-900 px-5 py-3 font-medium shadow hover:bg-white w-full sm:w-auto justify-center"
-                  aria-label="Browse categories"
->>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
                 >
                   <ChevronUp className="w-5 h-5 rotate-180" />
                 </motion.div>
               </button>
             </div>
-<<<<<<< HEAD
           </motion.div>
-=======
-          </section>
-          <div id="categories" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-            {categoriesLoading ? (
-              <>
-                <CategorySectionSkeleton />
-                <CategorySectionSkeleton />
-                <CategorySectionSkeleton />
-              </>
-            ) : categories && categories.length > 0 ? (
-              categories.filter((section: any) => Array.isArray(section?.products) && section.products.length > 0).map((section, idx) => (
-                // @ts-ignore
-                <CategorySection section={section} key={idx} />
-              ))
-            ) : (
-              <>
-                {categoriesError ? (
-                  <>
-                    <CategorySectionSkeleton />
-                    <div className="text-center text-gray-400 py-6">Unable to load categories right now.</div>
-                  </>
-                ) : (
-                  <div className="text-center text-gray-400 py-12">No categories available.</div>
-                )}
-              </>
-            )}
-          </div>
->>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
 
-          {/* Bottom Fade Gradient */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
         </section>
 
-<<<<<<< HEAD
-        {/* Categories Grid Section */}
         <div id="categories" className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {categoriesLoading ? (
             <div className="space-y-12">
@@ -389,73 +305,19 @@ const HomePage: React.FC = () => {
           ) : (
             <div className="text-center py-20">
               <p className="text-gray-500 italic">No categories available at the moment.</p>
-=======
-          {/* Footer */}
-          <footer className="hidden md:block bg-gray-900 text-white mt-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                      G
-                    </div>
-                    <h3 className="text-xl font-bold">Gro-Delivery</h3>
-                  </div>
-                  <p className="text-gray-400 mb-4">
-                    Fresh groceries delivered to your doorstep. Quality products, quick delivery, happy customers.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-                  <div className="space-y-2">
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">About Us</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Contact</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">FAQs</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Support</a>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Categories</h4>
-                  <div className="space-y-2">
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Fruits & Vegetables</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Dairy Products</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Snacks & Beverages</a>
-                    <a href="#" className="block text-gray-400 hover:text-white transition-colors">Personal Care</a>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
-                  <div className="space-y-2 text-gray-400">
-                    <p>📞 +91 98765 43210</p>
-                    <p>📧 info@gro-delivery.com</p>
-                    <p>📍 Jaipur, Rajasthan</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 Gro-Delivery. All rights reserved.</p>
-              </div>
->>>>>>> 015fe6378cf3220324ea81f9c6ca9db3570b7810
             </div>
           )}
         </div>
 
-        {/* Recently Viewed Feature */}
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-12">
           <RecentlyViewedHome />
         </div>
       </main>
 
-      {/* Site Footer */}
       <SiteFooter />
 
-      {/* Sticky Mobile Cart Pill */}
       <AnimatePresence>
-        {state.items.length > 0 && (
+        {cartStoreItems.length > 0 && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -469,12 +331,12 @@ const HomePage: React.FC = () => {
               <div className="relative">
                 <ShoppingBag className="w-5 h-5" />
                 <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                  {state.items.length}
+                  {cartStoreItems.length}
                 </span>
               </div>
               <div className="flex flex-col items-start leading-none">
                 <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Cart Total</span>
-                <span className="text-sm font-bold">₹{state.items.reduce((total, i) => total + (i.price * i.quantity), 0)}</span>
+                <span className="text-sm font-bold">₹{getTotalAmount()}</span>
               </div>
               <div className="h-6 w-[1px] bg-white/20 mx-1"></div>
               <span className="text-sm font-black text-primary uppercase">View Cart</span>
@@ -483,7 +345,6 @@ const HomePage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Scroll to Top Button */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
@@ -528,11 +389,12 @@ const RecentlyViewedHome = () => {
             href={`/products/${p._id}`}
             className="group block"
           >
-            <div className="aspect-square rounded-2xl overflow-hidden mb-3 bg-gray-50 border border-gray-100 group-hover:border-primary transition-colors">
-              <img
-                src={p.images?.[0]}
+            <div className="relative aspect-square rounded-2xl overflow-hidden mb-3 bg-gray-50 border border-gray-100 group-hover:border-primary transition-colors">
+              <Image
+                src={p.images?.[0] || '/placeholder.svg'}
                 alt={p.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>
             <h4 className="text-sm font-semibold truncate group-hover:text-primary transition-colors text-gray-800">

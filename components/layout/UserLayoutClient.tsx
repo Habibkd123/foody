@@ -6,10 +6,10 @@ import AnnouncementBar from '@/components/AnnouncementBar';
 import AppHeader from '@/components/ui/AppHeader';
 import NotificationBanner from '@/components/NotificationBanner';
 import SiteFooter from '@/components/home/SiteFooter';
-import { useAuthStorage } from '@/hooks/useAuth';
-import { useWishListContext } from '@/context/WishListsContext';
-import { useCartOrder, useOrder } from '@/context/OrderContext';
-import { useFilterContext } from '@/context/FilterContext';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useWishlistQuery } from '@/hooks/useWishlistQuery';
+import { useCartStore } from '@/lib/store/useCartStore';
+import { useFilterStore } from '@/lib/store/useFilterStore';
 import LocationSelector from '@/components/LocationSelector';
 import NotificationCenter from '@/components/NotificationCenter';
 import { Heart, ShoppingBag } from 'lucide-react';
@@ -19,11 +19,10 @@ import Link from 'next/link';
 
 export default function UserLayoutClient({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { user, logout } = useAuthStorage();
-    const { wishListsData } = useWishListContext();
-    const { state } = useOrder();
-    const { removeFromCart, updateQuantity } = useCartOrder();
-    const { filters, updateFilter } = useFilterContext();
+    const { user, logout } = useUserStore();
+    const { data: wishListsData = [] } = useWishlistQuery(user?._id);
+    const { items: cartLines, removeItem: removeFromCart, updateQuantity } = useCartStore();
+    const { filters, updateFilter } = useFilterStore();
 
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [cartOpen, setCartOpen] = useState(false);
@@ -34,20 +33,14 @@ export default function UserLayoutClient({ children }: { children: React.ReactNo
         setProfileMenuOpen(false);
     };
 
-    const getCartQuantity = useCallback((product: any) => {
-        const pid = product?._id ?? product?.id;
-        const cartItem = state.items.find((item: any) => (item._id ?? item.id) === pid);
-        return cartItem ? cartItem.quantity : 0;
-    }, [state.items]);
 
     const updateQuantity1 = useCallback((itemId: string, change: number) => {
-        const productId = itemId;
-        const currentItem = state.items.find((item: any) => (item._id || item.id) === productId);
+        const currentItem = cartLines.find((item: any) => item.id === itemId);
         if (currentItem) {
-            const newQuantity = Math.max(0, (currentItem.quantity || 0) + change);
-            updateQuantity(user?._id, productId, newQuantity);
+            const newQuantity = Math.max(0, currentItem.quantity + change);
+            updateQuantity(itemId, newQuantity);
         }
-    }, [state.items, updateQuantity, user?._id]);
+    }, [cartLines, updateQuantity]);
 
     // Actions for AppHeader
     const headerActions = [
@@ -66,12 +59,11 @@ export default function UserLayoutClient({ children }: { children: React.ReactNo
             icon: (
                 <AddCardList
                     cartItems={cartItems}
-                    removeFromCart={(id: any) => removeFromCart(user?._id, id)}
+                    removeFromCart={(id: any) => removeFromCart(id)}
                     updateQuantity={(itemId: any, newQuantity: any) => {
-                        const currentQty = getCartQuantity({ id: itemId });
-                        updateQuantity1(itemId.toString(), newQuantity - currentQty);
+                        updateQuantity(itemId, newQuantity);
                     }}
-                    getTotalPrice={() => state.items.reduce((total, i) => total + i.price * i.quantity, 0)}
+                    getTotalPrice={() => cartLines.reduce((total, i) => total + i.price * i.quantity, 0)}
                     setCartItems={setCartItems}
                     cartOpen={cartOpen}
                     setCartOpen={setCartOpen}
@@ -132,18 +124,18 @@ export default function UserLayoutClient({ children }: { children: React.ReactNo
             )} */}
 
             <main className="flex-1">
-                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                {/* <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <NotificationBanner location={pathname.split('/')[1] || 'home'} />
-                </div>
+                </div> */}
                 {children}
             </main>
 
             {/* <SiteFooter /> */}
 
             {/* Background click handler for profile dropdown */}
-            {profileMenuOpen && (
+            {/* {profileMenuOpen && (
                 <div className="fixed inset-0 z-[55]" onClick={() => setProfileMenuOpen(false)} />
-            )}
+            )} */}
         </div>
     );
 }

@@ -113,6 +113,7 @@ export enum UserRole {
   USER = 'user',
   RESTAURANT = 'restaurant',
   ADMIN = 'admin',
+  DRIVER = 'driver',
 }
 export enum ProductStatus {
   ACTIVE = 'active',
@@ -147,6 +148,7 @@ export interface IUser extends Document {
   image: string;
   password: string;
   role: UserRole;
+  loyaltyPoints?: number;
   restaurant?: {
     status: 'pending' | 'approved' | 'rejected';
     isOpen?: boolean;
@@ -185,6 +187,59 @@ export interface IUser extends Document {
     address: string;
     openingTime: string;
     closingTime: string;
+    rating?: number;
+    reviews?: number;
+  };
+  driverDetails?: {
+    vehicleType?: 'bike' | 'scooter' | 'car';
+    vehicleNumber?: string;
+    licenseNumber?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      pincode?: string;
+    };
+    bankDetails?: {
+      accountNumber?: string;
+      ifscCode?: string;
+      accountHolderName?: string;
+    };
+    emergencyContact?: {
+      name?: string;
+      phone?: string;
+    };
+    status?: 'pending' | 'approved' | 'rejected';
+    rejectionReason?: string;
+    isVerified?: boolean;
+    isAvailable?: boolean;
+    currentLocation?: {
+      latitude?: number;
+      longitude?: number;
+      heading?: number;
+      speed?: number;
+      updatedAt?: Date;
+    };
+    documents?: {
+      licenseFront?: string;
+      licenseBack?: string;
+      aadharFront?: string;
+      aadharBack?: string;
+      vehicleRC?: string;
+      photo?: string;
+    };
+    earnings?: {
+      today?: number;
+      thisWeek?: number;
+      thisMonth?: number;
+      total?: number;
+    };
+    stats?: {
+      totalDeliveries?: number;
+      completedDeliveries?: number;
+      cancelledDeliveries?: number;
+      rating?: number;
+      reviews?: number;
+    };
   };
   addresses: Array<{
     address?: string;
@@ -223,6 +278,7 @@ const UserSchema = new Schema<IUser>(
       enum: Object.values(UserRole),
       default: UserRole.USER,
     },
+    loyaltyPoints: { type: Number, default: 0 },
     restaurant: {
       status: {
         type: String,
@@ -292,6 +348,59 @@ const UserSchema = new Schema<IUser>(
       address: { type: String, trim: true, default: '' },
       openingTime: { type: String, trim: true, default: '' },
       closingTime: { type: String, trim: true, default: '' },
+      rating: { type: Number, default: 5 },
+      reviews: { type: Number, default: 0 },
+    },
+    driverDetails: {
+      vehicleType: { type: String, enum: ['bike', 'scooter', 'car'], default: 'bike' },
+      vehicleNumber: { type: String, trim: true, default: '' },
+      licenseNumber: { type: String, trim: true, default: '' },
+      address: {
+        street: { type: String, trim: true, default: '' },
+        city: { type: String, trim: true, default: '' },
+        pincode: { type: String, trim: true, default: '' },
+      },
+      bankDetails: {
+        accountNumber: { type: String, trim: true, default: '' },
+        ifscCode: { type: String, trim: true, default: '' },
+        accountHolderName: { type: String, trim: true, default: '' },
+      },
+      emergencyContact: {
+        name: { type: String, trim: true, default: '' },
+        phone: { type: String, trim: true, default: '' },
+      },
+      status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+      rejectionReason: { type: String, trim: true, default: '' },
+      isVerified: { type: Boolean, default: false },
+      isAvailable: { type: Boolean, default: false },
+      currentLocation: {
+        latitude: { type: Number, default: 0 },
+        longitude: { type: Number, default: 0 },
+        heading: { type: Number },
+        speed: { type: Number },
+        updatedAt: { type: Date, default: Date.now },
+      },
+      documents: {
+        licenseFront: { type: String, default: '' },
+        licenseBack: { type: String, default: '' },
+        aadharFront: { type: String, default: '' },
+        aadharBack: { type: String, default: '' },
+        vehicleRC: { type: String, default: '' },
+        photo: { type: String, default: '' },
+      },
+      earnings: {
+        today: { type: Number, default: 0 },
+        thisWeek: { type: Number, default: 0 },
+        thisMonth: { type: Number, default: 0 },
+        total: { type: Number, default: 0 },
+      },
+      stats: {
+        totalDeliveries: { type: Number, default: 0 },
+        completedDeliveries: { type: Number, default: 0 },
+        cancelledDeliveries: { type: Number, default: 0 },
+        rating: { type: Number, default: 5 },
+        reviews: { type: Number, default: 0 },
+      },
     },
     addresses: [
       {
