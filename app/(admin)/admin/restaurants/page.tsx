@@ -142,59 +142,59 @@ const RestaurantApprovalPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-lg text-gray-600">Loading restaurants...</div>
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="text-lg text-muted-foreground animate-pulse">Loading restaurants...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
             <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-card rounded-xl shadow-soft p-6 border-none">
                         <div className="flex items-center">
-                            <div className="p-3 rounded-lg bg-yellow-500">
+                            <div className="p-3 rounded-lg bg-yellow-500 shadow-lg shadow-yellow-500/20">
                                 <Clock className="h-6 w-6 text-white" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
                                     Pending
                                 </p>
-                                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                <p className="text-3xl font-black text-foreground">
                                     {restaurants.filter(r => r.status === "pending").length}
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="bg-card rounded-xl shadow-soft p-6 border-none">
                         <div className="flex items-center">
-                            <div className="p-3 rounded-lg bg-green-500">
+                            <div className="p-3 rounded-lg bg-green-500 shadow-lg shadow-green-500/20">
                                 <Check className="h-6 w-6 text-white" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
                                     Approved
                                 </p>
-                                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                <p className="text-3xl font-black text-foreground">
                                     {restaurants.filter(r => r.status === "approved").length}
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="bg-card rounded-xl shadow-soft p-6 border-none">
                         <div className="flex items-center">
-                            <div className="p-3 rounded-lg bg-red-500">
+                            <div className="p-3 rounded-lg bg-red-500 shadow-lg shadow-red-500/20">
                                 <X className="h-6 w-6 text-white" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
                                     Rejected
                                 </p>
-                                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                <p className="text-3xl font-black text-foreground">
                                     {restaurants.filter(r => r.status === "rejected").length}
                                 </p>
                             </div>
@@ -209,24 +209,24 @@ const RestaurantApprovalPage = () => {
                 )}
 
                 {/* Search and Filters */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+                <div className="bg-card rounded-xl shadow-soft mb-8 p-4 border-none">
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                                 <input
                                     type="text"
                                     placeholder="Search restaurants..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                                 />
                             </div>
                         </div>
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary outline-none transition-all"
                         >
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
@@ -237,34 +237,34 @@ const RestaurantApprovalPage = () => {
                 </div>
 
                 {/* Restaurants Table */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                <div className="bg-card rounded-xl shadow-soft border-none overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                         Restaurant
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                         Owner
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                         Cuisine
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                         Rating
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                         Status
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-border">
                                 {filteredRestaurants.map((restaurant) => (
-                                    <tr key={restaurant._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <tr key={restaurant._id} className="hover:bg-muted/30 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-10 w-10">

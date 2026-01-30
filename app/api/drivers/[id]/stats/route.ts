@@ -4,12 +4,12 @@ import User from '@/app/models/User';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
 
-        const { id } = params;
+        const { id } = await params;
         const driver = await User.findById(id);
 
         if (!driver || driver.role !== 'driver') {

@@ -41,6 +41,8 @@ const config: Config = {
       },
       maxWidth: {
         '8xl': '96rem', // 1536px
+        '9xl': '110rem', // 1760px
+        '10xl': '125rem', // 2000px
       },
       scrollBehavior: ['responsive'],
       fontFamily: {

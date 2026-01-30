@@ -239,7 +239,7 @@ const RestaurantDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 md:p-6">
+        <div className="min-h-screen bg-background text-foreground p-2 sm:p-4 md:p-6 transition-colors duration-300">
             {announcements.length > 0 && (
                 <div className="mb-6 space-y-3">
                     {announcements.slice(0, 2).map((n: any) => (
@@ -301,14 +301,14 @@ const RestaurantDashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8">
                 {stats.map((stat, index) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <div key={index} className="bg-card rounded-xl shadow-soft border-none p-3 sm:p-4 md:p-6 hover:shadow-soft-lg transition-all duration-300 transform hover:-translate-y-1">
                         <div className="flex items-center space-x-4">
                             <div className={`p-3 rounded-lg ${stat.color}`}>
                                 <stat.icon className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{stat.title}</p>
-                                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                                <p className="text-sm text-muted-foreground">{stat.title}</p>
+                                <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                             </div>
                         </div>
                     </div>
@@ -316,9 +316,9 @@ const RestaurantDashboard = () => {
             </div>
 
             {/* Recent Orders Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Orders</h2>
+            <div className="bg-card rounded-xl shadow-soft border-none overflow-hidden">
+                <div className="px-6 py-4 border-b border-border bg-muted/30">
+                    <h2 className="text-lg font-bold text-foreground">Recent Orders</h2>
                 </div>
                 <div className="overflow-x-auto">
                     {ordersLoading ? (
@@ -327,32 +327,34 @@ const RestaurantDashboard = () => {
                         <p className="text-center py-12 text-gray-500 dark:text-gray-400">No recent orders to display.</p>
                     ) : (
                         <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-muted/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Order</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Customer</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Total</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Created</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Order</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Customer</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Total</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-widest">Created</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-border">
                                 {recentOrders.map((o: any) => (
-                                    <tr key={o._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                            {o.orderId}
+                                    <tr key={o._id} className="hover:bg-muted/30 transition-colors group">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                                            #{o.orderId}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                             {o.customer?.name || 'Customer'}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-foreground">
                                             ₹{Number(o.total || 0).toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            {String(o.status || '')}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase ring-1 ring-primary/20">
+                                                {String(o.status || '')}
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            {o.createdAt ? new Date(o.createdAt).toLocaleString() : ''}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                                            {o.createdAt ? new Date(o.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                                         </td>
                                     </tr>
                                 ))}

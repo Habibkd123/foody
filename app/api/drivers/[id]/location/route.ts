@@ -4,11 +4,11 @@ import User from '@/app/models/User';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        const { id } = params;
+        const { id } = await params;
         const { latitude, longitude, heading, speed } = await request.json();
 
         if (!latitude || !longitude) {

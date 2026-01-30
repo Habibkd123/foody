@@ -145,7 +145,7 @@ const SingleOrderPage = () => {
 
 
     const timeline: Timeline[] = [
-  ];
+    ];
 
 
     const handleStatusChange = async (newStatus: string) => {
@@ -447,28 +447,12 @@ const SingleOrderPage = () => {
         { value: 'canceled', label: 'Cancelled', color: 'bg-red-500', icon: XCircle }
     ];
 
+    const currentStatus = statusOptions.find(s => s.value === orderStatus);
+
     const handlePrint = () => {
         window.print();
     };
-    console.log("order", order)
 
-    const currentStatus = statusOptions.find(s => s.value === orderStatus);
-
-    // return (
-    //     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 p-3 sm:p-6">
-    //         <div className="max-w-7xl mx-auto">
-    //             {/* Header */}
-    //             <div className="mb-4 sm:mb-6">
-    //                 <Link href={`/admin/orders`}>
-    //                     <button className="flex items-center gap-2 text-gray-600 hover:text-orange-600 mb-3 sm:mb-4 transition-colors">
-
-    //                         <ArrowLeft size={20} />
-    //                         <span className="text-sm sm:text-base">Back to Orders</span>
-    //                     </button>
-    //                 </Link>
-
-    //                 <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-    //                     <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
     //                         <div className="flex-1">
     //                             <div className="flex items-start justify-between mb-3">
     //                                 <div>
@@ -1326,229 +1310,165 @@ const SingleOrderPage = () => {
     //                                     </p>
     //                                 </div>
     //                             </div>
-    //                         ))}
-    //                     </div>
-    //                 </div>
-    //             </div>
 
-    //             {/* Refund Modal */}
-    //             {showRefundModal && (
-    //                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    //                     <div className="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
-    //                         <div className="flex items-center gap-3 mb-4">
-    //                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-    //                                 <AlertCircle className="text-red-600" size={20} />
-    //                             </div>
-    //                             <div className="min-w-0">
-    //                                 <h3 className="text-lg sm:text-xl font-bold text-gray-900">Process Refund</h3>
-    //                                 <p className="text-xs sm:text-sm text-gray-500 truncate">Order {order.orderNumber}</p>
-    //                             </div>
-    //                         </div>
 
-    //                         <div className="space-y-4">
-    //                             <div>
-    //                                 <label className="block text-sm font-medium text-gray-700 mb-2">Refund Amount</label>
-    //                                 <div className="relative">
-    //                                     <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-    //                                     <input
-    //                                         type="number"
-    //                                         value={refundAmount}
-    //                                         onChange={(e) => setRefundAmount(e.target.value)}
-    //                                         max={order.total}
-    //                                         step="0.01"
-    //                                         className="w-full pl-10 pr-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-    //                                     />
-    //                                 </div>
-    //                                 <p className="text-xs text-gray-500 mt-1">Maximum: ${order.total.toFixed(2)}</p>
-    //                             </div>
+    {/* Refund Modal */ }
+    {
+        showRefundModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+                <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-border scale-in-center overflow-hidden">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 bg-rose-500/10 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                            <AlertCircle className="text-rose-500" size={24} />
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="text-xl font-black text-foreground">Process Refund</h3>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Order {order.orderNumber}</p>
+                        </div>
+                    </div>
 
-    //                             <div>
-    //                                 <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
-    //                                 <select
-    //                                     value={refundReason}
-    //                                     onChange={(e) => setRefundReason(e.target.value)}
-    //                                     className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-    //                                 >
-    //                                     <option value="">Select a reason</option>
-    //                                     <option value="Customer Request">Customer Request</option>
-    //                                     <option value="Product Defect">Product Defect</option>
-    //                                     <option value="Wrong Item Shipped">Wrong Item Shipped</option>
-    //                                     <option value="Late Delivery">Late Delivery</option>
-    //                                     <option value="Other">Other</option>
-    //                                 </select>
-    //                             </div>
+                    <div className="space-y-5">
+                        <div>
+                            <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Refund Amount</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
+                                <input
+                                    type="number"
+                                    value={refundAmount}
+                                    onChange={(e) => setRefundAmount(e.target.value)}
+                                    max={order.total}
+                                    step="0.01"
+                                    className="w-full pl-8 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary outline-none font-bold transition-all"
+                                />
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-2 font-medium">Maximum: ₹{order.total.toFixed(2)}</p>
+                        </div>
 
-    //                             <div>
-    //                                 <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
-    //                                 <textarea
-    //                                     value={refundNotes}
-    //                                     onChange={(e) => setRefundNotes(e.target.value)}
-    //                                     className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-sm"
-    //                                     rows={3}
-    //                                     placeholder="Additional details..."
-    //                                 ></textarea>
-    //                             </div>
-    //                         </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Reason</label>
+                            <select
+                                value={refundReason}
+                                onChange={(e) => setRefundReason(e.target.value)}
+                                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary outline-none font-medium transition-all"
+                            >
+                                <option value="">Select a reason</option>
+                                <option value="Customer Request">Customer Request</option>
+                                <option value="Product Defect">Product Defect</option>
+                                <option value="Wrong Item Shipped">Wrong Item Shipped</option>
+                                <option value="Late Delivery">Late Delivery</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
 
-    //                         <div className="flex gap-3 mt-6">
-    //                             <button
-    //                                 onClick={() => setShowRefundModal(false)}
-    //                                 className="flex-1 px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-sm transition-colors"
-    //                             >
-    //                                 Cancel
-    //                             </button>
-    //                             <button
-    //                                 onClick={handleProcessRefund}
-    //                                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm transition-colors"
-    //                             >
-    //                                 Process Refund
-    //                             </button>
-    //                         </div>
-    //                     </div>
-    //                 </div>
-    //             )}
-    //         </div>
-    //     </div>
-    // );
+                        <div>
+                            <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Notes (Optional)</label>
+                            <textarea
+                                value={refundNotes}
+                                onChange={(e) => setRefundNotes(e.target.value)}
+                                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary outline-none resize-none font-medium transition-all"
+                                rows={3}
+                                placeholder="Additional details..."
+                            ></textarea>
+                        </div>
+                    </div>
 
-    // Profile Modal
-    const ProfileModal = () => {
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-xl max-w-2xl w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Customer Profile</h2>
+                    <div className="flex gap-3 mt-8">
                         <button
-                            onClick={() => setShowProfileModal(false)}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            onClick={() => setShowRefundModal(false)}
+                            className="flex-1 px-4 py-3 border border-border rounded-xl hover:bg-muted text-sm font-bold transition-all"
                         >
-                            <XCircle size={24} className="text-gray-500" />
+                            Cancel
                         </button>
-                    </div>
-
-                    <div className="space-y-6">
-                        {/* Basic Info */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
-                                        {order.customer.avatar}
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{order.customer.name}</p>
-                                        <p className="text-sm text-gray-500">Customer</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <Mail size={16} className="text-gray-400" />
-                                        <span className="text-sm">{order.customer.email}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Phone size={16} className="text-gray-400" />
-                                        <span className="text-sm">{order.customer.phone}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Addresses */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Addresses</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <h4 className="font-medium text-gray-700 mb-2">Shipping Address</h4>
-                                    <div className="text-sm text-gray-600 bg-white p-3 rounded border">
-                                        <p>{order.shippingAddress.street}</p>
-                                        <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}</p>
-                                        <p>{order.shippingAddress.country}</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 className="font-medium text-gray-700 mb-2">Billing Address</h4>
-                                    <div className="text-sm text-gray-600 bg-white p-3 rounded border">
-                                        <p>{order.billingAddress.street}</p>
-                                        <p>{order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zip}</p>
-                                        <p>{order.billingAddress.country}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Order History Summary */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                <div className="bg-white p-3 rounded border">
-                                    <p className="text-2xl font-bold text-orange-600">{order.items.length}</p>
-                                    <p className="text-sm text-gray-600">Items Ordered</p>
-                                </div>
-                                <div className="bg-white p-3 rounded border">
-                                    <p className="text-2xl font-bold text-green-600">${order.total.toFixed(2)}</p>
-                                    <p className="text-sm text-gray-600">Total Spent</p>
-                                </div>
-                                <div className="bg-white p-3 rounded border">
-                                    <p className="text-2xl font-bold text-blue-600">{orderStatus}</p>
-                                    <p className="text-sm text-gray-600">Current Status</p>
-                                </div>
-                                <div className="bg-white p-3 rounded border">
-                                    <p className="text-2xl font-bold text-purple-600">{order.date}</p>
-                                    <p className="text-sm text-gray-600">Order Date</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Payment Info */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Information</h3>
-                            <div className="bg-white p-3 rounded border">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-gray-600">Payment Method</p>
-                                        <p className="font-medium">{order.payment.method}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-600">Transaction ID</p>
-                                        <p className="font-mono text-sm">{order.payment.transactionId}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end mt-6">
                         <button
-                            onClick={() => setShowProfileModal(false)}
-                            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                            onClick={handleProcessRefund}
+                            className="flex-1 px-4 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 text-sm font-bold transition-all shadow-lg shadow-rose-500/20"
                         >
-                            Close
+                            Process Refund
                         </button>
                     </div>
                 </div>
             </div>
-        );
+        )
+    }
+
+    {/* Profile Modal */ }
+    {
+        showProfileModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+                <div className="bg-card rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-border scale-in-center overflow-hidden">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-2xl font-black text-foreground">Customer Profile</h2>
+                        <button
+                            onClick={() => setShowProfileModal(false)}
+                            className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground"
+                        >
+                            <XCircle size={24} />
+                        </button>
+                    </div>
+
+                    <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {/* Basic Info */}
+                        <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
+                            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Basic Information</h3>
+                            <div className="flex flex-col md:flex-row gap-6">
+                                <div className="w-24 h-24 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-4xl shadow-xl shadow-primary/30 rotate-3">
+                                    {order.customer.avatar}
+                                </div>
+                                <div className="flex-1 space-y-4">
+                                    <div>
+                                        <p className="text-2xl font-black text-foreground">{order.customer.name}</p>
+                                        <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">Verified Customer</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-3 text-sm font-medium text-foreground bg-card p-3 rounded-xl border border-border shadow-soft">
+                                            <Mail size={18} className="text-primary" />
+                                            <span className="truncate">{order.customer.email}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm font-medium text-foreground bg-card p-3 rounded-xl border border-border shadow-soft">
+                                            <Phone size={18} className="text-primary" />
+                                            <span>{order.customer.phone}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end mt-8">
+                        <button
+                            onClick={() => setShowProfileModal(false)}
+                            className="w-full sm:w-auto px-12 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95"
+                        >
+                            Close Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (
         <>
-            {showProfileModal && <ProfileModal />}
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 p-3 sm:p-6">
+            {/* The actual page content follows below ... */}
+            <div className="min-h-screen bg-background text-foreground p-3 sm:p-6 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="mb-4 sm:mb-6">
-                        <button className="flex items-center gap-2 text-gray-600 hover:text-orange-600 mb-3 sm:mb-4 transition-colors">
+                        <button
+                            onClick={() => window.history.back()}
+                            className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-3 sm:mb-4 transition-colors"
+                        >
                             <ArrowLeft size={20} />
-                            <span className="text-sm sm:text-base">Back to Orders</span>
+                            <span className="text-sm sm:text-base">Back</span>
                         </button>
 
-                        <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                        <div className="bg-card rounded-xl shadow-soft border-none p-4 sm:p-6">
                             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                                 <div className="flex-1">
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
-                                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Order #{order.orderNumber}</h1>
-                                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
+                                            <h1 className="text-2xl sm:text-3xl font-black text-foreground mb-2">Order #{order.orderNumber}</h1>
+                                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar size={14} className="sm:w-4 sm:h-4" />
                                                     {order.date}
@@ -1562,7 +1482,7 @@ const SingleOrderPage = () => {
 
                                         {/* Status Badge - Mobile */}
                                         <div className="lg:hidden">
-                                            <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-white text-xs font-medium ${currentStatus?.color}`}>
+                                            <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-white text-[10px] font-bold uppercase ${currentStatus?.color} shadow-lg shadow-${currentStatus?.color.split('-')[1]}-500/20`}>
                                                 {React.createElement(currentStatus?.icon || Package, { size: 12 })}
                                                 {currentStatus?.label}
                                             </span>
@@ -1571,7 +1491,7 @@ const SingleOrderPage = () => {
 
                                     {/* Status Badge - Desktop */}
                                     <div className="hidden lg:block mt-3">
-                                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium ${currentStatus?.color}`}>
+                                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-xs font-bold uppercase tracking-widest ${currentStatus?.color} shadow-lg shadow-${currentStatus?.color.split('-')[1]}-500/20`}>
                                             {React.createElement(currentStatus?.icon || Package, { size: 16 })}
                                             {currentStatus?.label}
                                         </span>
@@ -1582,20 +1502,20 @@ const SingleOrderPage = () => {
                                 <div className="flex flex-wrap gap-2 sm:gap-3">
                                     <button
                                         onClick={handlePrint}
-                                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 flex items-center justify-center gap-2 text-sm transition-colors"
+                                        className="flex-1 sm:flex-none px-4 py-2 border border-border rounded-lg bg-background hover:bg-muted flex items-center justify-center gap-2 text-sm font-bold transition-all hover:shadow-soft"
                                     >
                                         <Printer size={16} />
                                         <span className="hidden sm:inline">Print</span>
                                     </button>
                                     <button
                                         onClick={handleGenerateBill}
-                                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 flex items-center justify-center gap-2 text-sm transition-colors">
+                                        className="flex-1 sm:flex-none px-4 py-2 border border-border rounded-lg bg-background hover:bg-muted flex items-center justify-center gap-2 text-sm font-bold transition-all hover:shadow-soft">
                                         <Download size={16} />
                                         <span className="hidden sm:inline">Invoice</span>
                                     </button>
                                     <button
                                         onClick={() => setShowRefundModal(true)}
-                                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 text-sm transition-colors"
+                                        className="flex-1 sm:flex-none px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 flex items-center justify-center gap-2 text-sm font-bold transition-all shadow-lg shadow-rose-500/20"
                                     >
                                         <RefreshCw size={16} />
                                         <span className="hidden sm:inline">Refund</span>
@@ -1610,403 +1530,399 @@ const SingleOrderPage = () => {
                         {/* Left Column - Order Management */}
                         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                             {/* Order Items */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                        <ShoppingBag size={20} />
-                                        Order Items
-                                    </h2>
-                                    <span className="text-xs sm:text-sm text-gray-500">{order.items.length} items</span>
-                                </div>
-
-                                {/* Items List - Scrollable on mobile */}
-                                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                                    {order.items.map((item) => (
-                                        <div key={item.id} className="flex gap-3 sm:gap-4 pb-3 border-b border-orange-100 last:border-0">
-                                            <img
-                                                src={item.image}
-                                                alt={item.name}
-                                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0 bg-gray-100"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{item.name}</h3>
-                                                <p className="text-xs sm:text-sm text-gray-500">SKU: {item.sku}</p>
-                                                <div className="flex items-center justify-between mt-2">
-                                                    <p className="text-xs sm:text-sm text-gray-600">
-                                                        ${item.price.toFixed(2)} × {item.quantity}
-                                                    </p>
-                                                    <p className="font-semibold text-orange-600 text-sm sm:text-base">
-                                                        ${item.total.toFixed(2)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Order Summary */}
-                                <div className="border-t border-orange-200 mt-4 pt-4 space-y-2">
-                                    <div className="flex justify-between text-sm text-gray-600">
-                                        <span>Subtotal</span>
-                                        <span>${order.subtotal.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-gray-600">
-                                        <span>Shipping</span>
-                                        <span>${order.shipping.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-gray-600">
-                                        <span>Tax</span>
-                                        <span>${order.tax.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-orange-600">
-                                        <span>Discount</span>
-                                        <span>-${order.discount.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-base sm:text-lg font-bold text-gray-900 pt-2 border-t border-orange-200">
-                                        <span>Total</span>
-                                        <span className="text-orange-600">${order.total.toFixed(2)}</span>
-                                    </div>
-                                </div>
+                            <div className="bg-card rounded-xl shadow-soft border-none p-4 sm:p-6">
+                                <h2 className="text-lg sm:text-xl font-black text-foreground flex items-center gap-2">
+                                    <ShoppingBag size={20} className="text-primary" />
+                                    Order Items
+                                </h2>
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{order.items.length} items</span>
                             </div>
 
-                            {/* Status Management */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Package size={20} />
-                                    Update Status
-                                </h2>
-
-                                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 mb-4">
-                                    {statusOptions.map((status) => {
-                                        const Icon = status?.icon;
-                                        return (
-                                            <button
-                                                key={status.value}
-                                                onClick={() => handleStatusChange(status.value)}
-                                                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm ${orderStatus === status.value
-                                                    ? `${status.color} text-white shadow-md`
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                {/* <Icon size={14} /> */}
-                                                <span className="hidden sm:inline">{status.label}</span>
-                                                <span className="sm:hidden">{status.label.split(' ')[0]}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Tracking Number */}
-                                <div className="border-t border-orange-200 pt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Tracking Number</label>
-                                    <div className="flex gap-2 sm:gap-3">
-                                        <input
-                                            type="text"
-                                            value={trackingNumber}
-                                            onChange={(e) => setTrackingNumber(e.target.value)}
-                                            disabled={!isEditingTracking}
-                                            className="flex-1 px-3 sm:px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-50 text-sm"
-                                            placeholder="Enter tracking number"
+                            {/* Items List - Scrollable on mobile */}
+                            <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                                {order.items.map((item) => (
+                                    <div key={item.id} className="flex gap-3 sm:gap-4 pb-4 border-b border-border last:border-0 hover:bg-muted/30 p-2 rounded-lg transition-colors group">
+                                        <img
+                                            src={item.image}
+                                            alt={item.name}
+                                            className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover flex-shrink-0 bg-muted group-hover:scale-105 transition-transform"
                                         />
-                                        <button
-                                            onClick={handleUpdateTracking}
-                                            className="px-3 sm:px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2 text-sm transition-colors"
-                                        >
-                                            <Edit size={16} />
-                                            <span className="hidden sm:inline">{isEditingTracking ? 'Save' : 'Edit'}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Timeline - Desktop */}
-                            <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                                    <Truck size={20} />
-                                    Order Timeline
-                                </h2>
-
-                                <div className="relative">
-                                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-orange-200"></div>
-
-                                    <div className="space-y-6">
-                                        {timeline.map((event, index) => (
-                                            <div key={index} className="relative flex gap-4">
-                                                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${event.completed ? 'bg-orange-500' : 'bg-gray-300'
-                                                    }`}>
-                                                    {event.completed ? (
-                                                        <CheckCircle size={16} className="text-white" />
-                                                    ) : (
-                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 pb-6">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <h3 className={`font-semibold ${event.completed ? 'text-gray-900' : 'text-gray-400'}`}>
-                                                            {event.status}
-                                                        </h3>
-                                                        <span className="text-sm text-gray-500">{event.date} {event.time}</span>
-                                                    </div>
-                                                    <p className={`text-sm ${event.completed ? 'text-gray-600' : 'text-gray-400'}`}>
-                                                        {event.description}
-                                                    </p>
-                                                </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-foreground text-sm sm:text-base truncate group-hover:text-primary transition-colors">{item.name}</h3>
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">SKU: {item.sku}</p>
+                                            <div className="flex items-center justify-between mt-3">
+                                                <p className="text-xs font-bold text-muted-foreground">
+                                                    ₹{item.price.toFixed(2)} × {item.quantity}
+                                                </p>
+                                                <p className="font-black text-primary text-sm sm:text-base">
+                                                    ₹{item.total.toFixed(2)}
+                                                </p>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column - Customer & Details */}
-                        <div className="space-y-4 sm:space-y-6">
-                            {/* Customer Info */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <User size={20} />
-                                    Customer
-                                </h2>
-
-                                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-orange-100">
-                                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                                        {order.customer.avatar}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{order.customer.name}</h3>
-                                        <p className="text-xs sm:text-sm text-gray-500">Customer</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <a href={`mailto:${order.customer.email}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-600 transition-colors break-all">
-                                        <Mail size={16} className="flex-shrink-0" />
-                                        <span className="truncate">{order.customer.email}</span>
-                                    </a>
-                                    <a href={`tel:${order.customer.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-600 transition-colors">
-                                        <Phone size={16} className="flex-shrink-0" />
-                                        {order.customer.phone}
-                                    </a>
-                                </div>
-
-                                <button
-                                    onClick={handleViewProfile}
-                                    className="w-full mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm transition-colors">
-                                    View Profile
-                                </button>
-                            </div>
-
-                            {/* Addresses */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MapPin size={20} />
-                                    Addresses
-                                </h2>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Shipping Address</h3>
-                                        <div className="text-sm text-gray-600 space-y-1 bg-orange-50 p-3 rounded-lg">
-                                            <p>{order.shippingAddress.street}</p>
-                                            <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}</p>
-                                            <p>{order.shippingAddress.country}</p>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Billing Address</h3>
-                                        <div className="text-sm text-gray-600 space-y-1 bg-gray-50 p-3 rounded-lg">
-                                            <p>{order.billingAddress.street}</p>
-                                            <p>{order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zip}</p>
-                                            <p>{order.billingAddress.country}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Payment Info */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <CreditCard size={20} />
-                                    Payment
-                                </h2>
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Method</span>
-                                        <span className="font-medium text-gray-900">{order.payment.method}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Card</span>
-                                        <span className="font-medium text-gray-900">{order.payment.cardType} •••• {order.payment.last4}</span>
-                                    </div>
-                                    <div className="flex justify-between items-start">
-                                        <span className="text-gray-600">Transaction ID</span>
-                                        <span className="font-mono text-xs text-gray-900 text-right break-all">{order.payment.transactionId}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Internal Notes */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MessageSquare size={20} />
-                                    Notes
-                                </h2>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Add internal notes..."
-                                    className="w-full px-3 sm:px-4 py-3 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-sm"
-                                    rows={3}
-                                ></textarea>
-                                <button
-                                    onClick={handleSaveNotes}
-                                    className="mt-3 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm transition-colors">
-                                    Save Notes
-                                </button>
-                            </div>
-
-                            {/* Quick Actions */}
-                            <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                                <div className="space-y-2">
-                                    <button
-                                        onClick={handleSendEmail}
-                                        className="w-full px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-left flex items-center gap-2 text-sm transition-colors">
-                                        <Mail size={16} />
-                                        Send Email
-                                    </button>
-                                    <button
-                                        onClick={handleDuplicateOrder}
-                                        className="w-full px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-left flex items-center gap-2 text-sm transition-colors">
-                                        <Package size={16} />
-                                        Duplicate Order
-                                    </button>
-                                    <button className="w-full px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-left flex items-center gap-2 text-sm transition-colors"
-                                        onClick={handleCancelOrder}>
-                                        <XCircle size={16} />
-                                        Cancel Order
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Timeline - Mobile */}
-                    <div className="lg:hidden mt-4 sm:mt-6 bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
-                        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Truck size={20} />
-                            Order Timeline
-                        </h2>
-
-                        <div className="relative">
-                            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-orange-200"></div>
-
-                            <div className="space-y-4">
-                                {timeline.map((event, index) => (
-                                    <div key={index} className="relative flex gap-3">
-                                        <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${event.completed ? 'bg-orange-500' : 'bg-gray-300'
-                                            }`}>
-                                            {event.completed ? (
-                                                <CheckCircle size={14} className="text-white" />
-                                            ) : (
-                                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 pb-4">
-                                            <div className="mb-1">
-                                                <h3 className={`font-semibold text-sm ${event.completed ? 'text-gray-900' : 'text-gray-400'}`}>
-                                                    {event.status}
-                                                </h3>
-                                                <span className="text-xs text-gray-500">{event.date} {event.time}</span>
-                                            </div>
-                                            <p className={`text-xs ${event.completed ? 'text-gray-600' : 'text-gray-400'}`}>
-                                                {event.description}
-                                            </p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Order Summary */}
+                            <div className="border-t border-border mt-4 pt-4 space-y-3">
+                                <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                    <span>Subtotal</span>
+                                    <span className="text-foreground">₹{order.subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                    <span>Shipping</span>
+                                    <span className="text-foreground">₹{order.shipping.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                    <span>Tax</span>
+                                    <span className="text-foreground">₹{order.tax.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-bold text-rose-500 uppercase tracking-widest">
+                                    <span>Discount</span>
+                                    <span>-₹{order.discount.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-base sm:text-xl font-black text-foreground pt-3 border-t-2 border-dashed border-border">
+                                    <span>Total</span>
+                                    <span className="text-primary font-black">₹{order.total.toFixed(2)}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Refund Modal */}
-                    {showRefundModal && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <AlertCircle className="text-red-600" size={20} />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">Process Refund</h3>
-                                        <p className="text-xs sm:text-sm text-gray-500 truncate">Order {order.orderNumber}</p>
-                                    </div>
-                                </div>
+                        {/* Status Management */}
+                        <div className="bg-card rounded-xl shadow-soft border-none p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-black text-foreground mb-4 flex items-center gap-2">
+                                <Package size={20} className="text-primary" />
+                                Update Status
+                            </h2>
 
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Refund Amount</label>
-                                        <div className="relative">
-                                            <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type="number"
-                                                value={refundAmount}
-                                                onChange={(e) => setRefundAmount(e.target.value)}
-                                                max={order.total}
-                                                step="0.01"
-                                                className="w-full pl-10 pr-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                                            />
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1">Maximum: ${order.total.toFixed(2)}</p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
-                                        <select
-                                            value={refundReason}
-                                            onChange={(e) => setRefundReason(e.target.value)}
-                                            className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 mb-6">
+                                {statusOptions.map((status) => {
+                                    return (
+                                        <button
+                                            key={status.value}
+                                            onClick={() => handleStatusChange(status.value)}
+                                            className={`px-4 py-2 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-xs uppercase tracking-widest ${orderStatus === status.value
+                                                ? `${status.color} text-white shadow-lg shadow-${status.color.split('-')[1]}-500/20 scale-105`
+                                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                                }`}
                                         >
-                                            <option value="">Select a reason</option>
-                                            <option value="Customer Request">Customer Request</option>
-                                            <option value="Product Defect">Product Defect</option>
-                                            <option value="Wrong Item Shipped">Wrong Item Shipped</option>
-                                            <option value="Late Delivery">Late Delivery</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
+                                            <span>{status.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
-                                        <textarea
-                                            value={refundNotes}
-                                            onChange={(e) => setRefundNotes(e.target.value)}
-                                            className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-sm"
-                                            rows={3}
-                                            placeholder="Additional details..."
-                                        ></textarea>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 mt-6">
+                            {/* Tracking Number */}
+                            <div className="border-t border-border pt-6">
+                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Tracking Number</label>
+                                <div className="flex gap-2 sm:gap-3">
+                                    <input
+                                        type="text"
+                                        value={trackingNumber}
+                                        onChange={(e) => setTrackingNumber(e.target.value)}
+                                        disabled={!isEditingTracking}
+                                        className="flex-1 px-4 py-3 border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary outline-none disabled:opacity-50 text-sm font-medium transition-all"
+                                        placeholder="Enter tracking number"
+                                    />
                                     <button
-                                        onClick={() => setShowRefundModal(false)}
-                                        className="flex-1 px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-sm transition-colors"
+                                        onClick={handleUpdateTracking}
+                                        className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
                                     >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleProcessRefund}
-                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm transition-colors"
-                                    >
-                                        Process Refund
+                                        <Edit size={16} />
+                                        <span>{isEditingTracking ? 'Save' : 'Edit'}</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    )}
+
+                        {/* Timeline - Desktop */}
+                        <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-orange-100 p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                                <Truck size={20} />
+                                Order Timeline
+                            </h2>
+
+                            <div className="relative">
+                                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-orange-200"></div>
+
+                                <div className="space-y-6">
+                                    {timeline.map((event, index) => (
+                                        <div key={index} className="relative flex gap-4">
+                                            <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${event.completed ? 'bg-orange-500' : 'bg-gray-300'
+                                                }`}>
+                                                {event.completed ? (
+                                                    <CheckCircle size={16} className="text-white" />
+                                                ) : (
+                                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 pb-6">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h3 className={`font-semibold ${event.completed ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                        {event.status}
+                                                    </h3>
+                                                    <span className="text-sm text-gray-500">{event.date} {event.time}</span>
+                                                </div>
+                                                <p className={`text-sm ${event.completed ? 'text-gray-600' : 'text-gray-400'}`}>
+                                                    {event.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Customer & Details */}
+                    <div className="space-y-4 sm:space-y-6">
+                        {/* Customer Info */}
+                        <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <User size={20} />
+                                Customer
+                            </h2>
+
+                            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-orange-100">
+                                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                    {order.customer.avatar}
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{order.customer.name}</h3>
+                                    <p className="text-xs sm:text-sm text-gray-500">Customer</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <a href={`mailto:${order.customer.email}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-600 transition-colors break-all">
+                                    <Mail size={16} className="flex-shrink-0" />
+                                    <span className="truncate">{order.customer.email}</span>
+                                </a>
+                                <a href={`tel:${order.customer.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-600 transition-colors">
+                                    <Phone size={16} className="flex-shrink-0" />
+                                    {order.customer.phone}
+                                </a>
+                            </div>
+
+                            <button
+                                onClick={handleViewProfile}
+                                className="w-full mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm transition-colors">
+                                View Profile
+                            </button>
+                        </div>
+
+                        {/* Addresses */}
+                        <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <MapPin size={20} />
+                                Addresses
+                            </h2>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Shipping Address</h3>
+                                    <div className="text-sm text-gray-600 space-y-1 bg-orange-50 p-3 rounded-lg">
+                                        <p>{order.shippingAddress.street}</p>
+                                        <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}</p>
+                                        <p>{order.shippingAddress.country}</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Billing Address</h3>
+                                    <div className="text-sm text-gray-600 space-y-1 bg-gray-50 p-3 rounded-lg">
+                                        <p>{order.billingAddress.street}</p>
+                                        <p>{order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zip}</p>
+                                        <p>{order.billingAddress.country}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Payment Info */}
+                        <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <CreditCard size={20} />
+                                Payment
+                            </h2>
+                            <div className="space-y-3 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Method</span>
+                                    <span className="font-medium text-gray-900">{order.payment.method}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Card</span>
+                                    <span className="font-medium text-gray-900">{order.payment.cardType} •••• {order.payment.last4}</span>
+                                </div>
+                                <div className="flex justify-between items-start">
+                                    <span className="text-gray-600">Transaction ID</span>
+                                    <span className="font-mono text-xs text-gray-900 text-right break-all">{order.payment.transactionId}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Internal Notes */}
+                        <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <MessageSquare size={20} />
+                                Notes
+                            </h2>
+                            <textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Add internal notes..."
+                                className="w-full px-3 sm:px-4 py-3 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-sm"
+                                rows={3}
+                            ></textarea>
+                            <button
+                                onClick={handleSaveNotes}
+                                className="mt-3 w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm transition-colors">
+                                Save Notes
+                            </button>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={handleSendEmail}
+                                    className="w-full px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-left flex items-center gap-2 text-sm transition-colors">
+                                    <Mail size={16} />
+                                    Send Email
+                                </button>
+                                <button
+                                    onClick={handleDuplicateOrder}
+                                    className="w-full px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-left flex items-center gap-2 text-sm transition-colors">
+                                    <Package size={16} />
+                                    Duplicate Order
+                                </button>
+                                <button className="w-full px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-left flex items-center gap-2 text-sm transition-colors"
+                                    onClick={handleCancelOrder}>
+                                    <XCircle size={16} />
+                                    Cancel Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                {/* Timeline - Mobile */}
+                <div className="lg:hidden mt-4 sm:mt-6 bg-white rounded-xl shadow-sm border border-orange-100 p-4 sm:p-6">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Truck size={20} />
+                        Order Timeline
+                    </h2>
+
+                    <div className="relative">
+                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-orange-200"></div>
+
+                        <div className="space-y-4">
+                            {timeline.map((event, index) => (
+                                <div key={index} className="relative flex gap-3">
+                                    <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${event.completed ? 'bg-orange-500' : 'bg-gray-300'
+                                        }`}>
+                                        {event.completed ? (
+                                            <CheckCircle size={14} className="text-white" />
+                                        ) : (
+                                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 pb-4">
+                                        <div className="mb-1">
+                                            <h3 className={`font-semibold text-sm ${event.completed ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                {event.status}
+                                            </h3>
+                                            <span className="text-xs text-gray-500">{event.date} {event.time}</span>
+                                        </div>
+                                        <p className={`text-xs ${event.completed ? 'text-gray-600' : 'text-gray-400'}`}>
+                                            {event.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Refund Modal */}
+                {showRefundModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <AlertCircle className="text-red-600" size={20} />
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">Process Refund</h3>
+                                    <p className="text-xs sm:text-sm text-gray-500 truncate">Order {order.orderNumber}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Refund Amount</label>
+                                    <div className="relative">
+                                        <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="number"
+                                            value={refundAmount}
+                                            onChange={(e) => setRefundAmount(e.target.value)}
+                                            max={order.total}
+                                            step="0.01"
+                                            className="w-full pl-10 pr-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">Maximum: ${order.total.toFixed(2)}</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                                    <select
+                                        value={refundReason}
+                                        onChange={(e) => setRefundReason(e.target.value)}
+                                        className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                                    >
+                                        <option value="">Select a reason</option>
+                                        <option value="Customer Request">Customer Request</option>
+                                        <option value="Product Defect">Product Defect</option>
+                                        <option value="Wrong Item Shipped">Wrong Item Shipped</option>
+                                        <option value="Late Delivery">Late Delivery</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                                    <textarea
+                                        value={refundNotes}
+                                        onChange={(e) => setRefundNotes(e.target.value)}
+                                        className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none text-sm"
+                                        rows={3}
+                                        placeholder="Additional details..."
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setShowRefundModal(false)}
+                                    className="flex-1 px-4 py-2 border border-orange-300 rounded-lg hover:bg-orange-50 text-sm transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleProcessRefund}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm transition-colors"
+                                >
+                                    Process Refund
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+            </div >
         </>
     );
 }

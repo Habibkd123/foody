@@ -5,12 +5,12 @@ import { sendDriverApprovalEmail } from '@/lib/email';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
 
-        const { id } = params;
+        const { id } = await params;
 
         const driver = await User.findOneAndUpdate(
             { _id: id, role: 'driver' },
