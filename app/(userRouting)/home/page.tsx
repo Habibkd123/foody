@@ -285,6 +285,7 @@ const HomePage: React.FC = () => {
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
         </section>
 
+        {/* Categories Grid Section */}
         <div id="categories" className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {categoriesLoading ? (
             <div className="space-y-12">
