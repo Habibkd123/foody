@@ -51,8 +51,8 @@ function CategoryRow({ category, selected, onToggleSelection, onEdit, onDelete, 
   category: Category
   selected: boolean
   onToggleSelection: () => void
-  onEdit: () => void
-  onDelete: () => void
+  onEdit: (c: Category) => void
+  onDelete: (id: string) => void
   viewMode: 'table' | 'tree'
   level?: number
 }) {
@@ -141,7 +141,7 @@ function CategoryRow({ category, selected, onToggleSelection, onEdit, onDelete, 
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500 hover:bg-amber-50" onClick={onEdit}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500 hover:bg-amber-50" onClick={() => onEdit(category)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -150,7 +150,7 @@ function CategoryRow({ category, selected, onToggleSelection, onEdit, onDelete, 
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-500 hover:bg-rose-50" onClick={onDelete}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-500 hover:bg-rose-50" onClick={() => onDelete(category._id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -209,8 +209,8 @@ export default function CategoriesTable({ categories, selectedIds, onToggleSelec
                   category={category}
                   selected={selectedIds.has(category._id)}
                   onToggleSelection={() => onToggleSelection(category._id)}
-                  onEdit={() => onEdit(category)}
-                  onDelete={() => onDelete(category._id)}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
                   viewMode={viewMode}
                 />
               ))

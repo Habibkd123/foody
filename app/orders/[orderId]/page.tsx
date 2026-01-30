@@ -77,34 +77,6 @@ export default function OrderDetailsPage() {
     }
   }, [order?.notes]);
 
-  if (loading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center text-gray-600">Loading order...</div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-3xl mx-auto p-4">
-        <div className="mb-4">
-          <button onClick={() => router.back()} className="px-3 py-1.5 rounded-md border">Back</button>
-        </div>
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-800">{error}</div>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="max-w-3xl mx-auto p-4">
-        <div className="mb-4">
-          <button onClick={() => router.back()} className="px-3 py-1.5 rounded-md border">Back</button>
-        </div>
-        <div className="rounded-md border p-4">Order not found.</div>
-      </div>
-    );
-  }
-
   const humanId = order?.orderId || (order?._id ? String(order._id).slice(-6) : "");
 
   const saveNotes = async () => {
@@ -183,6 +155,34 @@ export default function OrderDetailsPage() {
   useEffect(() => {
     fetchReview();
   }, [orderIdParam]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center text-gray-600">Loading order...</div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto p-4">
+        <div className="mb-4">
+          <button onClick={() => router.back()} className="px-3 py-1.5 rounded-md border">Back</button>
+        </div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-800">{error}</div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="max-w-3xl mx-auto p-4">
+        <div className="mb-4">
+          <button onClick={() => router.back()} className="px-3 py-1.5 rounded-md border">Back</button>
+        </div>
+        <div className="rounded-md border p-4">Order not found.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">

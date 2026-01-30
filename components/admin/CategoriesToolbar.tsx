@@ -1,7 +1,23 @@
+
 "use client"
 
 import React from "react"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, Trash2, ShieldAlert, List, LayoutGrid, ListTree } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface Props {
   searchQuery: string
@@ -25,54 +41,82 @@ export default function CategoriesToolbar({
   onAddClick,
 }: Props) {
   return (
-    <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-      <div className="flex gap-2 w-full sm:w-auto">
-        <div className="relative flex-1 sm:flex-initial">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-          <input
-            type="text"
+    <div className="flex flex-col lg:flex-row gap-4 mb-6 bg-card p-4 rounded-xl shadow-soft animate-fadeIn">
+      <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
+        {/* Search */}
+        <div className="relative flex-1 max-w-full sm:max-w-md">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
             placeholder="Search categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            className="pl-9 bg-background"
           />
         </div>
 
-        <select
-          value={viewMode}
-          onChange={(e) => setViewMode(e.target.value as 'table' | 'tree')}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        >
-          <option value="table">Table View</option>
-          <option value="tree">Tree View</option>
-        </select>
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2">
+          <Select
+            value={viewMode}
+            onValueChange={(val) => setViewMode(val as 'table' | 'tree')}
+          >
+            <SelectTrigger className="w-[160px] bg-background">
+              <div className="flex items-center gap-2">
+                {viewMode === 'table' ? <List className="h-4 w-4" /> : <ListTree className="h-4 w-4" />}
+                <SelectValue placeholder="View Mode" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="table">Table View</SelectItem>
+              <SelectItem value="tree">Tree View</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="flex gap-2 w-full sm:w-auto justify-end">
+      <div className="flex items-center gap-2 w-full lg:w-auto justify-end">
         {selectedCount > 0 && (
-          <div className="flex gap-2">
-            <button
-              onClick={onBulkDelete}
-              className="px-3 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-            >
-              Delete Selected ({selectedCount})
-            </button>
-            <button
-              onClick={onForceDelete}
-              className="px-3 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-            >
-              Force Delete
-            </button>
-          </div>
+          <TooltipProvider>
+            <div className="flex items-center gap-2 mr-2 pr-4 border-r border-border">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onBulkDelete}
+                    className="text-rose-500 border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    Delete ({selectedCount})
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete Selected</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onForceDelete}
+                    className="text-rose-600 hover:bg-rose-100 h-9 w-9"
+                  >
+                    <ShieldAlert className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Force Delete All Selected</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         )}
 
-        <button
+        <Button
           onClick={onAddClick}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="bg-primary hover:bg-primary/90 text-white shadow-soft font-semibold"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 mr-2" />
           Add Category
-        </button>
+        </Button>
       </div>
     </div>
   )
