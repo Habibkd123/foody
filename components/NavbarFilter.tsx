@@ -413,10 +413,31 @@ const NavbarFilter: React.FC = () => {
   };
 
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollTo = direction === "left" ? scrollLeft - 200 : scrollLeft + 200;
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="relative w-full bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800" ref={menuRef}>
-      <div className="max-w-12xl mx-auto px-4">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-3">
+    <div className="relative w-full bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 group/nav" ref={menuRef}>
+      <div className="max-w-12xl mx-auto px-4 relative">
+        {/* Left Scroll Button */}
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-gray-800/90 shadow-md rounded-full text-gray-400 hover:text-primary transition-all opacity-0 group-hover/nav:opacity-100 -translate-x-2"
+        >
+          <ChevronDown className="w-5 h-5 rotate-90" />
+        </button>
+
+        <div
+          ref={scrollRef}
+          className="flex items-center gap-2 overflow-x-auto no-scrollbar py-3 scroll-smooth"
+        >
           {loading ? (
             <div className="flex gap-3">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -461,7 +482,7 @@ const NavbarFilter: React.FC = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="fixed md:absolute top-[100%] left-4 md:left-0 right-4 md:right-auto mt-2 z-[9999] min-w-max bg-white dark:bg-gray-800 rounded-2xl shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] border border-gray-100 dark:border-gray-700 p-3"
+                        className="fixed md:absolute top-1/2 md:top-[120%] left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 mt-2 z-[9999] min-w-max bg-white dark:bg-gray-800 rounded-2xl shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] border border-gray-100 dark:border-gray-700 p-3"
                       >
                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[80vw] md:max-w-xl">
                           <div className="flex-shrink-0 px-3 py-1.5 border-r border-gray-100 dark:border-gray-700 mr-1">
@@ -488,6 +509,14 @@ const NavbarFilter: React.FC = () => {
             </>
           )}
         </div>
+
+        {/* Right Scroll Button */}
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-gray-800/90 shadow-md rounded-full text-gray-400 hover:text-primary transition-all opacity-0 group-hover/nav:opacity-100 translate-x-2"
+        >
+          <ChevronDown className="w-5 h-5 -rotate-90" />
+        </button>
       </div>
 
       <style jsx global>{`
@@ -506,4 +535,3 @@ const NavbarFilter: React.FC = () => {
 
 
 export default NavbarFilter;
-
