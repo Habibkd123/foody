@@ -116,8 +116,7 @@ export default function AdminSalesPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Sales Analytics</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 bg-white border rounded-xl px-2 py-1">
             <Calendar className="w-4 h-4 text-gray-500" />
@@ -139,7 +138,7 @@ export default function AdminSalesPage() {
           </div>
           <div className="flex items-center gap-2 bg-white border rounded-xl px-2 py-1">
             <span className="text-xs text-gray-500">Status</span>
-            <select className="bg-transparent py-1 px-1 text-sm outline-none" value={status} onChange={(e)=>setStatus(e.target.value)}>
+            <select className="bg-transparent py-1 px-1 text-sm outline-none" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="all">All</option>
               <option value="PAID">Paid</option>
               <option value="DELIVERED">Delivered</option>
@@ -149,7 +148,7 @@ export default function AdminSalesPage() {
           </div>
           <div className="flex items-center gap-2 bg-white border rounded-xl px-2 py-1">
             <span className="text-xs text-gray-500">Method</span>
-            <select className="bg-transparent py-1 px-1 text-sm outline-none" value={method} onChange={(e)=>setMethod(e.target.value)}>
+            <select className="bg-transparent py-1 px-1 text-sm outline-none" value={method} onChange={(e) => setMethod(e.target.value)}>
               <option value="all">All</option>
               <option value="card">Card</option>
               <option value="upi">UPI</option>
@@ -281,7 +280,7 @@ export default function AdminSalesPage() {
                 {(data?.topProducts || []).map((p) => (
                   <tr key={String(p.productId)} className="border-t">
                     <td className="py-2 font-medium">
-                      <Link href={`/admin/products/view/${String(p.productId)}` } className="text-blue-600 hover:underline">{p.name}</Link>
+                      <Link href={`/admin/products/view/${String(p.productId)}`} className="text-blue-600 hover:underline">{p.name}</Link>
                     </td>
                     <td className="py-2">{p.qty}</td>
                     <td className="py-2">₹{p.revenue.toLocaleString()}</td>

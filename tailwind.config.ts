@@ -39,6 +39,9 @@ const config: Config = {
         'bs-xl': '1200px',
         'bs-2xl': '1400px',
       },
+      maxWidth: {
+        '8xl': '96rem', // 1536px
+      },
       scrollBehavior: ['responsive'],
       fontFamily: {
         sans: [

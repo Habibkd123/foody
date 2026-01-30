@@ -7,12 +7,12 @@ import mongoose from 'mongoose';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
         const body = await request.json();
-        const { id } = params;
+        const { id } = await params;
         const {
             userId,
             restaurantRating,
@@ -106,11 +106,12 @@ export async function POST(
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectDB();
-        const review = await OrderReview.findOne({ order: params.id });
+        const { id } = await params;
+        const review = await OrderReview.findOne({ order: id });
         return NextResponse.json({ success: true, data: review });
     } catch (error: any) {
         return NextResponse.json({ success: false, message: error.message }, { status: 500 });

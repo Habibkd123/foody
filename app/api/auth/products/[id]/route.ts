@@ -344,11 +344,11 @@ import { ApiResponse } from '@/types/product';
 // -------------------------------------------------------
 // GET PRODUCT BY ID
 // -------------------------------------------------------
-export async function GET(request: NextRequest, context: any) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
 
-    const { id } = context.params;
+    const { id } = await params;
 
     const { searchParams } = new URL(request.url);
 
@@ -470,11 +470,11 @@ export async function GET(request: NextRequest, context: any) {
 // -------------------------------------------------------
 // UPDATE PRODUCT
 // -------------------------------------------------------
-export async function PUT(request: NextRequest, context: any) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
 
-    const { id } = context.params;
+    const { id } = await params;
 
     if (!validateObjectId(id)) {
       return createErrorResponse(
@@ -537,11 +537,11 @@ export async function PUT(request: NextRequest, context: any) {
 // -------------------------------------------------------
 // DELETE PRODUCT
 // -------------------------------------------------------
-export async function DELETE(request: NextRequest, context: any) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
 
-    const { id } = context.params;
+    const { id } = await params;
 
     if (!validateObjectId(id)) {
       return createErrorResponse(

@@ -161,15 +161,8 @@ const FoodApprovalPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                        Food Approval
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Review and approve food items from restaurants
-                    </p>
-                </div>
+            <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -284,8 +277,8 @@ const FoodApprovalPage = () => {
                     {filteredFoodItems.map((item) => (
                         <div key={item._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
                             <div className="relative">
-                                <img 
-                                    src={item.images[0] || "/api/placeholder/300/200"} 
+                                <img
+                                    src={item.images[0] || "/api/placeholder/300/200"}
                                     alt={item.name}
                                     className="w-full h-48 object-cover"
                                 />
@@ -293,7 +286,7 @@ const FoodApprovalPage = () => {
                                     {item.status}
                                 </span>
                             </div>
-                            
+
                             <div className="p-4">
                                 <div className="flex items-center justify-between mb-2">
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -306,16 +299,16 @@ const FoodApprovalPage = () => {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
                                     {item.description}
                                 </p>
-                                
+
                                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
                                     <Store className="h-4 w-4 mr-1" />
                                     {item.restaurant.name}
                                 </div>
-                                
+
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-lg font-bold text-gray-900 dark:text-white">
                                         ${item.price}
@@ -324,12 +317,12 @@ const FoodApprovalPage = () => {
                                         {item.category}
                                     </span>
                                 </div>
-                                
+
                                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
                                     <Clock className="h-4 w-4 mr-1" />
                                     {item.preparationTime}
                                 </div>
-                                
+
                                 <div className="flex items-center justify-between">
                                     <div className="flex flex-wrap gap-1">
                                         {item.dietary.slice(0, 2).map((diet, index) => (
@@ -341,7 +334,7 @@ const FoodApprovalPage = () => {
                                             <span className="text-xs text-gray-500">+{item.dietary.length - 2}</span>
                                         )}
                                     </div>
-                                    
+
                                     <div className="flex space-x-2">
                                         <button
                                             onClick={() => handleViewDetails(item)}
@@ -391,19 +384,19 @@ const FoodApprovalPage = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <img 
-                                            src={selectedFood.images[0] || "/api/placeholder/400/300"} 
+                                        <img
+                                            src={selectedFood.images[0] || "/api/placeholder/400/300"}
                                             alt={selectedFood.name}
                                             className="w-full h-64 object-cover rounded-lg mb-4"
                                         />
-                                        
+
                                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                                             {selectedFood.name}
                                         </h3>
                                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                                             {selectedFood.description}
                                         </p>
-                                        
+
                                         <div className="flex items-center justify-between mb-4">
                                             <span className="text-2xl font-bold text-gray-900 dark:text-white">
                                                 ${selectedFood.price}

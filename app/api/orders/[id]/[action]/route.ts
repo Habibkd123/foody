@@ -54,9 +54,9 @@ async function updateOrderStatus(orderId: string, status: string, driverId?: str
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string, action: string } }
+    { params }: { params: Promise<{ id: string, action: string }> }
 ) {
-    const { id, action } = params;
+    const { id, action } = await params;
 
     let result;
     if (action === 'accept') {

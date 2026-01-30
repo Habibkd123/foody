@@ -1,7 +1,30 @@
+
 "use client"
 
 import React, { useState } from "react"
-import { Check, X, ChevronDown, ChevronRight, Edit2, Trash2 } from "lucide-react"
+import { Check, X, ChevronDown, ChevronRight, Pencil, Trash2, Eye, LayoutGrid, ListTree, Calendar, Package } from "lucide-react"
+import Link from "next/link"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export interface Category {
   _id: string
@@ -24,7 +47,7 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-function Row({ category, selected, onToggleSelection, onEdit, onDelete, viewMode, level = 0 }: {
+function CategoryRow({ category, selected, onToggleSelection, onEdit, onDelete, viewMode, level = 0 }: {
   category: Category
   selected: boolean
   onToggleSelection: () => void
@@ -34,66 +57,118 @@ function Row({ category, selected, onToggleSelection, onEdit, onDelete, viewMode
   level?: number
 }) {
   const [expanded, setExpanded] = useState(false)
+  const hasSubcategories = category.subcategories && category.subcategories.length > 0
+
   return (
     <>
-      <tr className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${selected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
-        <td className="px-6 py-4 whitespace-nowrap">
+      <TableRow className={`group hover:bg-muted/50 transition-colors ${selected ? 'bg-primary/5' : ''}`}>
+        <TableCell className="w-[50px] pl-6">
           <input
             type="checkbox"
             checked={selected}
             onChange={onToggleSelection}
-            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+            className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary h-4 w-4"
           />
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="flex items-center" style={{ paddingLeft: `${level * 20}px` }}>
-            {viewMode === 'tree' && category.subcategories && category.subcategories.length > 0 && (
-              <button onClick={() => setExpanded(!expanded)} className="mr-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">
-                {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </button>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center" style={{ paddingLeft: `${level * 24}px` }}>
+            {viewMode === 'tree' && (
+              <div className="w-8 flex justify-center mr-1">
+                {hasSubcategories ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 hover:bg-primary/10 transition-transform"
+                    onClick={() => setExpanded(!expanded)}
+                  >
+                    {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </Button>
+                ) : (
+                  <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                )}
+              </div>
             )}
-            {category.image && (
-              <img src={category.image} alt={category.name} className="w-12 h-12 object-cover rounded-lg mr-4 border border-gray-200 dark:border-gray-600" />
-            )}
-            <div>
-              <div className="text-sm font-medium text-gray-900 dark:text-white">{category.name}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">{category.description}</div>
+
+            <Avatar className="h-10 w-10 border border-border mr-3">
+              <AvatarImage src={category.image} alt={category.name} className="object-cover" />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {category.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground leading-none">{category.name}</span>
+              <span className="text-xs text-muted-foreground mt-1 line-clamp-1 max-w-[200px]">{category.description}</span>
             </div>
           </div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+        </TableCell>
+        <TableCell>
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-none font-medium flex items-center w-fit gap-1">
+            <Package className="h-3 w-3" />
             {category.products_count} products
-          </span>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${category.status === 'active' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'}`}>
-            {category.status === 'active' ? (<><Check className="w-3 h-3 mr-1" /> Active</>) : (<><X className="w-3 h-3 mr-1" /> Inactive</>)}
-          </span>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-          {new Date(category.createdAt).toLocaleDateString()}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-          <div className="flex items-center space-x-2">
-            <button onClick={onEdit} className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded" title="Edit category">
-              <Edit2 className="w-4 h-4" />
-            </button>
-            <button onClick={onDelete} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" title="Delete category">
-              <Trash2 className="w-4 h-4" />
-            </button>
+          </Badge>
+        </TableCell>
+        <TableCell>
+          <Badge
+            variant={category.status === 'active' ? 'default' : 'outline'}
+            className={`
+              border-none px-2.5 py-0.5 font-medium
+              ${category.status === 'active' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-gray-100 text-gray-500'}
+            `}
+          >
+            {category.status === 'active' ? 'Active' : 'Inactive'}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3 w-3" />
+            {new Date(category.createdAt).toLocaleDateString()}
           </div>
-        </td>
-      </tr>
+        </TableCell>
+        <TableCell className="text-right pr-6">
+          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:bg-blue-50" asChild>
+                    <Link href={`/admin/categories/${category._id}`}>
+                      <Eye className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View Details</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500 hover:bg-amber-50" onClick={onEdit}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit Category</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-500 hover:bg-rose-50" onClick={onDelete}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete Category</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </TableCell>
+      </TableRow>
 
       {viewMode === 'tree' && expanded && category.subcategories?.map(sub => (
-        <Row
+        <CategoryRow
           key={sub._id}
           category={sub}
           selected={selected}
           onToggleSelection={onToggleSelection}
-          onEdit={onEdit}
-          onDelete={onDelete}
+          onEdit={() => onEdit(sub)}
+          onDelete={() => onDelete(sub._id)}
           viewMode={viewMode}
           level={level + 1}
         />
@@ -103,41 +178,51 @@ function Row({ category, selected, onToggleSelection, onEdit, onDelete, viewMode
 }
 
 export default function CategoriesTable({ categories, selectedIds, onToggleSelectAll, onToggleSelection, viewMode, onEdit, onDelete }: Props) {
+  const allSelected = categories.length > 0 && selectedIds.size === categories.length
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div className="bg-card rounded-xl shadow-soft overflow-hidden border-none animate-fadeIn">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left">
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead className="w-[50px] pl-6">
                 <input
                   type="checkbox"
-                  checked={categories.length > 0 && selectedIds.size === categories.length}
+                  checked={allSelected}
                   onChange={onToggleSelectAll}
-                  className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                 />
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Products</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {Array.isArray(categories) && categories.map(category => (
-              <Row
-                key={category._id}
-                category={category}
-                selected={selectedIds.has(category._id)}
-                onToggleSelection={() => onToggleSelection(category._id)}
-                onEdit={() => onEdit(category)}
-                onDelete={() => onDelete(category._id)}
-                viewMode={viewMode}
-              />
-            ))}
-          </tbody>
-        </table>
+              </TableHead>
+              <TableHead className="min-w-[200px] text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Inventory</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Created At</TableHead>
+              <TableHead className="text-right pr-6 text-xs font-bold uppercase tracking-wider text-muted-foreground">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.isArray(categories) && categories.length > 0 ? (
+              categories.map(category => (
+                <CategoryRow
+                  key={category._id}
+                  category={category}
+                  selected={selectedIds.has(category._id)}
+                  onToggleSelection={() => onToggleSelection(category._id)}
+                  onEdit={() => onEdit(category)}
+                  onDelete={() => onDelete(category._id)}
+                  viewMode={viewMode}
+                />
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  No categories found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

@@ -791,14 +791,7 @@ const CategoriesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Product Categories</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your product categories and organize your inventory</p>
-          </div>
-        </div>
+      <div className="p-6 max-w-8xl mx-auto">
 
         {/* Actions Bar */}
         <CategoriesToolbar

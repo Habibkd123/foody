@@ -234,23 +234,23 @@ const NavigationItem: React.FC<NavigationItemProps> = ({
       <button
         type="button"
         aria-current={isActive ? "page" : undefined}
-        className={`w-full flex items-center transition-all duration-200 rounded-lg group relative ${isCollapsed ? "justify-center p-3" : "justify-between px-4 py-3"
+        className={`w-full flex items-center transition-all duration-200 rounded-xl group relative ${isCollapsed ? "justify-center p-3" : "px-4 py-3"
           } ${isActive
-            ? "bg-orange-100 text-orange-700 border border-orange-200 ring-1 ring-orange-200"
-            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 opacity-80 hover:opacity-100"
+            ? "bg-primary/10 text-primary shadow-sm"
+            : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white"
           }`}
         title={isCollapsed ? item.label : ""}
       >
-        {!isCollapsed && isActive && (
-          <span className="absolute left-0 top-0 h-full w-1 bg-orange-500 rounded-r" />
-        )}
         <div
           className={`flex items-center ${isCollapsed ? "justify-center" : "space-x-3"
             }`}
         >
-          <item.icon className="h-5 w-5" />
-          {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+          <item.icon className={`h-5 w-5 transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
+          {!isCollapsed && <span className={`font-medium text-sm whitespace-nowrap ${isActive ? "font-semibold" : ""}`}>{item.label}</span>}
         </div>
+        {!isCollapsed && isActive && (
+          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+        )}
       </button>
     </Link>
   );
@@ -281,29 +281,30 @@ const Sidebar: React.FC = () => {
 
       <aside
         className={`
-          fixed left-0 top-0 lg:top-0
-          bg-white dark:bg-gray-900
+          fixed left-0 top-0 h-screen
+          bg-white dark:bg-gray-900 
           border-r border-gray-200 dark:border-gray-800
           flex flex-col z-50
           transition-all duration-300 ease-in-out transform
-          ${isMobile ? "h-screen" : "h-screen lg:h-screen"} 
           ${isMobile
             ? isMobileOpen
-              ? "translate-x-0 w-64"
+              ? "translate-x-0 w-64 shadow-2xl"
               : "-translate-x-full w-64"
             : isExpanded
               ? "w-64"
-              : "w-16"}
+              : "w-20"}
         `}
       >
-        {/* Sidebar header (align with your main header height if needed) */}
+        {/* Sidebar header */}
         <div
-          className={`flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 ${isExpanded ? "justify-start" : "justify-center"
+          className={`flex items-center h-20 px-6 border-b border-gray-100 dark:border-gray-800 ${isExpanded ? "justify-start" : "justify-center"
             }`}
         >
-          <Shield className="h-7 w-7 text-blue-500" />
+          <div className="bg-primary/10 p-2 rounded-xl">
+            <Shield className="h-6 w-6 text-primary" />
+          </div>
           {isExpanded && (
-            <span className="ml-2 text-sm font-semibold truncate">
+            <span className="ml-3 text-lg font-bold truncate tracking-tight text-gray-900 dark:text-white">
               Admin Panel
             </span>
           )}
@@ -311,14 +312,14 @@ const Sidebar: React.FC = () => {
 
         {/* Navigation */}
         <nav
-          className={`flex-1 py-4 space-y-2 overflow-y-auto ${isExpanded ? "px-3" : "px-2"
+          className={`flex-1 py-6 space-y-1 overflow-y-auto scrollbar-hide ${isExpanded ? "px-4" : "px-3"
             }`}
         >
           {navigationItems.map((item) => (
             <NavigationItem
               key={item.id}
               item={item}
-              isCollapsed={isCollapsed}
+              isCollapsed={!isExpanded && !isMobile}
               currentPath={pathname}
               onClick={() => {
                 if (isMobile) closeMobileSidebar();
@@ -326,6 +327,8 @@ const Sidebar: React.FC = () => {
             />
           ))}
         </nav>
+
+        {/* Optional Footer/Settings link can go here */}
       </aside>
     </>
   );

@@ -7,15 +7,16 @@ async function getProduct(id: string) {
     });
     const data = await res.json();
     if (res.ok && data?.success) return data.data;
-  } catch {}
+  } catch { }
   return null;
 }
 
 export async function generateMetadata(
-  props: any,
+  props: { params: Promise<{ product_id: string }> },
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const product_id: string | undefined = props?.params?.product_id;
+  const params = await props.params;
+  const product_id: string | undefined = params?.product_id;
   if (!product_id) {
     return {
       title: 'Product — Gro-Delivery',

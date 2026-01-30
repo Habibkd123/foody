@@ -1,25 +1,32 @@
+
 "use client";
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from 'lucide-react';
+import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, Search, Filter, ShoppingBag, Package, TrendingUp, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProductManagement = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [uploadingImages, setUploadingImages] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const router = useRouter();
-  // Filters and pagination
+
   const [filters, setFilters] = useState({
     search: '',
-    category: '',
-    status: '',
+    category: 'all',
+    status: 'all',
     page: 1,
     limit: 10
   });
@@ -30,25 +37,12 @@ const ProductManagement = () => {
     totalItems: 0
   });
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: '',
-    stock: '',
-    status: 'active',
-    sku: '',
-    images: []
-  });
-
-  // Fetch products
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value.toString());
+        if (value && value !== 'all') params.append(key, value.toString());
       });
 
       const response = await fetch(`/api/auth/products?${params}`);
@@ -65,15 +59,12 @@ const ProductManagement = () => {
     }
   };
 
-  // Fetch categories
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
-      console.log('Categories response:', data);
-
       if (data.success) {
-        setCategories(data.data?.categories);
+        setCategories(data.data?.categories || []);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -82,48 +73,28 @@ const ProductManagement = () => {
 
   useEffect(() => {
     fetchProducts();
-    fetchCategories();
   }, [filters]);
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-  // Delete product
-  const handleDelete = async (productId: any) => {
+  const handleDelete = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
-
     try {
       const response = await fetch(`/api/auth/products/${productId}`, {
         method: 'DELETE'
       });
-
       const data = await response.json();
       if (data.success) {
         fetchProducts();
-        alert('Product deleted successfully!');
       }
     } catch (error) {
       console.error('Error deleting product:', error);
     }
   };
 
-
-
-  // Edit product
-  const handleEdit = (product: any) => {
-    setFormData({
-      name: product.name,
-      description: product.description || '',
-      price: product.price,
-      category: product.category._id,
-      stock: product.stock,
-      status: product.status,
-      sku: product.sku || '',
-      images: product.images || []
-    });
-    setEditingProduct(product);
-    setShowAddForm(true);
-  };
-
-  const formatPrice = (price: any) => {
+  const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR'
@@ -131,224 +102,186 @@ const ProductManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-200">
-            Products
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 transition-colors duration-200">
-            Manage your product inventory, pricing, and availability
-          </p>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-
-            {/* Search */}
-            <div className="relative flex-1 max-w-full sm:max-w-md">
-
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200 placeholder-gray-500 dark:placeholder-gray-400"
-              />
-              <svg
-                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 dark:text-gray-500 transition-colors duration-200"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+    <div className="space-y-8">
+      {/* Search & Filters */}
+      <Card className="border-none shadow-soft">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full lg:w-auto">
+              <div className="relative flex-1 max-w-full sm:max-w-md min-w-[280px]">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search products..."
+                  value={filters.search}
+                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
+                  className="pl-10"
                 />
-              </svg>
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-2 sm:gap-3">
-
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((category: any) => (
-                  <option key={category._id} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-
-          <button onClick={() => router.push('/admin/products/add')} className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 md:px-5 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
-
-            <PlusIcon className="w-5 h-5 mr-2" />
-            Add Product
-          </button>
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
-
-          {products.map((product: any, index: any) => {
-            const categoryName = typeof product.category === 'object' ? product.category.name : product.category;
-            return (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md dark:hover:shadow-gray-900/20 flex flex-col">
-                {/* Product Image */}
-                <div className="bg-gray-200 dark:bg-gray-700 transition-colors duration-200">
-                  <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center overflow-hidden transition-colors duration-200">
-                    <img src={product.images[0] || '/placeholder.png'} alt={product.name} className="object-cover w-full h-full" />
-                  </div>
-                </div>
-
-                {/* Product Info */}
-                <div className="p-4 flex-1 flex flex-col">
-
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 transition-colors duration-200">
-                      {product.name}
-                    </h3>
-                    <button
-                      // onClick={() => toggleActive(product._id)}
-                      className={`ml-2 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${product.status
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200'
-                        }`}
-                    >
-                      {product.status ? 'Active' : 'Inactive'}
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2 transition-colors duration-200">
-                    {product.description}
-                  </p>
-
-                  <div className="flex items-center justify-between mb-3 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-200">
-                        {formatPrice(product.price)}
-                      </span>
-                      {product.originalPrice && product.originalPrice > 0 && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 line-through transition-colors duration-200">
-                          {formatPrice(product.originalPrice)}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200 truncate max-w-[120px] text-right">
-                      SKU: {product.sku}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                      Category: {categoryName}
-                    </span>
-                    <span className={`text-xs font-medium transition-colors duration-200 ${product.stock > 0
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-red-600 dark:text-red-400'
-                      }`}>
-                      {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="mt-auto pt-3 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
-                    <div className="flex space-x-2">
-                      <Link href={`/admin/products/view/${product._id}`} >
-                        <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
-                          <EyeIcon className="w-4 h-4" />
-                        </button>
-                      </Link>
-                      <Link href={`/admin/products/${product._id}`} >
-                        <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200">
-                          <PencilIcon className="w-4 h-4" />
-                        </button>
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(product?._id)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                      {new Date(product.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
               </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  value={filters.category}
+                  onValueChange={(val) => setFilters(prev => ({ ...prev, category: val, page: 1 }))}
+                >
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={filters.status}
+                  onValueChange={(val) => setFilters(prev => ({ ...prev, status: val, page: 1 }))}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => router.push('/admin/products/add')}
+              className="w-full xl:w-auto bg-primary hover:bg-primary/90 text-white shadow-soft font-semibold"
+            >
+              <PlusIcon className="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Products Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i} className="border-none shadow-soft overflow-hidden">
+              <Skeleton className="aspect-[4/3] w-full" />
+              <CardContent className="p-4 space-y-3">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <div className="flex justify-between pt-4">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-12" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+          {products.map((product) => {
+            const categoryName = typeof product.category === 'object' ? product.category.name : 'Uncategorized';
+            const isActive = product.status === 'active';
+
+            return (
+              <Card key={product._id} className="group border-none shadow-soft overflow-hidden transition-all duration-300 hover:shadow-soft-lg hover:-translate-y-1 flex flex-col">
+                <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+                  <img
+                    src={product.images[0] || '/placeholder.png'}
+                    alt={product.name}
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-3 right-3">
+                    <Badge variant={isActive ? "default" : "destructive"} className={`shadow-md border-none px-2 ${isActive ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-rose-500 hover:bg-rose-500'}`}>
+                      {product.status}
+                    </Badge>
+                  </div>
+                </div>
+
+                <CardContent className="p-4 flex-1 flex flex-col">
+                  <div className="mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary/70">{categoryName}</span>
+                    <h3 className="text-sm font-bold text-foreground mt-0.5 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-4 h-[2.5em]">{product.description}</p>
+
+                  <div className="mt-auto flex items-end justify-between pt-3 border-t border-border">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase">Price</span>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-sm font-bold">{formatPrice(product.price)}</span>
+                        {product.originalPrice > product.price && (
+                          <span className="text-[10px] text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase">Stock</span>
+                      <Badge variant="outline" className={`text-[10px] font-bold px-1.5 py-0 border-none ${product.stock < 5 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                        {product.stock} units
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:bg-blue-50" asChild>
+                      <Link href={`/admin/products/view/${product._id}`}><EyeIcon className="h-4 w-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-500 hover:bg-amber-50" asChild>
+                      <Link href={`/admin/products/${product._id}`}><PencilIcon className="h-4 w-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-500 hover:bg-rose-50" onClick={() => handleDelete(product._id)}>
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 animate-pulse">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 h-[320px]">
-                <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-t-lg" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                  <div className="flex justify-between pt-4">
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20" />
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-10" />
-                  </div>
-                </div>
-              </div>
-            ))}
+      ) : (
+        <Card className="border-none shadow-soft py-20 bg-background/50 border-2 border-dashed flex flex-col items-center justify-center text-center px-4">
+          <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <Package className="h-8 w-8 text-muted-foreground" />
           </div>
+          <CardTitle>No products found</CardTitle>
+          <CardDescription className="max-w-xs mt-2">
+            We couldn't find any products matching your criteria. Try adjusting your filters or add a new one.
+          </CardDescription>
+          <Button onClick={() => router.push('/admin/products/add')} className="mt-6 bg-primary text-white shadow-soft">
+            Add Your First Product
+          </Button>
+        </Card>
+      )}
 
-        ) : products.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 dark:text-gray-500 mb-4 transition-colors duration-200">
-              <svg
-                className="mx-auto h-12 w-12"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 transition-colors duration-200">
-              No products found
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4 transition-colors duration-200">
-              Try adjusting your search or filter criteria
-            </p>
-            <button className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
-              <PlusIcon className="w-5 h-5 mr-2" />
-              Add Your First Product
-            </button>
+      {/* Pagination */}
+      {!loading && products.length > 0 && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-border pt-6 mt-8">
+          <p className="text-xs text-muted-foreground font-medium">
+            Showing <span className="text-foreground">{((filters.page - 1) * filters.limit) + 1}</span> to <span className="text-foreground">{Math.min(filters.page * filters.limit, pagination.totalItems)}</span> of <span className="text-foreground">{pagination.totalItems}</span>
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={filters.page === 1}
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={filters.page === pagination.totalPages}
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+            >
+              Next
+            </Button>
           </div>
-        )}
-
-
-      </div>
+        </div>
+      )}
     </div>
   );
 };

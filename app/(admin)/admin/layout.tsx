@@ -30,16 +30,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { theme } = useTheme();
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
       <div className="flex min-h-screen">
         <Sidebar />
-        <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${!isMobile ? (isExpanded ? 'lg:ml-64' : 'lg:ml-16') : ''}`}>
+        <div className={`flex-1 min-w-0 flex flex-col transition-all duration-500 ${!isMobile ? (isExpanded ? 'lg:ml-64' : 'lg:ml-20') : ''}`}>
           {showHeader && <Header />}
-          <div className="flex-1 overflow-auto">
-            <div className="container mx-auto px-3 sm:px-5 lg:px-8 py-3 sm:py-5 md:py-6">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="max-w-8xl mx-auto p-4 sm:p-6 lg:p-8 animate-fadeIn">
               {children}
             </div>
-          </div>
+          </main>
         </div>
         <style jsx global>{`
           @keyframes fadeIn {

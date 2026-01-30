@@ -8,8 +8,8 @@ import { isValidObjectId } from 'mongoose';
 export const dynamic = 'force-dynamic';
 
 type Props = {
-  params: { product_id: string }
-  searchParams: { [key: string]: string | string[] | undefined }
+  params: Promise<{ product_id: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 async function getProduct(id: string) {
@@ -28,7 +28,7 @@ export async function generateMetadata(
   { params, searchParams }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const id = params.product_id;
+  const { product_id: id } = await params;
 
   const product = await getProduct(id);
 

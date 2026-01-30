@@ -129,10 +129,7 @@ export default function DriverApprovalPage() {
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Driver Approvals</h1>
-                <p className="text-gray-600">Review and approve driver applications</p>
-            </div>
+
 
             {/* Filter Tabs */}
             <div className="flex gap-2 mb-6">

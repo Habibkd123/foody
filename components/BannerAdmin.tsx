@@ -34,8 +34,8 @@ export default function BannerAdmin() {
     try {
       const res = await fetch("/api/banner");
       const data = await res.json();
-      if(data.status){
-      setBanners(data.banners);
+      if (data.status) {
+        setBanners(data.banners);
       }
     } catch (error) {
       console.error('Failed to fetch banners:', error);
@@ -45,7 +45,7 @@ export default function BannerAdmin() {
   useEffect(() => {
     fetchBanners();
   }, [fetchBanners]);
-console.log("banners",banners)
+  console.log("banners", banners)
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -88,9 +88,9 @@ console.log("banners",banners)
 
     if (!formData.title) {
       const baseName = files[0].name.split('.')[0];
-      setFormData(prev => ({ 
-        ...prev, 
-        title: baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) 
+      setFormData(prev => ({
+        ...prev,
+        title: baseName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
       }));
     }
 
@@ -206,7 +206,7 @@ console.log("banners",banners)
 
   return (
     <div className="min-h-screen bg-orange-50 py-4 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-orange-200">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Banner Admin</h1>
