@@ -3,6 +3,13 @@
 import React from "react"
 import { Product } from "@/types/global"
 import Image from "next/image"
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 type Category = {
   _id?: string
@@ -36,7 +43,7 @@ const getCategoryIcon = (name: string) => {
 }
 
 const SkeletonCard = () => (
-  <div className="min-w-[110px] max-w-[130px] sm:min-w-0 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-xl p-4 h-[130px]" />
+  <div className="bg-gray-200 dark:bg-gray-800 animate-pulse rounded-2xl p-6 h-[180px] w-full" />
 )
 
 export default function CategoriesSection({
@@ -49,97 +56,116 @@ export default function CategoriesSection({
   const isSelected = (id: string) => selectedCategory === id
 
   return (
-    <section id="home" className="relative">
-      <div className="container mx-auto px-4 py-10">
+    <section id="home" className="relative pt-4 pb-12">
+
+      <div className="container mx-auto px-4">
         {/* Heading */}
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
             Shop by Category
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Browse our fresh products by category
+          <p className="text-gray-600 dark:text-gray-400 mt-2 max-w-2xl mx-auto">
+            Discover our wide range of farm-fresh products and daily essentials
           </p>
         </div>
 
-        {/* ================= MOBILE SCROLL VERSION ================= */}
-        <div className="block md:hidden relative">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-2 py-3">
-            {loading
-              ? [...Array(8)].map((_, i) => <SkeletonCard key={i} />)
-              : categories.map((cat) => {
+        <div className="categories-slider-wrapper relative px-4 sm:px-12">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : (
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={24}
+              slidesPerView={1}
+              navigation={{
+                prevEl: '.swiper-button-prev-custom',
+                nextEl: '.swiper-button-next-custom',
+              }}
+              pagination={{ clickable: true, dynamicBullets: true }}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              breakpoints={{
+                480: { slidesPerView: 2 },
+                768: { slidesPerView: 3 },
+                1024: { slidesPerView: 4 },
+                1280: { slidesPerView: 6 },
+              }}
+
+              className="pb-12"
+            >
+              {categories.map((cat) => {
                 const catId = (cat._id || cat.id) as string
 
                 return (
-                  <div
-                    key={catId}
-                    onClick={() => setSelectedCategory(catId)}
-                    className={`
-                        snap-start min-w-[110px] max-w-[130px] cursor-pointer 
-                        p-4 rounded-xl text-center transition-all duration-300
+                  <SwiperSlide key={catId}>
+                    <div
+                      onClick={() => setSelectedCategory(catId)}
+                      className={`
+                        group cursor-pointer rounded-2xl p-8 text-center transition-all duration-500 h-full flex flex-col items-center justify-center
                         ${isSelected(catId)
-                        ? "bg-primary text-white scale-[1.02]"
-                        : "bg-card dark:bg-gray-900 shadow-sm"
-                      }
+                          ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]"
+                          : "bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
+                        }
                       `}
-                  >
-                    <div className="relative w-14 h-14 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                      {cat.image ? (
-                        <Image
-                          src={cat.image}
-                          alt={cat.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <span className="text-3xl">{cat.icon || getCategoryIcon(cat.name)}</span>
-                      )}
-                    </div>
+                    >
+                      <div className={`
+                        relative w-20 h-20 mx-auto rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-500
+                        ${isSelected(catId) ? 'bg-white/20' : 'bg-gray-50 dark:bg-gray-800 group-hover:bg-primary/10'}
+                      `}>
+                        {cat.image ? (
+                          <Image
+                            src={cat.image}
+                            alt={cat.name}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        ) : (
+                          <span className="text-5xl group-hover:scale-110 transition-transform duration-500">
+                            {cat.icon || getCategoryIcon(cat.name)}
+                          </span>
+                        )}
+                      </div>
 
-                    <p className="font-semibold mt-2 text-sm">{cat.name}</p>
-                  </div>
+                      <h3 className={`font-bold mt-5 text-lg transition-colors ${isSelected(catId) ? 'text-white' : 'text-gray-900 dark:text-white group-hover:text-primary'}`}>
+                        {cat.name}
+                      </h3>
+                      <p className={`text-sm mt-1 opacity-70 ${isSelected(catId) ? 'text-white/80' : 'text-gray-500'}`}>
+                        Explore Collection
+                      </p>
+                    </div>
+                  </SwiperSlide>
                 )
               })}
-          </div>
-        </div>
+            </Swiper>
+          )}
 
-        {/* ================= DESKTOP GRID VERSION ================= */}
-        <div className="hidden md:grid grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-5 mt-6">
-          {loading
-            ? [...Array(12)].map((_, i) => <SkeletonCard key={i} />)
-            : categories.map((cat) => {
-              const catId = (cat._id || cat.id) as string
-
-              return (
-                <div
-                  key={catId}
-                  onClick={() => setSelectedCategory(catId)}
-                  className={`
-                      cursor-pointer rounded-xl p-5 text-center transition-all duration-300
-                      ${isSelected(catId)
-                      ? "bg-primary text-white scale-[1.03]"
-                      : "bg-card dark:bg-gray-900 shadow hover:shadow-md hover:scale-[1.04]"
-                    }
-                    `}
-                >
-                  <div className="relative w-16 h-16 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                    {cat.image ? (
-                      <Image
-                        src={cat.image}
-                        alt={cat.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <span className="text-4xl">{cat.icon || getCategoryIcon(cat.name)}</span>
-                    )}
-                  </div>
-
-                  <h3 className="font-semibold mt-3">{cat.name}</h3>
-                </div>
-              )
-            })}
+          {/* Custom Navigation Buttons */}
+          <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-lg border border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-all pointer-events-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-gray-900 shadow-lg border border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-all pointer-events-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      <style jsx global>{`
+        .categories-slider-wrapper .swiper-pagination-bullet-active {
+          background: #ff8a00 !important;
+          width: 24px !important;
+          border-radius: 4px !important;
+        }
+        .categories-slider-wrapper .swiper {
+          padding-top: 20px;
+          padding-bottom: 50px;
+        }
+      `}</style>
     </section>
   )
 }
+

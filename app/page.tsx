@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import {
   Menu,
   X,
+  ArrowRight,
+  LayoutGrid
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SupportChat from "@/components/SupportChat"
@@ -26,13 +28,34 @@ import WhyChooseSection from "@/components/home/WhyChooseSection"
 import ContactSection from "@/components/home/ContactSection"
 import SiteFooter from "@/components/home/SiteFooter"
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton"
+import AppHeader from "@/components/ui/AppHeader"
+import NavbarFilter from "@/components/NavbarFilter"
+import HeroSlider from "@/components/ui/HeroSlider"
+import Image from "next/image"
+import { motion } from "framer-motion"
+import { CategorySection, CategorySectionSkeleton } from "@/components/home/CategoryGridSection"
 
-function GroceryApp() {
+
+
+const GroceryApp = () => {
   const router = useRouter()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
   const toast = useCustomToast()
 
-  // Contact form state
+  const { data: productsData = [], isLoading: isProductsLoading } = useProductsQuery();
+  const { user, logout } = useUserStore();
+  const { data: wishListsData = [] } = useWishlistQuery(user?._id);
+  const { items: cartItems, addItem, updateQuantity, removeItem } = useCartStore();
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [categories, setCategories] = useState<Array<any>>([])
+  const [cartOpen, setCartOpen] = useState(false)
+
+  // Pagination for category sections
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
+
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -41,288 +64,284 @@ function GroceryApp() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { data: productsData = [], isLoading: isProductsLoading } = useProductsQuery();
-
-  const [cartOpen, setCartOpen] = useState<boolean>(false)
-  const [userData, setUserData] = useState<any | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [categories, setCategories] = useState<Array<any>>([])
-
-  const { user, logout } = useUserStore();
-  const { data: wishListsData = [], addToWishlist, removeFromWishlist } = useWishlistQuery(user?._id);
-  const { items: cartItems, addItem, updateQuantity, removeItem } = useCartStore();
-
-  const products = productsData
-
-  // Fetch categories from API
-  const fetchCategories = async () => {
+  const fetchCategories = async (pageNum = 1, limitNum = 20) => {
+    if (pageNum === 1) setSectionsLoading(true);
     try {
-      const response = await fetch('/api/categories/productcategory');
+      const response = await fetch(`/api/categories/productcategory?page=${pageNum}&limit=${limitNum}`);
       const data = await response.json();
-      console.log('Categories response:', data.data);
-
       if (data.success) {
-        // Add "All Items" as first category with special styling
-        const allCategory = {
-          _id: 'all',
-          name: "All Items",
-          icon: "",
-          isAllCategory: true
-        };
-        setCategories([allCategory, ...data.data]);
+        if (pageNum === 1) {
+          setCategories(data.data);
+        } else {
+          setCategories(prev => [...prev, ...data.data]);
+        }
+
+        if (data.data.length < limitNum) {
+          setHasMore(false);
+        }
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      // Fallback to default categories if API fails
-      setCategories([
-        { _id: 'all', name: "All Items", icon: "", isAllCategory: true },
-        { _id: 'grocery', name: "Grocery", icon: "" },
-        { _id: 'bakery', name: "Bakery", icon: "" },
-        { _id: 'masala', name: "Masala & Spices", icon: "" },
-      ]);
+    } finally {
+      setSectionsLoading(false);
     }
   };
-
-  // Grocery categories (will be replaced by API data)
-  const groceryCategories = categories
 
   useEffect(() => {
-    fetchCategories();
+    fetchCategories(1, 20);
   }, []);
 
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchCategories(nextPage, 30);
+  };
 
-  // Filter products based on category and search
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = productsData.filter((product: any) => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
     const name = product.name || "";
-    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesCategory && matchesSearch
+    return matchesCategory && name.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
-  // Enhanced wishlist toggle with animation
-  const toggleWishlist = async (item: any) => {
-    if (!user?._id) {
-      toast.warning("Login Required", "Please login to manage wishlist");
-      return;
-    }
-    const isWishlisted = wishListsData && wishListsData.some((wItem: any) => wItem._id === item._id);
-    try {
-      if (isWishlisted) {
-        await removeFromWishlist({ userId: user._id, productId: item._id });
-        toast.wishlistRemoved(item.name);
-      } else {
-        await addToWishlist({ userId: user._id, productId: item._id });
-        toast.wishlistAdded(item.name);
-      }
-    } catch (error) {
-      console.error("Error toggling wishlist:", error);
-      toast.error("Wishlist Error", "Failed to update wishlist");
-    }
-  };
-
-  // Enhanced add to cart with animation and better state management
-  const handleAddToCart = useCallback((item: any) => {
-    if (!user?._id) {
-      toast.warning("Login Required", "Please login to add items to cart");
-      return;
-    }
-    addItem({
-      ...item,
-      id: item._id || item.id,
-      productId: item._id || String(item.id),
-      quantity: 1,
-      image: item.images[0],
-    });
-    toast.cartAdded(item.name);
-  }, [user?._id, addItem, toast]);
-
-  const removeFromCart1 = useCallback((itemId: any) => {
-    removeItem(itemId);
-    toast.cartRemoved("Item from cart");
-  }, [removeItem, toast]);
-
-  // Enhanced quantity update that syncs with all states
-  const updateQuantity1 = useCallback((itemId: string, change: number) => {
-    const item = cartItems.find((i: any) => (i._id || i.id) === itemId);
-    if (item) {
-      const newQuantity = Math.max(0, item.quantity + change);
-      if (newQuantity === 0) {
-        removeItem(itemId);
-      } else {
-        updateQuantity(itemId, newQuantity);
-      }
-    }
-  }, [cartItems, updateQuantity, removeItem]);
-
-  const getTotalPrice = (): number => {
-    return cartItems.reduce((total: number, item: any) => total + item.price * item.quantity, 0);
-  };
+  // Prepare top-level categories for the CategoriesSection (the slider)
+  // We can just use the names of the fetched sections
+  const topCategories = [{ _id: 'all', name: "All Items", icon: "🌟", isAllCategory: true }, ...categories];
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-white dark:bg-gray-900">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">GD</span>
-              </div>
-              <span className="text-xl font-bold text-foreground">Gro-Delivery</span>
-            </div>
+    <div className="min-h-screen bg-[#fdfbf7] dark:bg-gray-950 transition-colors duration-500 overflow-x-hidden">
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute top-[20%] -right-[5%] w-[35%] h-[35%] bg-orange-400/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[10%] left-[20%] w-[30%] h-[30%] bg-blue-400/10 blur-[120px] rounded-full" />
+      </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="home" className="text-foreground hover:text-primary transition-colors">
-                Home
-              </a>
-              <a href="#products" className="text-foreground hover:text-primary transition-colors">
-                Products
-              </a>
-              <a href="#offers" className="text-foreground hover:text-primary transition-colors">
-                Offers
-              </a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors">
-                Contact
-              </a>
-              {user?._id ? (
-                <button onClick={() => router.push('/profile')} className="text-foreground hover:text-primary transition-colors">
-                  <span className="text-sm text-foreground">Hi, {user?.firstName || user?.name || 'User'}</span>
-                </button>
-              ) : (
-                <Button
-                  className="bg-primary hover:opacity-90 text-primary-foreground px-4 py-2 rounded-full"
-                  onClick={() => router.push('/login')}
-                >
-                  Login
-                </Button>
-              )}
-            </nav>
-
-            {/* Right Side Icons */}
-            <div className="flex items-center space-x-4">
-              <ThemeToggleButton />
-              {/* Notification Center */}
-              {user?._id && <NotificationCenter location="home" />}
-              <div className="flex items-center space-x-2 relative z-[120px]">
-                <AddCardList
-                  cartItems={cartItems}
-                  removeFromCart={removeFromCart1}
-                  updateQuantity={updateQuantity1}
-                  getTotalPrice={getTotalPrice}
-                  cartOpen={cartOpen}
-                  setCartOpen={setCartOpen}
-                />
-
-                {/* Mobile Menu Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden text-gray-700"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
-              </div>
-            </div>
+      <header className="sticky top-0 z-[9999] w-full">
+        <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 shadow-sm shadow-black/5">
+          <div className="container mx-auto">
+            <AppHeader
+              logoSrc="/logoGro.png"
+              title="Gro-Delivery"
+              showSearch
+              sticky={false}
+              border={false}
+              className="!bg-transparent !shadow-none py-1 sm:py-2"
+              onSearch={setSearchTerm}
+              initialSearch={searchTerm}
+              actions={[
+                { key: 'notify', icon: <NotificationCenter location="home" /> },
+                {
+                  key: 'cart',
+                  icon: (
+                    <AddCardList
+                      cartItems={cartItems}
+                      removeFromCart={(id: string) => removeItem(id)}
+                      updateQuantity={(id: string, q: number) => updateQuantity(id, q)}
+                      getTotalPrice={() => cartItems.reduce((acc: any, i: any) => acc + i.price * i.quantity, 0)}
+                      cartOpen={cartOpen}
+                      setCartOpen={setCartOpen}
+                    />
+                  )
+                },
+                ...(user?._id ? [{
+                  key: 'profile',
+                  icon: (
+                    <Image
+                      src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
+                      alt="Profile"
+                      width={36}
+                      height={36}
+                      className="rounded-full border-2 border-primary/20 hover:border-primary transition-all shadow-md"
+                    />
+                  ),
+                  onClick: () => router.push('/profile')
+                }] : [{
+                  key: 'login',
+                  icon: <Button variant="ghost" className="font-bold text-gray-700 hover:text-primary transition-colors" onClick={() => router.push('/login')}>Login</Button>
+                }])
+              ]}
+            />
           </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <nav className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col space-y-3 pt-4">
-                <a href="home" className="text-foreground hover:text-primary transition-colors">
-                  Home
-                </a>
-                <a href="#products" className="text-foreground hover:text-primary transition-colors">
-                  Products
-                </a>
-                <a href="#offers" className="text-foreground hover:text-primary transition-colors">
-                  Offers
-                </a>
-                <a href="#contact" className="text-foreground hover:text-primary transition-colors">
-                  Contact
-                </a>
-                {user?._id ? (
-                  <span className="text-sm text-foreground px-2">Hi, {user?.firstName || user?.name || 'User'}</span>
-                ) : (
-                  <Button className="bg-primary hover:opacity-90 text-primary-foreground px-4 py-2 rounded-full" onClick={() => router.push('/login')}>
-                    Login
-                  </Button>
-                )}
-              </div>
-            </nav>
-          )}
+        </div>
+        <div className="hidden md:block bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 overflow-visible relative">
+          <NavbarFilter />
         </div>
       </header>
 
-      {/* Notification Banner */}
-      <div className="container mx-auto px-4 pt-6">
+      <main className="relative z-10">
+        {/* Modern Hero Section - Edge to Edge */}
+        <section className="relative px-0 sm:px-4 lg:px-6 pt-4 pb-4 sm:pb-8">
+          <div className="grid lg:grid-cols-12 gap-8 items-center bg-white dark:bg-gray-900 sm:rounded-[4rem] p-6 sm:p-10 lg:p-16 shadow-2xl shadow-primary/10 border border-gray-100 dark:border-gray-800 overflow-hidden relative">
+            <div className="lg:col-span-6 space-y-10 relative z-10 text-center lg:text-left">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-black tracking-wide"
+              >
+                <span className="flex h-3 w-3 rounded-full bg-primary animate-ping" />
+                30 MINS EXPRESS DELIVERY
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                className="text-5xl sm:text-7xl xl:text-8xl font-[900] text-gray-900 dark:text-white leading-[0.9] tracking-tighter"
+              >
+                FRESHNESS <br />
+                <span className="text-primary italic font-serif">Handpicked</span> <br />
+                FOR YOU
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="text-xl text-gray-500/80 dark:text-gray-400 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed"
+              >
+                Experience the finest organic groceries and artisanal products delivered straight from local farms to your kitchen.
+              </motion.p>
+
+
+              <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start pt-4">
+                <Button
+                  size="lg"
+                  className="h-20 px-12 rounded-[2rem] text-xl font-black bg-primary hover:bg-primary/95 shadow-[0_20px_50px_-15px_rgba(255,138,0,0.4)] group overflow-hidden relative"
+                  onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Start Shopping
+                    <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-20 px-12 rounded-[2rem] text-xl font-black border-2 border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                >
+                  View Offers
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-10 pt-8 justify-center lg:justify-start opacity-80">
+                <div className="text-left">
+                  <p className="text-3xl font-black text-gray-900 dark:text-white">10k+</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-[0.2em] mt-1">Happy Users</p>
+                </div>
+                <div className="w-[1px] h-12 bg-gray-100 dark:bg-gray-800" />
+                <div className="text-left">
+                  <p className="text-3xl font-black text-gray-900 dark:text-white">5k+</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-[0.2em] mt-1">Products</p>
+                </div>
+                <div className="w-[1px] h-12 bg-gray-100 dark:bg-gray-800" />
+                <div className="text-left">
+                  <p className="text-3xl font-black text-gray-900 dark:text-white">50+</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-[0.2em] mt-1">Locations</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-6 relative h-[450px] lg:h-[700px] w-full mt-8 lg:mt-0">
+              <div className="absolute inset-x-[-20%] inset-y-[-10%] bg-primary/5 rounded-[4rem] transform rotate-3 scale-95 blur-3xl opacity-50" />
+              <div className="relative h-full w-full rounded-[3rem] overflow-hidden shadow-2xl border border-white/50 dark:border-white/10">
+                <HeroSlider type="Home" />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <NotificationBanner location="home" />
-      </div>
 
-      {/* Hero Section — Minimal Milkshake Landing */}
-      <CategoriesSection
-        categories={groceryCategories}
-        products={products ?? []}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+        <div className="space-y-12 sm:space-y-20 pb-12">
+          {/* Shop by Category Slider */}
+          <CategoriesSection
+            categories={topCategories}
+            products={productsData}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
 
-      {/* Grocery Products Grid */}
-      <ProductsSection
-        title={selectedCategory === 'all' ? 'All Products' : (groceryCategories.find((cat: any) => (cat.id || cat._id) === selectedCategory)?.name || 'Products')}
-        filteredProducts={filteredProducts as any}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        wishListsData={wishListsData as any}
-        onAddToCart={handleAddToCart as any}
-        onToggleWishlist={toggleWishlist as any}
-      />
+          <FlashSales
+            products={productsData}
+            onAddToCart={addItem}
+            onToggleWishlist={() => { }}
+          />
 
-      {/* Flash Sales Section */}
-      <FlashSales
-        products={products}
-        onAddToCart={handleAddToCart}
-        onToggleWishlist={toggleWishlist}
-      />
+          {/* Featured Grid */}
+          <ProductsSection
+            title={selectedCategory === 'all' ? 'Fresh Recommendations' : (topCategories.find((c) => c._id === selectedCategory)?.name || 'Products')}
+            filteredProducts={filteredProducts}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            wishListsData={wishListsData}
+            onAddToCart={addItem}
+            onToggleWishlist={() => { }}
+          />
 
-      {/* Trending Products Section */}
-      <TrendingProducts
-        onAddToCart={handleAddToCart}
-        onToggleWishlist={toggleWishlist}
-      />
+          {/* Paginated Category Sections */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
+            {sectionsLoading && page === 1 ? (
+              Array.from({ length: 2 }).map((_, i) => <CategorySectionSkeleton key={i} />)
+            ) : (
+              categories.map((section, idx) => (
+                <CategorySection section={section} key={section._id || idx} />
+              ))
+            )}
 
-      {/* Loyalty Rewards Section */}
-      <LoyaltyRewards />
+            {hasMore && (
+              <div className="flex justify-center pt-8">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleLoadMore}
+                  disabled={sectionsLoading}
+                  className="flex items-center gap-4 bg-white dark:bg-gray-900 border-2 border-primary/20 hover:border-primary px-12 py-5 rounded-[2rem] text-primary font-black text-lg transition-all shadow-xl hover:shadow-primary/20 disabled:opacity-50"
+                >
+                  {sectionsLoading ? (
+                    <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <LayoutGrid className="w-6 h-6" />
+                  )}
+                  <span>{sectionsLoading ? 'Discovering more...' : 'Load More Categories'}</span>
+                </motion.button>
+              </div>
+            )}
+          </div>
 
-      {/* Why Choose Us */}
-      <WhyChooseSection />
+          <TrendingProducts
+            onAddToCart={addItem}
+            onToggleWishlist={() => { }}
+          />
 
-      {/* Contact Us Section */}
-      <ContactSection
-        contactForm={contactForm}
-        setContactForm={setContactForm}
-        isSubmitting={isSubmitting}
-        setIsSubmitting={setIsSubmitting}
-        toast={toast as any}
-      />
+          <LoyaltyRewards />
 
-      {/* Footer */}
+          <div className="max-w-7xl mx-auto px-4">
+            <WhyChooseSection />
+          </div>
+
+          <ContactSection
+            contactForm={contactForm}
+            setContactForm={setContactForm}
+            isSubmitting={isSubmitting}
+            setIsSubmitting={setIsSubmitting}
+            toast={toast as any}
+          />
+        </div>
+      </main>
+
       <SiteFooter />
     </div>
   )
 }
 
+
+
 export default function Page() {
   return (
-    <ToastProvider>
-      <main>
-        <GroceryApp />
-        <SupportChat />
-      </main>
-    </ToastProvider>
+    <main>
+      <GroceryApp />
+      <SupportChat />
+    </main>
   );
 }

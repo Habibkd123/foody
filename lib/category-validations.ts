@@ -26,7 +26,9 @@ export const updateCategorySchema = createCategorySchema.partial();
 export const categoryQuerySchema = z.object({
   page: z.string().transform(Number).optional(),
   limit: z.string().transform(Number).optional(),
-  parent: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid parent ID format').optional().nullable(),
+  parent: z.string().refine(val => val === 'null' || /^[0-9a-fA-F]{24}$/.test(val), {
+    message: 'Invalid parent ID format'
+  }).optional().nullable(),
   search: z.string().optional(),
   includeSubcategories: z.string().transform(val => val === 'true').optional(),
   level: z.string().transform(Number).optional(),
@@ -38,5 +40,7 @@ export const categoryIdSchema = z.object({
 
 export const categoryTreeQuerySchema = z.object({
   maxLevel: z.string().transform(Number).optional(),
-  parentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid parent ID format').optional().nullable(),
+  parentId: z.string().refine(val => val === 'null' || /^[0-9a-fA-F]{24}$/.test(val), {
+    message: 'Invalid parent ID format'
+  }).optional().nullable(),
 });

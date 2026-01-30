@@ -10,7 +10,7 @@ import { useFilterStore } from "@/lib/store/useFilterStore";
 import { useWishlistQuery } from "@/hooks/useWishlistQuery";
 import Link from "next/link";
 import NavbarFilter from "@/components/NavbarFilter";
-import { Heart, ChevronUp, ArrowRight, ShoppingBag, Clock } from 'lucide-react';
+import { Heart, ChevronUp, ArrowRight, ShoppingBag, Clock, LayoutGrid } from 'lucide-react';
 import dynamic from "next/dynamic";
 
 const LocationSelector = dynamic(() => import("@/components/LocationSelector"), { ssr: false });
@@ -47,21 +47,33 @@ const HomePage: React.FC = () => {
     getTotalAmount
   } = useCartStore();
 
-  const fetchCategories = async () => {
-    setCategoriesLoading(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchCategories = async (pageNum = 1, limitNum = 20) => {
+    if (pageNum === 1) setCategoriesLoading(true);
     setCategoriesError(false);
     try {
-      const response = await fetch('/api/categories/productcategory');
+      const response = await fetch(`/api/categories/productcategory?page=${pageNum}&limit=${limitNum}`);
       const data = await response.json();
       if (data?.success && Array.isArray(data?.data)) {
-        setCategories(data.data);
+        if (pageNum === 1) {
+          setCategories(data.data);
+        } else {
+          setCategories(prev => [...prev, ...data.data]);
+        }
+
+        // If we got fewer categories than requested, there are no more
+        if (data.data.length < limitNum) {
+          setHasMore(false);
+        }
       } else {
-        setCategories([]);
+        if (pageNum === 1) setCategories([]);
         setCategoriesError(true);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      setCategories([]);
+      if (pageNum === 1) setCategories([]);
       setCategoriesError(true);
     } finally {
       setCategoriesLoading(false);
@@ -69,8 +81,15 @@ const HomePage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchCategories(1, 20); // First time: 20
   }, []);
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchCategories(nextPage, 30); // Second time: 30
+  };
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -193,7 +212,8 @@ const HomePage: React.FC = () => {
           <NotificationBanner location="home" />
         </div>
 
-        <nav className="hidden md:block sticky top-16 z-40 backdrop-blur-md bg-white/80 border-b border-border">
+        <nav className="hidden md:block sticky top-16 z-[50] backdrop-blur-md bg-white/80 border-b border-border">
+
           <NavbarFilter />
         </nav>
 
@@ -287,7 +307,7 @@ const HomePage: React.FC = () => {
 
         {/* Categories Grid Section */}
         <div id="categories" className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {categoriesLoading ? (
+          {categoriesLoading && page === 1 ? (
             <div className="space-y-12">
               <CategorySectionSkeleton />
               <CategorySectionSkeleton />
@@ -295,13 +315,32 @@ const HomePage: React.FC = () => {
           ) : categoriesError ? (
             <div className="text-center py-20 bg-white rounded-3xl border border-dashed">
               <p className="text-gray-500">Unable to load categories. Please try refreshing.</p>
-              <button onClick={fetchCategories} className="mt-4 text-primary font-bold">Retry</button>
+              <button onClick={() => fetchCategories(1, 20)} className="mt-4 text-primary font-bold">Retry</button>
             </div>
           ) : categories.length > 0 ? (
             <div className="space-y-12">
               {categories.map((section, idx) => (
                 <CategorySection section={section} key={section._id || idx} />
               ))}
+
+              {hasMore && (
+                <div className="flex justify-center pt-8">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleLoadMore}
+                    disabled={categoriesLoading}
+                    className="group flex items-center gap-3 bg-white border-2 border-primary/20 px-8 py-3 rounded-2xl text-primary font-bold hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {categoriesLoading ? (
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <LayoutGrid className="w-5 h-5" />
+                    )}
+                    <span>{categoriesLoading ? 'Loading...' : 'Load More Categories'}</span>
+                  </motion.button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-20">
@@ -309,6 +348,7 @@ const HomePage: React.FC = () => {
             </div>
           )}
         </div>
+
 
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-12">
           <RecentlyViewedHome />

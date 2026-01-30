@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Category from '@/app/models/Category';
 import Product from '@/app/models/Product';
@@ -10,9 +9,16 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const includeSubcategories = searchParams.get('includeSub') === 'true';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '100'); // Default to large if not specified
+    const skip = (page - 1) * limit;
 
-    // Fetch all categories
-    const categories = await Category.find().lean();
+    // Fetch only parent categories if needed, or all based on requirement
+    // Usually for home page sections, we want main categories
+    const categories = await Category.find({ parent: null })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     if (!categories.length) {
       return NextResponse.json(
@@ -21,10 +27,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Prepare category IDs map for easy lookup
     const categoryIds = categories.map(cat => cat._id);
 
-    // Fetch products for all categories
+    // Fetch products for these categories
     let products = await Product.aggregate([
       { $match: { category: { $in: categoryIds } } },
       {
@@ -32,14 +37,14 @@ export async function GET(req: NextRequest) {
           inStock: { $cond: [{ $gt: ["$stock", 0] }, true, false] }
         }
       },
-      { $sort: { createdAt: -1 } }
+      { $sort: { createdAt: -1 } },
+      { $limit: 20 } // Limit products per category for summary view
     ]);
 
     // If includeSubcategories = true, load subcategory products too
     if (includeSubcategories) {
-      const subcategoryIds = (
-        await Category.find({ parent: { $in: categoryIds } }).select('_id')
-      ).map(sc => sc._id);
+      const subcategories = await Category.find({ parent: { $in: categoryIds } }).lean();
+      const subcategoryIds = subcategories.map(sc => sc._id);
 
       if (subcategoryIds.length) {
         const subProducts = await Product.aggregate([
@@ -55,17 +60,22 @@ export async function GET(req: NextRequest) {
     }
 
     // Group products under their category
-    const categoryWithProducts = categories.map((cat:any) => ({
+    const categoryWithProducts = categories.map((cat: any) => ({
       ...cat,
-      products: products.filter((p:any) => p.category?.toString() === cat._id.toString())
+      products: products.filter((p: any) => p.category?.toString() === cat._id.toString())
     }));
 
     return NextResponse.json({
       success: true,
-      data: categoryWithProducts
+      data: categoryWithProducts,
+      pagination: {
+        page,
+        limit,
+        count: categories.length
+      }
     });
 
-  } catch (error:any) {
+  } catch (error: any) {
     console.error('Error fetching categories with products:', error);
     return NextResponse.json(
       { success: false, message: 'Server error', error: error.message },
@@ -73,3 +83,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
