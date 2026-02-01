@@ -424,7 +424,7 @@ const NavbarFilter: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 group/nav" ref={menuRef}>
+    <div className="relative w-full bg-transparent border-b-0 border-gray-100 dark:border-gray-800 group/nav" ref={menuRef}>
       <div className="max-w-12xl mx-auto px-4 relative">
         {/* Left Scroll Button */}
         <button

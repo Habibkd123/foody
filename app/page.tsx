@@ -34,6 +34,7 @@ import HeroSlider from "@/components/ui/HeroSlider"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { CategorySection, CategorySectionSkeleton } from "@/components/home/CategoryGridSection"
+import { Product } from "@/types/global"
 
 
 
@@ -63,6 +64,10 @@ const GroceryApp = () => {
     message: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleAddToCart = (product: Product) => {
+    addItem({ ...product, quantity: 1 })
+  }
 
   const fetchCategories = async (pageNum = 1, limitNum = 20) => {
     if (pageNum === 1) setSectionsLoading(true);
@@ -116,16 +121,16 @@ const GroceryApp = () => {
         <div className="absolute bottom-[10%] left-[20%] w-[30%] h-[30%] bg-blue-400/10 blur-[120px] rounded-full" />
       </div>
 
-      <header className="sticky top-0 z-[9999] w-full">
-        <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 shadow-sm shadow-black/5">
-          <div className="container mx-auto">
+      <header className="sticky top-0 z-40 w-full transition-all duration-300">
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 shadow-sm shadow-black/5 supports-[backdrop-filter]:bg-white/60">
+          <div className="max-w-[2000px] mx-auto">
             <AppHeader
               logoSrc="/logoGro.png"
               title="Gro-Delivery"
               showSearch
               sticky={false}
               border={false}
-              className="!bg-transparent !shadow-none py-1 sm:py-2"
+              className="!bg-transparent !shadow-none py-2 md:py-3"
               onSearch={setSearchTerm}
               initialSearch={searchTerm}
               actions={[
@@ -149,29 +154,30 @@ const GroceryApp = () => {
                     <Image
                       src={(user as any)?.avatar || (user as any)?.image || 'https://picsum.photos/seed/profile/100'}
                       alt="Profile"
-                      width={36}
-                      height={36}
-                      className="rounded-full border-2 border-primary/20 hover:border-primary transition-all shadow-md"
+                      width={40}
+                      height={40}
+                      className="rounded-full border-2 border-primary/20 hover:border-primary transition-all shadow-md object-cover"
                     />
                   ),
                   onClick: () => router.push('/profile')
                 }] : [{
                   key: 'login',
-                  icon: <Button variant="ghost" className="font-bold text-gray-700 hover:text-primary transition-colors" onClick={() => router.push('/login')}>Login</Button>
+                  icon: <Button variant="ghost" className="font-bold text-gray-700 hover:text-primary transition-colors hover:bg-primary/5" onClick={() => router.push('/login')}>Login</Button>
                 }])
               ]}
             />
           </div>
         </div>
-        <div className="hidden md:block bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 overflow-visible relative">
+
+        <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 overflow-visible relative z-[9998]">
           <NavbarFilter />
         </div>
       </header>
 
       <main className="relative z-10">
         {/* Modern Hero Section - Edge to Edge */}
-        <section className="relative px-0 sm:px-4 lg:px-6 pt-4 pb-4 sm:pb-8">
-          <div className="grid lg:grid-cols-12 gap-8 items-center bg-white dark:bg-gray-900 sm:rounded-[4rem] p-6 sm:p-10 lg:p-16 shadow-2xl shadow-primary/10 border border-gray-100 dark:border-gray-800 overflow-hidden relative">
+        {/* <section className="relative ">
+          <div className="grid lg:grid-cols-12 gap-8 items-center bg-white dark:bg-gray-900 sm:p-10 lg:p-8  border border-gray-100 dark:border-gray-800 overflow-hidden relative">
             <div className="lg:col-span-6 space-y-10 relative z-10 text-center lg:text-left">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -218,7 +224,7 @@ const GroceryApp = () => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-20 px-12 rounded-[2rem] text-xl font-black border-2 border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                  className="hidden md:block h-20 px-12 rounded-[2rem] text-xl font-black border-2 border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
                 >
                   View Offers
                 </Button>
@@ -242,8 +248,170 @@ const GroceryApp = () => {
               </div>
             </div>
 
-            <div className="lg:col-span-6 relative h-[450px] lg:h-[700px] w-full mt-8 lg:mt-0">
+            <div className="lg:col-span-6 relative h-[450px] lg:h-[570px] w-full mt-8 lg:mt-0 hidden lg:block">
               <div className="absolute inset-x-[-20%] inset-y-[-10%] bg-primary/5 rounded-[4rem] transform rotate-3 scale-95 blur-3xl opacity-50" />
+              <div className="relative h-full w-full rounded-[3rem] overflow-hidden shadow-2xl border border-white/50 dark:border-white/10">
+                <HeroSlider type="Home" />
+              </div>
+            </div>
+          </div>
+        </section> */}
+
+
+        <section className="relative">
+          <div
+            className="
+          grid grid-cols-1 lg:grid-cols-12
+          gap-6 lg:gap-8
+          bg-white dark:bg-gray-900
+          p-5 sm:p-8 lg:p-8
+          border border-gray-100 dark:border-gray-800
+          overflow-hidden
+        "
+          >
+            {/* LEFT CONTENT */}
+            <div className="lg:col-span-6 space-y-6 sm:space-y-8 text-center lg:text-left relative z-10">
+
+              {/* BADGE */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="
+              inline-flex items-center gap-2
+              px-4 py-2
+              rounded-full
+              bg-primary/10 border border-primary/30
+              text-primary text-xs sm:text-sm font-black
+            "
+              >
+                <span className="flex h-2.5 w-2.5 rounded-full bg-primary animate-ping" />
+                30 MINS EXPRESS DELIVERY
+              </motion.div>
+
+              {/* HEADING */}
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="
+              text-3xl sm:text-5xl lg:text-7xl xl:text-8xl
+              font-[900]
+              leading-tight sm:leading-[0.95]
+              tracking-tight
+              text-gray-900 dark:text-white
+            "
+              >
+                FRESHNESS <br />
+                <span className="text-primary italic font-serif">
+                  Handpicked
+                </span>{" "}
+                <br />
+                FOR YOU
+              </motion.h1>
+
+              {/* DESCRIPTION */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+                className="
+              text-base sm:text-lg lg:text-xl
+              text-gray-500 dark:text-gray-400
+              max-w-md mx-auto lg:mx-0
+              leading-relaxed
+            "
+              >
+                Experience the finest organic groceries and artisanal products
+                delivered straight from local farms to your kitchen.
+              </motion.p>
+
+              {/* BUTTONS */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+                <Button
+                  size="lg"
+                  className="
+                h-14 sm:h-16 lg:h-20
+                w-full sm:w-auto
+                px-8 lg:px-12
+                rounded-2xl
+                text-base sm:text-lg lg:text-xl
+                font-black
+                bg-primary hover:bg-primary/95
+                shadow-[0_20px_50px_-15px_rgba(255,138,0,0.4)]
+                group relative overflow-hidden
+              "
+                  onClick={() =>
+                    document
+                      .getElementById("products")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Start Shopping
+                    <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-2 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                </Button>
+
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="
+                h-14 sm:h-16 lg:h-20
+                w-full sm:w-auto
+                px-8 lg:px-12
+                rounded-2xl
+                text-base sm:text-lg lg:text-xl
+                font-black
+                border-2
+                hidden sm:flex
+              "
+                >
+                  View Offers
+                </Button>
+              </div>
+
+              {/* STATS */}
+              <div
+                className="
+              grid grid-cols-3 gap-4
+              sm:flex sm:gap-10
+              pt-6
+              justify-center lg:justify-start
+              opacity-80
+              
+            "
+              >
+                {[
+                  { value: "10k+", label: "Happy Users" },
+                  { value: "5k+", label: "Products" },
+                  { value: "50+", label: "Locations" },
+                ].map((item, i) => (
+                  <div key={i} className="text-center lg:text-left">
+                    <p className="text-xl sm:text-3xl font-black text-gray-900 dark:text-white">
+                      {item.value}
+                    </p>
+                    <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-black tracking-widest mt-1">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RIGHT SLIDER */}
+            <div
+              className="
+            lg:col-span-6
+            relative
+            h-[250px] sm:h-[420px] lg:h-[570px]
+            w-full
+            mt-6 lg:mt-0
+            hidden lg:block
+            
+          "
+            >
+              <div className="absolute inset-x-[-20%] inset-y-[-10%] bg-primary/5 rounded-[4rem] rotate-3 blur-3xl opacity-50" />
               <div className="relative h-full w-full rounded-[3rem] overflow-hidden shadow-2xl border border-white/50 dark:border-white/10">
                 <HeroSlider type="Home" />
               </div>
@@ -251,20 +419,21 @@ const GroceryApp = () => {
           </div>
         </section>
 
+
+
         <NotificationBanner location="home" />
 
-        <div className="space-y-12 sm:space-y-20 pb-12">
+        <div className="space-y-12 sm:space-y-20 pb-12 mt-5">
           {/* Shop by Category Slider */}
           <CategoriesSection
             categories={topCategories}
-            products={productsData}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
           />
 
           <FlashSales
             products={productsData}
-            onAddToCart={addItem}
+            onAddToCart={handleAddToCart}
             onToggleWishlist={() => { }}
           />
 
@@ -275,21 +444,21 @@ const GroceryApp = () => {
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             wishListsData={wishListsData}
-            onAddToCart={addItem}
+            onAddToCart={handleAddToCart}
             onToggleWishlist={() => { }}
           />
 
           {/* Paginated Category Sections */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
+          <div className="max-w-7xl  px-2 sm:px-0 lg:px-8 space-y-20">
             {sectionsLoading && page === 1 ? (
               Array.from({ length: 2 }).map((_, i) => <CategorySectionSkeleton key={i} />)
             ) : (
-              categories.map((section, idx) => (
+              categories?.slice(0, 10).map((section, idx) => (
                 <CategorySection section={section} key={section._id || idx} />
               ))
             )}
 
-            {hasMore && (
+            {/* {hasMore && (
               <div className="flex justify-center pt-8">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -306,27 +475,16 @@ const GroceryApp = () => {
                   <span>{sectionsLoading ? 'Discovering more...' : 'Load More Categories'}</span>
                 </motion.button>
               </div>
-            )}
+            )} */}
           </div>
 
           <TrendingProducts
-            onAddToCart={addItem}
+            onAddToCart={handleAddToCart}
             onToggleWishlist={() => { }}
           />
 
-          <LoyaltyRewards />
 
-          <div className="max-w-7xl mx-auto px-4">
-            <WhyChooseSection />
-          </div>
 
-          <ContactSection
-            contactForm={contactForm}
-            setContactForm={setContactForm}
-            isSubmitting={isSubmitting}
-            setIsSubmitting={setIsSubmitting}
-            toast={toast as any}
-          />
         </div>
       </main>
 

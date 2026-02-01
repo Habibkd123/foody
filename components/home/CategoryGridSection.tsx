@@ -79,16 +79,16 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
     }
 
     return (
-        <section className="mb-12 md:mb-16" aria-labelledby={`category-${section?.name || 'section'}`}>
+        <section className="" aria-labelledby={`category-${section?.name || 'section'}`}>
             <div className="flex justify-between items-end mb-6 md:mb-8">
                 <div>
-                    <div className="flex items-center gap-4">
-                        <h2 id={`category-${section?.name || 'section'}`} className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
+                    <div className="  flex items-center justify-between sm:gap-1 gap-4">
+                        <p id={`category-${section?.name || 'section'}`} className="sm:text-xl  md:text-4xl font-black text-gray-900 dark:text-white tracking-tight whitespace-nowrap">
                             {section?.name}
-                        </h2>
+                        </p>
                         <Link
                             href={{ pathname: '/productlist', query: { category: section?.name } }}
-                            className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1 rounded-full text-xs font-bold transition-all uppercase tracking-tighter"
+                            className="bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1 rounded-full text-xs font-bold transition-all uppercase tracking-tighter whitespace-nowrap justify-end"
                         >
                             View
                         </Link>
@@ -124,10 +124,10 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
                 </div>
             </div>
 
-            <div className="relative group/slider px-4">
+            <div className="relative group/slider px-0">
                 <Swiper
                     modules={[Navigation, Pagination, Autoplay]}
-                    spaceBetween={20}
+                    spaceBetween={10}
                     slidesPerView={1.2}
                     navigation={{
                         prevEl: `.prev-${section.name.replace(/\s+/g, '-')}`,
@@ -141,7 +141,7 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
                         1280: { slidesPerView: 6 },
                     }}
 
-                    className="pb-12"
+                // className="pb-10"
                 >
                     {products.map((item, idx) => (
                         <SwiperSlide key={item._id || idx}>
@@ -149,50 +149,53 @@ export const CategorySection = ({ section }: CategorySectionProps) => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                className="group relative bg-white dark:bg-card rounded-2xl p-4 shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-white/5 h-full"
+                                className="group relative bg-white dark:bg-card rounded-2xl  shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-white/5 h-full"
                             >
                                 <button className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Heart className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors" />
                                 </button>
 
                                 <Link href={`/products/${item._id}`} className="block">
-                                    <div className="relative overflow-hidden rounded-xl mb-4 bg-gray-50 dark:bg-gray-800/50 aspect-square">
+                                    <div className="relative overflow-hidden rounded-t-xl mb-4 bg-gray-50 dark:bg-gray-800/50 aspect-square">
                                         <Image
                                             src={(item?.images && item.images[0]) || '/placeholder-product.png'}
                                             alt={item?.name || 'Product image'}
                                             fill
-                                            className="object-contain p-2 group-hover:scale-110 transition-transform duration-700 ease-out"
+                                            className="object-contain group-hover:scale-110 transition-transform duration-700 ease-out"
                                         />
                                     </div>
+                                    <div className="px-4 pb-2">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-base font-bold text-gray-900 dark:text-white line-clamp-1 group-hover:text-primary transition-colors">
+                                                    {item.name}
+                                                </h3>
 
-                                    <div className="space-y-1">
-                                        <h3 className="text-base font-bold text-gray-900 dark:text-white line-clamp-1 group-hover:text-primary transition-colors">
-                                            {item.name}
-                                        </h3>
-
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                            <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{item.rating?.toFixed(1) || '5.0'}</span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between pt-2">
-                                            <div className="flex flex-col">
-                                                <span className="text-xl font-black text-gray-900 dark:text-white">
-                                                    ₹{item.price || 0}
-                                                </span>
-                                                {item.originalPrice && (
-                                                    <span className="text-xs text-gray-400 line-through">₹{item.originalPrice}</span>
-                                                )}
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{item.rating?.toFixed(1) || '5.0'}</span>
+                                                </div>
                                             </div>
 
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={(e) => handleQuickAdd(e, item)}
-                                                className="p-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all"
-                                            >
-                                                <Plus className="w-5 h-5" />
-                                            </motion.button>
+                                            <div className="flex items-center justify-between pt-2">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xl font-black text-gray-900 dark:text-white">
+                                                        ₹{item.price || 0}
+                                                    </span>
+                                                    {item.originalPrice && (
+                                                        <span className="text-xs text-gray-400 line-through">₹{item.originalPrice}</span>
+                                                    )}
+                                                </div>
+
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={(e) => handleQuickAdd(e, item)}
+                                                    className="p-3 rounded-xl bg-primary text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all"
+                                                >
+                                                    <Plus className="w-5 h-5" />
+                                                </motion.button>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>

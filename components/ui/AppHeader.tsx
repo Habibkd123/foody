@@ -83,7 +83,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   <img
                     src={logoSrc}
                     alt="Logo"
-                    className="hidden md:block w-8 h-8 sm:w-10 sm:h-10 rounded-md"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-md"
                   />
                 )}
                 <div className="truncate hidden md:block">

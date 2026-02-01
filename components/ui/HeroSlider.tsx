@@ -74,7 +74,7 @@ export default function HeroSlider({ type }: { type: string }) {
                     slidesPerView={1}
                     loop={true}
                     autoplay={{ delay: 3000, disableOnInteraction: false }}
-                    className="w-full h-[50vh] md:h-[60vh] lg:h-[70vh]"
+                    className="w-full h-[50vh] md:h-[60vh] lg:h-[100vh]"
                 >
                     {(banners && banners.length > 0 ? banners : images).map((src: string, index: number) => (
                         <SwiperSlide key={`desktop-${src}-${index}`} className="relative">

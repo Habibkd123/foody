@@ -1,6 +1,7 @@
 import './globals.css';
 import { ClientProviders } from '../context/ClientProviders';
 import type { Metadata } from 'next';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 const baseUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
@@ -84,6 +85,7 @@ export default function RootLayout({
         </a>
         <ClientProviders>
           {children}
+          <MobileBottomNav />
         </ClientProviders>
       </body>
     </html>
