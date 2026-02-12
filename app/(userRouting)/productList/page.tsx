@@ -512,8 +512,8 @@ const ProductGrid: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8  ">
-        <div className="flex gap-2 lg:gap-6">
+      <div className="max-w-8xl mx-auto px-1 sm:px-2 lg:px-2  ">
+        <div className="flex gap-2 lg:gap-2">
           <div className="hidden lg:block">
             <SidebarFilters productsData={productsData} />
           </div>

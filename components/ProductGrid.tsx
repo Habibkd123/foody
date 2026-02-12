@@ -17,7 +17,7 @@ import {
 import { useUserStore } from '@/lib/store/useUserStore';
 import { useWishlistQuery } from '@/hooks/useWishlistQuery';
 import Link from 'next/link';
-import "./../components/cards.css"
+import "./cards.css"
 import { Product } from '@/types/global';
 import ProductSkeletonGrid from '@/components/product/ProductSkeletonGrid';
 import ProductEmptyState from '@/components/product/ProductEmptyState';
@@ -131,7 +131,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
     }
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-1">
             {Array.isArray(productLists) && productLists?.map((product, index) => {
                 const isWishlisted = wishListsData && wishListsData.some((item: any) => item._id === product._id);
                 const inCart = isInCart(product);
@@ -172,4 +172,3 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
 };
 
 export default ProductCardGrid;
-
