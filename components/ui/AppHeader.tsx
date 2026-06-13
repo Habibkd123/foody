@@ -148,14 +148,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     </Link>
                   );
                 }
+                if (action.onClick) {
+                  return (
+                    <button
+                      key={action.key}
+                      onClick={action.onClick}
+                      className="group"
+                    >
+                      {content}
+                    </button>
+                  );
+                }
                 return (
-                  <button
+                  <div
                     key={action.key}
-                    onClick={action.onClick}
                     className="group"
                   >
                     {content}
-                  </button>
+                  </div>
                 );
               })}
             </div>
