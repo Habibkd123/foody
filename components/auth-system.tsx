@@ -990,7 +990,7 @@ export default function AuthSystem({ onClose, onLoginSuccess, userRole1 }: AuthS
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        type="spring"
+                        transition={{ type: "spring" }}
                         className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4"
                       >
                         <Check className="h-8 w-8 text-green-600" />

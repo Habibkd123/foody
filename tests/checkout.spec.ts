@@ -2,8 +2,22 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Checkout Flow', () => {
     test('should allow a user to add items and navigate to checkout', async ({ page }) => {
+        // 0. Seed the database and Log in
+        // Call seed endpoint to populate test users/products
+        await page.goto('/api/seed');
+        await expect(page.locator('body')).toContainText('success');
+
+        // Go to login page and log in
+        await page.goto('/login');
+        await page.waitForSelector('#contact');
+        await page.fill('#contact', 'user30@test.com');
+        await page.fill('#password', 'password123');
+        await page.click('button:has-text("Sign In")');
+
+        // Wait for login redirect to productlist
+        await page.waitForURL('**/productlist');
+
         // 1. Navigate to the product list page
-        await page.goto('/productlist');
         await expect(page).toHaveTitle(/Gro-Delivery/);
 
         // 2. Add the first product to the cart
@@ -11,19 +25,13 @@ test.describe('Checkout Flow', () => {
         await page.waitForSelector('.grid');
 
         // Find the first "Add" button and click it
-        // Using a more robust locator strategy
         const addButtons = page.locator('button:has-text("Add")');
         await expect(addButtons.first()).toBeVisible();
         await addButtons.first().click();
 
         // 3. Verify cart update (optional, but good for stability)
-        // Check if "Add" changes to a quantity selector or cart count increases
-        // For now, let's just wait a bit or check for a toast/notification if applicable
-        // But since we are navigating to checkout next, that will verify state.
 
         // 4. Navigate to checkout
-        // There should be a cart icon or we can go directly to /checkout
-        // Let's use the direct URL for simplicity in this integration test
         await page.goto('/checkout');
 
         // 5. Verify Checkout Page Elements
