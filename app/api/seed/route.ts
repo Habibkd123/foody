@@ -110,6 +110,30 @@ export async function GET(req: NextRequest) {
             }
         }
 
+        // Seed Platform Admin
+        const adminEmail = 'admin@test.com';
+        const adminExists = await User.findOne({ email: adminEmail });
+        if (!adminExists) {
+            await User.create({
+                firstName: 'Platform',
+                lastName: 'Admin',
+                email: adminEmail,
+                phone: '9999111222',
+                password: 'password123',
+                role: 'admin',
+                addresses: [{
+                    label: 'Office',
+                    address: 'Admin Head Office, Delhi',
+                    city: 'Delhi',
+                    state: 'Delhi',
+                    zipCode: '110001',
+                    lat: 28.6139,
+                    lng: 77.2090,
+                    isDefault: true
+                }]
+            });
+        }
+
         // 2. Create Inventory items (Linked to Restaurants)
         console.log('Seeding Inventory...');
         if (createdUsers.restaurant.length > 0) {

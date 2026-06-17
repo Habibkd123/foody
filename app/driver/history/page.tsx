@@ -41,41 +41,52 @@ export default function RiderHistoryPage() {
     }, [user]);
 
     const fetchHistory = async () => {
+        if (!user?._id) {
+            setLoading(false);
+            return;
+        }
         try {
-            // Mocking history data
-            const mockHistory: HistoryOrder[] = [
-                {
-                    _id: 'h1',
-                    orderNumber: 'ORD-2024-001',
-                    date: '2024-01-29 14:30',
-                    restaurant: 'Pizza Palace',
-                    deliveryAddress: '123 Main St, New Delhi',
-                    amount: 650,
-                    deliveryFee: 45,
-                    status: 'delivered'
-                },
-                {
-                    _id: 'h2',
-                    orderNumber: 'ORD-2024-005',
-                    date: '2024-01-28 19:15',
-                    restaurant: 'Burger King',
-                    deliveryAddress: '456 Park Ave, New Delhi',
-                    amount: 420,
-                    deliveryFee: 35,
-                    status: 'delivered'
-                },
-                {
-                    _id: 'h3',
-                    orderNumber: 'ORD-2024-012',
-                    date: '2024-01-27 12:00',
-                    restaurant: 'Subway',
-                    deliveryAddress: '789 Garden Rd, New Delhi',
-                    amount: 300,
-                    deliveryFee: 30,
-                    status: 'cancelled'
-                }
-            ];
-            setOrders(mockHistory);
+            setLoading(true);
+            const res = await fetch(`/api/drivers/${user._id}/history`);
+            const data = await res.json();
+            if (data.success && data.orders && data.orders.length > 0) {
+                setOrders(data.orders);
+            } else {
+                // Fallback to mock data to preserve dashboard demo state if DB is empty
+                const mockHistory: HistoryOrder[] = [
+                    {
+                        _id: 'h1',
+                        orderNumber: 'ORD-2024-001',
+                        date: '2024-01-29 14:30',
+                        restaurant: 'Pizza Palace',
+                        deliveryAddress: '123 Main St, New Delhi',
+                        amount: 650,
+                        deliveryFee: 45,
+                        status: 'delivered'
+                    },
+                    {
+                        _id: 'h2',
+                        orderNumber: 'ORD-2024-005',
+                        date: '2024-01-28 19:15',
+                        restaurant: 'Burger King',
+                        deliveryAddress: '456 Park Ave, New Delhi',
+                        amount: 420,
+                        deliveryFee: 35,
+                        status: 'delivered'
+                    },
+                    {
+                        _id: 'h3',
+                        orderNumber: 'ORD-2024-012',
+                        date: '2024-01-27 12:00',
+                        restaurant: 'Subway',
+                        deliveryAddress: '789 Garden Rd, New Delhi',
+                        amount: 300,
+                        deliveryFee: 30,
+                        status: 'cancelled'
+                    }
+                ];
+                setOrders(mockHistory);
+            }
         } catch (error) {
             console.error('Error fetching history:', error);
         } finally {
@@ -135,50 +146,57 @@ export default function RiderHistoryPage() {
 
                 {/* Orders List */}
                 <div className="space-y-4">
-                    {orders
-                        .filter(o => filter === 'all' || o.status === filter)
-                        .map((order) => (
-                            <Card key={order._id} className="hover:shadow-md transition-shadow cursor-pointer">
-                                <CardContent className="p-4">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-full ${order.status === 'delivered' ? 'bg-green-100' : 'bg-red-100'
-                                                }`}>
-                                                {order.status === 'delivered' ? (
-                                                    <CheckCircle className="w-5 h-5 text-green-600" />
-                                                ) : (
-                                                    <XCircle className="w-5 h-5 text-red-600" />
-                                                )}
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2"></div>
+                            <p className="text-sm text-gray-500">Loading delivery history...</p>
+                        </div>
+                    ) : (
+                        orders
+                            .filter(o => filter === 'all' || o.status === filter)
+                            .map((order) => (
+                                <Card key={order._id} className="hover:shadow-md transition-shadow cursor-pointer">
+                                    <CardContent className="p-4">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-full ${order.status === 'delivered' ? 'bg-green-100' : 'bg-red-100'
+                                                    }`}>
+                                                    {order.status === 'delivered' ? (
+                                                        <CheckCircle className="w-5 h-5 text-green-600" />
+                                                    ) : (
+                                                        <XCircle className="w-5 h-5 text-red-600" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-900">{order.restaurant}</p>
+                                                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" /> {order.date}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-semibold text-gray-900">{order.restaurant}</p>
-                                                <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                    <Clock className="w-3 h-3" /> {order.date}
-                                                </p>
+                                            <div className="text-right">
+                                                <p className="font-bold text-gray-900">₹{order.deliveryFee}</p>
+                                                <Badge variant={order.status === 'delivered' ? 'outline' : 'destructive'} className="text-[10px]">
+                                                    {order.status.toUpperCase()}
+                                                </Badge>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-gray-900">₹{order.deliveryFee}</p>
-                                            <Badge variant={order.status === 'delivered' ? 'outline' : 'destructive'} className="text-[10px]">
-                                                {order.status.toUpperCase()}
-                                            </Badge>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
-                                        <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
-                                        <p className="truncate">{order.deliveryAddress}</p>
-                                    </div>
-
-                                    <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t">
-                                        <span>Order ID: {order.orderNumber}</span>
-                                        <div className="flex items-center text-orange-600 font-medium">
-                                            View Details <ChevronRight className="w-3 h-3 ml-1" />
+                                        <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
+                                            <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                                            <p className="truncate">{order.deliveryAddress}</p>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+
+                                        <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t">
+                                            <span>Order ID: {order.orderNumber}</span>
+                                            <div className="flex items-center text-orange-600 font-medium">
+                                                View Details <ChevronRight className="w-3 h-3 ml-1" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                    )}
                 </div>
 
                 {orders.length === 0 && !loading && (

@@ -126,6 +126,7 @@ export enum OrderStatus {
   DELIVERED = 'delivered',
   CANCELED = 'canceled',
   PROCESSING = 'processing',
+  ASSIGNED = 'assigned',
 }
 export enum PaymentStatus {
   PENDING = 'pending',

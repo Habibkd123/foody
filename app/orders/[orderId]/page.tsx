@@ -53,7 +53,9 @@ const getStatusStep = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending': return 1;
     case 'processing': return 2;
+    case 'shipped':
     case 'out_for_delivery': return 3;
+    case 'delivered':
     case 'completed': return 4;
     default: return 0;
   }

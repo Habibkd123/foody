@@ -184,10 +184,53 @@ import { useAddressQuery } from "@/hooks/useAddressQuery"
 import { useRouter } from "next/navigation"
 import { useUserStore } from "@/lib/store/useUserStore"
 import { useCartStore } from "@/lib/store/useCartStore"
+import { useProductsQuery } from "@/hooks/useProductsQuery"
+
+const TrendingProductsCartList = ({ onAddToCart }: { onAddToCart: (product: any) => void }) => {
+  const { data: productsData = [] } = useProductsQuery()
+  
+  const trending = React.useMemo(() => {
+    return productsData
+      .filter(product => product.rating && product.rating >= 4.0)
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 4)
+  }, [productsData])
+
+  if (trending.length === 0) return null
+
+  return (
+    <div className="grid grid-cols-2 gap-3 mt-2">
+      {trending.map((product) => (
+        <div key={product._id} className="border border-gray-100 dark:border-gray-800 rounded-2xl p-2.5 flex flex-col justify-between bg-white dark:bg-gray-850 hover:shadow-md transition duration-300">
+          <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 mb-2">
+            <img
+              src={product.images?.[0] || "/placeholder-product.png"}
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h5 className="text-xs font-semibold text-gray-950 dark:text-gray-50 truncate" title={product.name}>
+            {product.name}
+          </h5>
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <span className="text-xs font-black text-primary">₹{product.price}</span>
+            <Button
+              size="sm"
+              className="h-7 px-3 rounded-lg bg-primary text-[10px] text-white hover:bg-primary/90 font-bold"
+              onClick={() => onAddToCart(product)}
+            >
+              Add
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const AddCardList = ({ cartOpen, setCartOpen, type }: any) => {
   const [addressOpen, setAddressOpen] = React.useState(false)
-  const { items, address, distance, setAddress: storeSetAddress } = useCartStore()
+  const { items, address, distance, setAddress: storeSetAddress, addItem: storeAddItem } = useCartStore()
   const router = useRouter()
   const { user } = useUserStore()
   const { addresses = [] } = useAddressQuery(user?._id)
@@ -234,9 +277,39 @@ const AddCardList = ({ cartOpen, setCartOpen, type }: any) => {
           {/* CART ITEMS */}
           <div className="flex-1 overflow-y-auto px-4 py-4">
             {items.length === 0 ? (
-              <p className="text-center text-gray-500 mt-10">
-                Your cart is empty
-              </p>
+              <div className="flex flex-col h-full justify-between">
+                <div className="text-center py-10 flex-1 flex flex-col items-center justify-center">
+                  <ShoppingCart className="w-12 h-12 text-gray-350 mb-4 animate-bounce" />
+                  <p className="text-gray-500 text-sm font-semibold mb-4">
+                    Your cart is empty
+                  </p>
+                  <Button 
+                    onClick={() => setCartOpen(false)} 
+                    className="bg-primary hover:bg-primary/95 text-white font-bold px-6 py-2 rounded-xl text-xs"
+                  >
+                    Browse Products
+                  </Button>
+                </div>
+                
+                {/* Mini Trending Products list inside the cart sheet */}
+                <div className="border-t pt-4 mt-6">
+                  <h4 className="font-bold text-xs text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                    🔥 Trending Today
+                  </h4>
+                  <TrendingProductsCartList onAddToCart={(prod) => {
+                    const cartItem: any = {
+                      id: `${prod._id}:base`,
+                      productId: prod._id,
+                      configKey: 'base',
+                      name: prod.name,
+                      price: prod.price,
+                      quantity: 1,
+                      image: prod.images?.[0],
+                    };
+                    storeAddItem(cartItem);
+                  }} />
+                </div>
+              </div>
             ) : (
               <CartSummary cartItems={items} />
             )}

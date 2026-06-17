@@ -18,7 +18,24 @@ interface Props {
   wishListsData: Product[] | null | undefined
   onAddToCart: (p: Product) => void
   onToggleWishlist: (p: Product) => void
+  isLoading?: boolean
 }
+
+const SkeletonProductCard = () => (
+  <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden h-full flex flex-col animate-pulse shadow-sm">
+    <div className="bg-gray-200 dark:bg-gray-700 h-36 sm:h-44 w-full" />
+    <div className="p-3 flex-1 flex flex-col justify-between space-y-3">
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+      </div>
+      <div className="flex justify-between items-center pt-2">
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg w-8 sm:w-16" />
+      </div>
+    </div>
+  </div>
+)
 
 export default function ProductsSection({
   title,
@@ -28,6 +45,7 @@ export default function ProductsSection({
   wishListsData,
   onAddToCart,
   onToggleWishlist,
+  isLoading = false,
 }: Props) {
   return (
     <section id="products" className="py-8 md:py-12 bg-orange-10 dark:bg-gray-900">
@@ -62,8 +80,15 @@ export default function ProductsSection({
         </motion.div>
 
         {/* PRODUCT GRID */}
-        <div className="grid grid-cols-2 md:grid-cols-3   xl:grid-cols-4 gap-0 md:gap-6">
-          {filteredProducts.map((product, index) => {
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonProductCard key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3   xl:grid-cols-4 gap-0 md:gap-6">
+            {filteredProducts.map((product, index) => {
             const isWishlisted = wishListsData?.some((i) => i._id === product._id)
 
             return (
@@ -149,11 +174,12 @@ export default function ProductsSection({
                 </div>
               </motion.div>
             )
-          })}
-        </div>
+            })}
+          </div>
+        )}
 
         {/* EMPTY STATE */}
-        {filteredProducts.length === 0 && (
+        {!isLoading && filteredProducts.length === 0 && (
           <div className="text-center py-20">
             <motion.p
               initial={{ opacity: 0 }}

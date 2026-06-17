@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-
 import Order from '@/app/models/Order';
 import Product from '@/app/models/Product';
+import User from '@/app/models/User';
+import { declineOrderAssignment, clearOrderSkipCache } from '@/lib/dispatch';
 
 async function updateOrderStatus(orderId: string, status: string, driverId?: string) {
     try {
@@ -11,16 +12,63 @@ async function updateOrderStatus(orderId: string, status: string, driverId?: str
         const order = await Order.findById(orderId).populate('items.product');
         if (!order) throw new Error('Order not found');
 
+        // Accept Order Action
         if (status === 'assigned' && driverId) {
             order.rider = driverId;
+            
+            // Set driver availability to false (occupied)
+            const driver = await User.findById(driverId);
+            if (driver && driver.role === 'driver') {
+                if (!driver.driverDetails) driver.driverDetails = {};
+                driver.driverDetails.isAvailable = false;
+                await driver.save();
+                console.log(`[Action API] Rider ${driver.firstName} is now occupied (isAvailable = false)`);
+            }
         }
 
-        // Map simplified statuses to Order model statuses if needed
+        // Map simplified statuses to DB Order statuses
         let finalStatus = status;
-        if (status === 'picked_up') finalStatus = 'processing'; // Or 'shipped'
-        if (status === 'delivered') finalStatus = 'delivered';
+        if (status === 'assigned') finalStatus = 'processing';
+        if (status === 'picked_up') finalStatus = 'shipped';
+        
+        // Deliver Order Action
+        if (status === 'delivered') {
+            finalStatus = 'delivered';
+            
+            // Update driver earnings & completion count
+            if (order.rider) {
+                const driver = await User.findById(order.rider);
+                if (driver && driver.role === 'driver') {
+                    if (!driver.driverDetails) driver.driverDetails = {};
+                    if (!driver.driverDetails.earnings) {
+                        driver.driverDetails.earnings = { today: 0, thisWeek: 0, thisMonth: 0, total: 0 };
+                    }
+                    if (!driver.driverDetails.stats) {
+                        driver.driverDetails.stats = { totalDeliveries: 0, completedDeliveries: 0, rating: 5, reviews: 0 };
+                    }
 
-        order.status = finalStatus;
+                    const fee = 50; // Earn ₹50 per delivery
+                    driver.driverDetails.earnings.today = (driver.driverDetails.earnings.today || 0) + fee;
+                    driver.driverDetails.earnings.thisWeek = (driver.driverDetails.earnings.thisWeek || 0) + fee;
+                    driver.driverDetails.earnings.thisMonth = (driver.driverDetails.earnings.thisMonth || 0) + fee;
+                    driver.driverDetails.earnings.total = (driver.driverDetails.earnings.total || 0) + fee;
+
+                    driver.driverDetails.stats.totalDeliveries = (driver.driverDetails.stats.totalDeliveries || 0) + 1;
+                    driver.driverDetails.stats.completedDeliveries = (driver.driverDetails.stats.completedDeliveries || 0) + 1;
+                    
+                    // Driver is available again
+                    driver.driverDetails.isAvailable = true;
+
+                    await driver.save();
+                    console.log(`[Action API] Rider ${driver.firstName} has successfully delivered. Credited ₹${fee}. Available again.`);
+                }
+                
+                // Clear skipped driver memory registry
+                clearOrderSkipCache(orderId);
+            }
+        }
+
+        order.status = finalStatus as any;
         await order.save();
 
         // Get restaurant ID from first product
@@ -62,6 +110,10 @@ export async function POST(
     if (action === 'accept') {
         const { driverId } = await request.json();
         result = await updateOrderStatus(id, 'assigned', driverId);
+    } else if (action === 'decline') {
+        const { driverId } = await request.json();
+        await declineOrderAssignment(id, driverId);
+        result = { success: true, message: 'Order declined, routing to next driver' };
     } else if (action === 'pickup') {
         result = await updateOrderStatus(id, 'picked_up');
     } else if (action === 'delivered') {

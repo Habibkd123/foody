@@ -142,7 +142,7 @@ export const useUserStore = create<UserState>()(
 
                         // Optionally fetch full user data if userAuth is just a session
                         if (data.user_id) {
-                            const userRes = await fetch(`/api/users/${data.user_id}`);
+                            const userRes = await fetch(`/api/users/${data.user_id}?includePrivate=true`);
                             const userData = await userRes.json();
                             if (userData.success) {
                                 set({ user: userData.data });

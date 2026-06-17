@@ -147,6 +147,7 @@ export async function POST(request: Request) {
       email: user.email,
       role: user.role,
       restaurant: user.restaurant,
+      driverDetails: user.driverDetails,
     };
 
     // Persist session (and optionally revoke old sessions)

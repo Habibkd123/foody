@@ -19,6 +19,9 @@ import { useCustomToast } from "@/hooks/useCustomToast"
 import ToastProvider from "@/components/ui/ToastProvider"
 import FlashSales from "@/components/FlashSales"
 import TrendingProducts from "@/components/TrendingProducts"
+import SocietyGroupBuying from "@/components/home/SocietyGroupBuying"
+import RefillBotSection from "@/components/home/RefillBotSection"
+import EcoSavingsSection from "@/components/home/EcoSavingsSection"
 import LoyaltyRewards from "@/components/LoyaltyRewards"
 import NotificationBanner from "@/components/NotificationBanner"
 import NotificationCenter from "@/components/NotificationCenter"
@@ -437,6 +440,10 @@ const GroceryApp = () => {
             onToggleWishlist={() => { }}
           />
 
+          <EcoSavingsSection />
+
+          <SocietyGroupBuying />
+
           {/* Featured Grid */}
           <ProductsSection
             title={selectedCategory === 'all' ? 'Fresh Recommendations' : (topCategories.find((c) => c._id === selectedCategory)?.name || 'Products')}
@@ -446,6 +453,7 @@ const GroceryApp = () => {
             wishListsData={wishListsData}
             onAddToCart={handleAddToCart}
             onToggleWishlist={() => { }}
+            isLoading={isProductsLoading}
           />
 
           {/* Paginated Category Sections */}
@@ -477,6 +485,8 @@ const GroceryApp = () => {
               </div>
             )} */}
           </div>
+
+          <RefillBotSection />
 
           <TrendingProducts
             onAddToCart={handleAddToCart}

@@ -23,6 +23,7 @@ export async function GET(
             todayEarnings: driver.driverDetails?.earnings?.today || 0,
             weekEarnings: driver.driverDetails?.earnings?.thisWeek || 0,
             monthEarnings: driver.driverDetails?.earnings?.thisMonth || 0,
+            totalEarnings: driver.driverDetails?.earnings?.total || 0,
             totalDeliveries: driver.driverDetails?.stats?.totalDeliveries || 0,
             completedToday: driver.driverDetails?.stats?.completedToday || 0,
             rating: driver.driverDetails?.stats?.rating || 5.0,

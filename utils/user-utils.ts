@@ -88,7 +88,9 @@ export function formatUserResponse(user: any, includePrivateInfo = false): UserR
       email: user?.email,
       phone: user?.phone,
       addresses: user?.addresses || [],
-      updatedAt: user?.updatedAt.toISOString(),
+      updatedAt: user?.updatedAt instanceof Date ? user?.updatedAt.toISOString() : user?.updatedAt,
+      restaurant: user?.restaurant,
+      driverDetails: user?.driverDetails,
     } as UserResponse;
   }
 

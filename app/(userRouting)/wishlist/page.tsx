@@ -33,7 +33,8 @@ import { useFilterStore } from '@/lib/store/useFilterStore';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import LocationSelector from '@/components/LocationSelector';
-import { Product, } from '@/types/global';
+import TrendingProducts from "@/components/TrendingProducts";
+import { Product } from "@/types/global";
 // Enhanced type definitions
 interface WishlistItem {
   id: number;
@@ -58,7 +59,7 @@ type SortDirection = 'asc' | 'desc';
 
 const Wishlist: React.FC = () => {
   const { user } = useUserStore();
-  const { data: wishListsData = [], removeFromWishlist, isLoading: isWishlistLoading } = useWishlistQuery(user?._id);
+  const { data: wishListsData = [], addToWishlist, removeFromWishlist, isLoading: isWishlistLoading } = useWishlistQuery(user?._id);
   const { items: cartLines, addItem, removeItem, updateQuantity } = useCartStore();
   const router = useRouter();
   const { filters, updateFilter } = useFilterStore();
@@ -238,7 +239,24 @@ const Wishlist: React.FC = () => {
       navigator.clipboard.writeText(window.location.href);
       alert('Wishlist link copied to clipboard!');
     }
-  }, [wishListsData?.length]);
+  }, [wishListsData]);
+  const handleToggleWishlistFromTrending = useCallback(async (product: Product) => {
+    if (!user?._id) {
+      alert("Please login first");
+      return;
+    }
+    if (!product._id) return;
+    const isFav = wishListsData.some((fav: any) => fav._id === product._id);
+    try {
+      if (isFav) {
+        await removeFromWishlist({ userId: user._id, productId: product._id });
+      } else {
+        await addToWishlist({ userId: user._id, productId: product._id });
+      }
+    } catch (err) {
+      console.error("Error toggling wishlist from trending:", err);
+    }
+  }, [user?._id, wishListsData, addToWishlist, removeFromWishlist]);
 
   return (
     <div className="p-0 min-h-screen bg-gray-50">
@@ -469,22 +487,32 @@ const Wishlist: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {sortedAndFilteredProducts.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {filters.searchTerm ? 'No items found' : 'Your wishlist is empty'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {filters.searchTerm
-                ? 'Try adjusting your search or filters'
-                : 'Start adding products to your wishlist to see them here'}
-            </p>
-            <Button
-              onClick={() => router.push('/productlist')}
-              className="bg-primary hover:bg-primary"
-            >
-              Browse Products
-            </Button>
+          <div className="space-y-12">
+            <div className="text-center py-12 max-w-md mx-auto">
+              <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {filters.searchTerm ? 'No items found' : 'Your wishlist is empty'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {filters.searchTerm
+                  ? 'Try adjusting your search or filters'
+                  : 'Start adding products to your wishlist to see them here'}
+              </p>
+              <Button
+                onClick={() => router.push('/productlist')}
+                className="bg-primary hover:bg-primary"
+              >
+                Browse Products
+              </Button>
+            </div>
+            
+            {/* Trending Products Carousel inside empty wishlist */}
+            <div className="border-t pt-10">
+              <TrendingProducts
+                onAddToCart={(prod) => addToCart1(prod)}
+                onToggleWishlist={(prod) => handleToggleWishlistFromTrending(prod)}
+              />
+            </div>
           </div>
         ) : (
           <div

@@ -10,6 +10,7 @@ import { useAddressQuery } from "@/hooks/useAddressQuery";
 import { Star } from "lucide-react";
 import RazorpayButton from "./RazorpayButton";
 import NotificationBanner from "@/components/NotificationBanner";
+import AddressModal from "@/components/AddressModal";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
 
@@ -19,6 +20,7 @@ export default function CheckoutPage() {
   const [couponInput, setCouponInput] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [addressOpen, setAddressOpen] = useState(false);
   const {
     items,
     tip,
@@ -30,10 +32,22 @@ export default function CheckoutPage() {
     address,
     setNotes,
     setCoupon,
-    clearCoupon: storeClearCoupon
+    clearCoupon: storeClearCoupon,
+    setAddress
   } = useCartStore();
   const { user } = useUserStore();
-  const { addresses, isLoading: isAddrLoading } = useAddressQuery(user?._id);
+  const { addresses = [], isLoading: isAddrLoading } = useAddressQuery(user?._id);
+  
+  // Auto-save/select default address in cart store if not already set
+  useEffect(() => {
+    if (!address && addresses && addresses.length > 0) {
+      const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
+      if (defaultAddr) {
+        setAddress(defaultAddr);
+      }
+    }
+  }, [address, addresses, setAddress]);
+
   const defaultAddress = addresses.find(a => a.isDefault);
 
   const itemsSubtotal = items.reduce((t, i) => t + i.price * i.quantity, 0) || 0;
@@ -158,7 +172,7 @@ export default function CheckoutPage() {
           </h1>
         </div>
         <div className="text-white/90 text-sm sm:text-base">
-          <span className="font-semibold">Need help?</span> support@gostay.com
+          <span className="font-semibold">Email:</span> {user?.email || "support@gostay.com"}
         </div>
       </header>
 
@@ -212,7 +226,16 @@ export default function CheckoutPage() {
 
               <div className="p-4 sm:p-6 space-y-6">
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-3">Delivery Address</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-800">Delivery Address</h3>
+                    <button
+                      type="button"
+                      onClick={() => setAddressOpen(true)}
+                      className="text-xs text-primary font-bold hover:underline"
+                    >
+                      {effectiveAddress ? "Change" : "Add Address"}
+                    </button>
+                  </div>
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                     {effectiveAddress ? (
                       <div className="text-sm text-gray-700 space-y-1">
@@ -333,6 +356,13 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+      
+      {addressOpen && (
+        <AddressModal
+          addressOpen={addressOpen}
+          setAddressOpen={setAddressOpen}
+        />
+      )}
     </div>
   );
 }

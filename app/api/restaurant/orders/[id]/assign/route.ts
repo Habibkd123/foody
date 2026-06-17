@@ -40,7 +40,7 @@ export async function POST(
 
         // Update order with rider and status
         order.rider = driverId;
-        order.status = 'processing'; // Or 'assigned' if you have that status
+        order.status = 'assigned';
         await order.save();
 
         // Emit real-time notification to the driver

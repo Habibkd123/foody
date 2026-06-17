@@ -24,14 +24,25 @@ export default function DriverEarningsPage() {
     ]);
 
     useEffect(() => {
-        if (user?.driverDetails?.earnings) {
-            setEarnings({
-                today: user.driverDetails.earnings.today || 0,
-                week: user.driverDetails.earnings.thisWeek || 0,
-                month: user.driverDetails.earnings.thisMonth || 0,
-                total: user.driverDetails.earnings.total || 0,
-            });
-        }
+        const fetchEarningsData = async () => {
+            if (!user?._id) return;
+            try {
+                const response = await fetch(`/api/drivers/${user._id}/stats`);
+                const data = await response.json();
+                if (data.success && data.stats) {
+                    setEarnings({
+                        today: data.stats.todayEarnings || 0,
+                        week: data.stats.weekEarnings || 0,
+                        month: data.stats.monthEarnings || 0,
+                        total: data.stats.totalEarnings || 0,
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch live earnings:', error);
+            }
+        };
+
+        fetchEarningsData();
     }, [user]);
 
     return (

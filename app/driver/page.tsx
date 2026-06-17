@@ -39,7 +39,7 @@ interface Order {
   items: any[];
   totalAmount: number;
   deliveryFee: number;
-  status: 'assigned' | 'picked_up' | 'delivered';
+  status: 'assigned' | 'accepted' | 'picked_up' | 'delivered';
   distance: string;
   estimatedTime: string;
 }
@@ -199,6 +199,21 @@ export default function DriverDashboard() {
       }
     } catch (error) {
       console.error('Failed to accept order:', error);
+    }
+  };
+
+  const handleDeclineOrder = async (orderId: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/decline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driverId: user?._id }),
+      });
+      if (response.ok) {
+        fetchActiveOrders();
+      }
+    } catch (error) {
+      console.error('Failed to decline order:', error);
     }
   };
 
@@ -401,6 +416,7 @@ export default function DriverDashboard() {
                         </h3>
                         <Badge className="mt-1">
                           {order.status === 'assigned' && 'New Order'}
+                          {order.status === 'accepted' && 'Accepted / Preparing'}
                           {order.status === 'picked_up' && 'In Transit'}
                           {order.status === 'delivered' && 'Delivered'}
                         </Badge>
@@ -472,24 +488,31 @@ export default function DriverDashboard() {
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                       {order.status === 'assigned' && (
-                        <>
-                          <Button
-                            onClick={() => handleAcceptOrder(order._id)}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Accept Order
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Decline
-                          </Button>
-                        </>
+                        <div className="w-full flex flex-col gap-2">
+                          <div className="flex items-center justify-between text-xs text-orange-600 font-bold mb-1">
+                            <span>Auto-Decline Bid Lock:</span>
+                            <span className="animate-pulse bg-orange-100 px-2 py-0.5 rounded">30s Countdown Active</span>
+                          </div>
+                          <div className="flex gap-2 w-full">
+                            <Button
+                              onClick={() => handleAcceptOrder(order._id)}
+                              className="flex-1 bg-green-600 hover:bg-green-700 font-bold"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Accept Order
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="flex-1 hover:bg-red-50 hover:text-red-600 border-red-200 font-bold"
+                              onClick={() => handleDeclineOrder(order._id)}
+                            >
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Decline
+                            </Button>
+                          </div>
+                        </div>
                       )}
-                      {order.status === 'picked_up' && (
+                      {order.status === 'accepted' && (
                         <>
                           <Button
                             onClick={() => handlePickup(order._id)}

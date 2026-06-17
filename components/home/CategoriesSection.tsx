@@ -177,6 +177,11 @@ import React from "react"
 import Image from "next/image"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Navigation, Pagination, Autoplay } from "swiper/modules"
+import { 
+  Flame, Leaf, Salad, Coffee, CupSoda, GlassWater, 
+  Pizza, Soup, CakeSlice, IceCream, Utensils, 
+  ShoppingBag, Cookie
+} from "lucide-react"
 
 import "swiper/css"
 import "swiper/css/navigation"
@@ -195,6 +200,27 @@ interface Props {
   selectedCategory: string
   setSelectedCategory: (id: string) => void
   loading?: boolean
+}
+
+const getCategoryIconComponent = (name: string) => {
+  const s = name.toLowerCase()
+  if (s.includes("masala") || s.includes("spice")) return <Flame className="w-12 h-12 text-orange-500 animate-pulse" />
+  if (s.includes("veg") && !s.includes("beverage")) return <Leaf className="w-12 h-12 text-green-500" />
+  if (s.includes("fruit")) return <Salad className="w-12 h-12 text-red-500" />
+  if (s.includes("vegetable")) return <Salad className="w-12 h-12 text-green-600" />
+  if (s.includes("dairy")) return <GlassWater className="w-12 h-12 text-blue-400" />
+  if (s.includes("meat")) return <Flame className="w-12 h-12 text-red-600" />
+  if (s.includes("snack") || s.includes("chips") || s.includes("nuts") || s.includes("fries")) return <Cookie className="w-12 h-12 text-amber-600" />
+  if (s.includes("beverage") || s.includes("juice")) return <CupSoda className="w-12 h-12 text-teal-500" />
+  if (s.includes("coffee") || s.includes("tea")) return <Coffee className="w-12 h-12 text-amber-800" />
+  if (s.includes("pizza")) return <Pizza className="w-12 h-12 text-yellow-500" />
+  if (s.includes("pasta") || s.includes("noodle") || s.includes("soup") || s.includes("rice")) return <Soup className="w-12 h-12 text-yellow-600" />
+  if (s.includes("dessert") || s.includes("cake") || s.includes("pastr")) return <CakeSlice className="w-12 h-12 text-pink-500" />
+  if (s.includes("ice cream")) return <IceCream className="w-12 h-12 text-purple-500" />
+  if (s.includes("burger")) return <Utensils className="w-12 h-12 text-yellow-700" />
+  if (s.includes("meal")) return <Utensils className="w-12 h-12 text-orange-600" />
+  
+  return <ShoppingBag className="w-12 h-12 text-primary" />
 }
 
 const getCategoryIcon = (name: string) => {
@@ -275,7 +301,7 @@ export default function CategoriesSection({
                     `}
                   >
                     {/* Image */}
-                    {cat.image ? (
+                    {cat.image && cat.image !== "undefined" && !cat.image.includes("undefined") && !cat.image.includes("blob:") ? (
                       <Image
                         src={cat.image}
                         alt={cat.name}
@@ -283,8 +309,12 @@ export default function CategoriesSection({
                         className="object-cover"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 text-6xl">
-                        {cat.icon || getCategoryIcon(cat.name)}
+                      <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 text-5xl">
+                        {cat.icon && cat.icon !== "undefined" ? (
+                          <span>{cat.icon}</span>
+                        ) : (
+                          getCategoryIconComponent(cat.name)
+                        )}
                       </div>
                     )}
 

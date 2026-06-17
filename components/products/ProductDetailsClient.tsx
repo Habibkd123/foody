@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import ProductCardGrid from "@/components/ProductGrid";
 import { useSingleProductQuery } from "@/hooks/useSingleProductQuery";
+import { useProductsQuery } from "@/hooks/useProductsQuery";
 import { useParams } from "next/navigation";
 import { useCartStore } from "@/lib/store/useCartStore";
 import Link from "next/link";
@@ -56,6 +57,175 @@ const ProductDetailsClient = () => {
     const prodIdStr = product_id ? product_id.toString() : '';
     const { data: product, isLoading: loading, error } = useSingleProductQuery(prodIdStr);
     const { data: wishListsData = [], addToWishlist, removeFromWishlist } = useWishlistQuery(user?._id);
+    const { data: allProducts = [] } = useProductsQuery();
+
+    const RECIPES = React.useMemo(() => ({
+        "dosa": {
+            name: "Classic Masala Dosa",
+            description: "Crispy rice crepes filled with a savory spiced potato mash, served with coconut chutney and sambar.",
+            prepTime: "20 mins",
+            cookTime: "15 mins",
+            difficulty: "Medium" as const,
+            instructions: [
+                "Prepare the dosa batter and let it reach room temperature.",
+                "Heat a non-stick tawa, spread a ladleful of batter in a circular motion.",
+                "Drizzle ghee or butter around the edges and cook until golden brown.",
+                "Add a scoop of potato masala filling in the center, fold, and serve hot."
+            ],
+            ingredients: [
+                { keyword: "batter", fallbackName: "Dosa Batter (1kg)", fallbackPrice: 80, qty: "1 Pack" },
+                { keyword: "potato", fallbackName: "Fresh Potatoes (1kg)", fallbackPrice: 35, qty: "1 kg" },
+                { keyword: "masala", fallbackName: "Garam Masala (100g)", fallbackPrice: 45, qty: "1 Pack" },
+                { keyword: "butter", fallbackName: "Amul Butter (100g)", fallbackPrice: 55, qty: "1 Pack" }
+            ]
+        },
+        "paneer": {
+            name: "Restaurant-Style Paneer Butter Masala",
+            description: "A rich, creamy, and mildly sweet tomato-based gravy with soft, melt-in-the-mouth paneer cubes.",
+            prepTime: "15 mins",
+            cookTime: "20 mins",
+            difficulty: "Medium" as const,
+            instructions: [
+                "Sauté onions, garlic, ginger, and cashew nuts, then blend into a smooth paste.",
+                "Cook the tomato puree with the paste, add butter, fresh cream, and dry spices.",
+                "Gently fold in the paneer cubes and simmer for 5 minutes.",
+                "Garnish with dried fenugreek leaves (kasuri methi) and cream."
+            ],
+            ingredients: [
+                { keyword: "paneer", fallbackName: "Fresh Paneer (200g)", fallbackPrice: 90, qty: "1 Pack" },
+                { keyword: "butter", fallbackName: "Amul Butter (100g)", fallbackPrice: 55, qty: "1 Pack" },
+                { keyword: "tomato", fallbackName: "Fresh Tomatoes (500g)", fallbackPrice: 30, qty: "500g" },
+                { keyword: "cream", fallbackName: "Amul Fresh Cream (200ml)", fallbackPrice: 65, qty: "1 Pack" }
+            ]
+        },
+        "potato": {
+            name: "Homestyle Jeera Aloo",
+            description: "A quick and delicious dry potato dish flavored with cumin seeds, turmeric, and green chillies.",
+            prepTime: "10 mins",
+            cookTime: "15 mins",
+            difficulty: "Easy" as const,
+            instructions: [
+                "Boil potatoes, peel them, and cut into medium cubes.",
+                "Heat oil in a pan, add cumin seeds, and let them splutter.",
+                "Add green chillies, ginger, turmeric, chili powder, and the potato cubes.",
+                "Sauté on medium heat for 10 minutes until crispy and garnish with coriander."
+            ],
+            ingredients: [
+                { keyword: "potato", fallbackName: "Fresh Potatoes (1kg)", fallbackPrice: 35, qty: "1 kg" },
+                { keyword: "cumin", fallbackName: "Cumin Seeds (Jeera) (100g)", fallbackPrice: 50, qty: "1 Pack" },
+                { keyword: "masala", fallbackName: "Turmeric Powder (Haldi) (100g)", fallbackPrice: 30, qty: "1 Pack" }
+            ]
+        },
+        "milk": {
+            name: "Rich Creamy Kheer",
+            description: "A traditional Indian rice pudding made with milk, basmati rice, sugar, and dry fruits.",
+            prepTime: "10 mins",
+            cookTime: "40 mins",
+            difficulty: "Easy" as const,
+            instructions: [
+                "Wash and soak rice for 30 minutes, then drain.",
+                "Boil milk in a heavy-bottomed pan, add the soaked rice, and simmer on low heat.",
+                "Stir continuously until the rice is cooked and milk is reduced to half.",
+                "Add sugar, cardamom powder, and chopped almonds/cashews. Serve chilled."
+            ],
+            ingredients: [
+                { keyword: "milk", fallbackName: "Full Cream Milk (1L)", fallbackPrice: 65, qty: "1 Litre" },
+                { keyword: "rice", fallbackName: "Basmati Rice (1kg)", fallbackPrice: 110, qty: "1 kg" },
+                { keyword: "sugar", fallbackName: "Pure Sugar (1kg)", fallbackPrice: 50, qty: "1 kg" }
+            ]
+        }
+    }), []);
+
+    const DEFAULT_RECIPE = React.useMemo(() => ({
+        name: "Fresh Garden Salad",
+        description: "A super healthy, crunchy salad made with fresh cucumbers, juicy tomatoes, and a light dressing.",
+        prepTime: "10 mins",
+        cookTime: "5 mins",
+        difficulty: "Easy" as const,
+        instructions: [
+            "Chop tomatoes, cucumbers, and onions into bite-sized cubes.",
+            "Toss the chopped veggies in a salad bowl.",
+            "Drizzle extra virgin olive oil and squeeze fresh lemon juice over the top.",
+            "Season with black pepper and salt, toss gently, and serve fresh."
+        ],
+        ingredients: [
+            { keyword: "tomato", fallbackName: "Fresh Tomatoes (500g)", fallbackPrice: 30, qty: "500g" },
+            { keyword: "onion", fallbackName: "Red Onions (1kg)", fallbackPrice: 40, qty: "1 kg" },
+            { keyword: "cucumber", fallbackName: "Fresh Cucumber (500g)", fallbackPrice: 25, qty: "500g" }
+        ]
+    }), []);
+
+    const currentRecipe = React.useMemo(() => {
+        if (!product?.name) return DEFAULT_RECIPE;
+        const nameLower = product.name.toLowerCase();
+        for (const [key, value] of Object.entries(RECIPES)) {
+            if (nameLower.includes(key)) {
+                return value;
+            }
+        }
+        return DEFAULT_RECIPE;
+    }, [product?.name, RECIPES, DEFAULT_RECIPE]);
+
+    const resolvedIngredients = React.useMemo(() => {
+        return currentRecipe.ingredients.map(ing => {
+            const matched = allProducts.find((p: any) => 
+                p.name.toLowerCase().includes(ing.keyword.toLowerCase())
+            );
+            if (matched) {
+                return {
+                    id: matched._id || "",
+                    productId: matched._id || "",
+                    name: matched.name,
+                    price: matched.price,
+                    image: matched.images?.[0] || "/placeholder-product.png",
+                    qty: ing.qty,
+                    realProduct: true
+                };
+            } else {
+                return {
+                    id: `mock-${ing.keyword}`,
+                    productId: `mock-${ing.keyword}`,
+                    name: ing.fallbackName,
+                    price: ing.fallbackPrice,
+                    image: "/placeholder-product.png",
+                    qty: ing.qty,
+                    realProduct: false
+                };
+            }
+        });
+    }, [currentRecipe, allProducts]);
+
+    const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        const initialChecked: Record<string, boolean> = {};
+        resolvedIngredients.forEach(ing => {
+            initialChecked[ing.id] = true;
+        });
+        setCheckedIngredients(initialChecked);
+    }, [resolvedIngredients]);
+
+    const handleAddAllRecipeIngredients = () => {
+        let addedCount = 0;
+        resolvedIngredients.forEach(ing => {
+            if (checkedIngredients[ing.id]) {
+                const cartItem: any = {
+                    id: `${ing.productId}:base`,
+                    productId: ing.productId,
+                    configKey: 'base',
+                    name: ing.name,
+                    price: ing.price,
+                    quantity: 1,
+                    image: ing.image,
+                };
+                storeAddItem(cartItem);
+                addedCount++;
+            }
+        });
+        if (addedCount > 0) {
+            alert(`Added ${addedCount} ingredients to your cart!`);
+        }
+    };
 
     const {
         addItem: storeAddItem,
@@ -442,7 +612,7 @@ const ProductDetailsClient = () => {
                 ]}
             />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 pb-24 lg:pb-4">
                 <nav className="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
                     <ol className="inline-flex items-center space-x-1 md:space-x-3">
                         <li className="inline-flex items-center">
@@ -757,7 +927,7 @@ const ProductDetailsClient = () => {
                 {/* Tabs Section */}
                 <div className="border-b mb-6">
                     <nav className="flex space-x-6 overflow-x-auto whitespace-nowrap">
-                        {['description', 'specifications', 'nutrition', 'reviews'].map((tab) => (
+                        {['description', 'recipe', 'specifications', 'nutrition', 'reviews'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -788,6 +958,160 @@ const ProductDetailsClient = () => {
                                             <span className="text-gray-700">{feature}</span>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'recipe' && (
+                        <div className="space-y-6">
+                            <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-gray-900 dark:to-gray-850 p-6 rounded-3xl border border-orange-100/50 dark:border-gray-800 shadow-sm">
+                                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                                    <div>
+                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white">
+                                            🍳 {currentRecipe.name}
+                                        </h3>
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                                            {currentRecipe.description}
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-3 text-xs font-bold">
+                                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            Prep: {currentRecipe.prepTime}
+                                        </span>
+                                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            Cook: {currentRecipe.cookTime}
+                                        </span>
+                                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
+                                            <Award className="w-3.5 h-3.5" />
+                                            {currentRecipe.difficulty}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                {/* Ingredients Column */}
+                                <div className="lg:col-span-5 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-lg font-bold text-gray-900 dark:text-white">Recipe Ingredients</h4>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                const allChecked = Object.values(checkedIngredients).every(v => v);
+                                                const newChecked: Record<string, boolean> = {};
+                                                resolvedIngredients.forEach(ing => {
+                                                    newChecked[ing.id] = !allChecked;
+                                                });
+                                                setCheckedIngredients(newChecked);
+                                            }}
+                                            className="text-xs text-primary font-bold hover:underline"
+                                        >
+                                            {Object.values(checkedIngredients).every(v => v) ? "Deselect All" : "Select All"}
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
+                                        {resolvedIngredients.map((ing) => {
+                                            const isChecked = !!checkedIngredients[ing.id];
+                                            return (
+                                                <div 
+                                                    key={ing.id} 
+                                                    className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-300 ${
+                                                        isChecked 
+                                                            ? "bg-orange-50/30 dark:bg-orange-950/10 border-orange-200/60 dark:border-orange-900/40" 
+                                                            : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-850"
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`ing-${ing.id}`}
+                                                        checked={isChecked}
+                                                        onChange={() => setCheckedIngredients(prev => ({
+                                                            ...prev,
+                                                            [ing.id]: !prev[ing.id]
+                                                        }))}
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary w-4.5 h-4.5 cursor-pointer"
+                                                    />
+                                                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
+                                                        <img 
+                                                            src={ing.image} 
+                                                            alt={ing.name} 
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate" title={ing.name}>
+                                                            {ing.name}
+                                                        </p>
+                                                        <p className="text-xs text-gray-400 font-medium">
+                                                            Required: {ing.qty}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-sm font-black text-gray-900 dark:text-white">
+                                                            ₹{ing.price}
+                                                        </p>
+                                                        {ing.realProduct ? (
+                                                            <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 px-1.5 py-0.5 rounded-md mt-0.5">
+                                                                In Store
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-block text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 px-1.5 py-0.5 rounded-md mt-0.5">
+                                                                Suggested
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="pt-2 border-t border-dashed">
+                                        <div className="flex items-center justify-between mb-3 text-sm font-bold text-gray-600 dark:text-gray-400">
+                                            <span>Selected Ingredients</span>
+                                            <span>
+                                                ₹{resolvedIngredients
+                                                    .filter(ing => checkedIngredients[ing.id])
+                                                    .reduce((sum, ing) => sum + ing.price, 0)}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleAddAllRecipeIngredients}
+                                            disabled={!resolvedIngredients.some(ing => checkedIngredients[ing.id])}
+                                            className="w-full h-12 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                        >
+                                            <ShoppingCart className="w-4.5 h-4.5" />
+                                            Add Selected to Cart
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Instructions Column */}
+                                <div className="lg:col-span-7 bg-gray-50/50 dark:bg-gray-800/40 p-5 rounded-3xl border border-gray-100/60 dark:border-gray-850/50 space-y-4">
+                                    <h4 className="text-lg font-bold text-gray-900 dark:text-white">Step-by-Step Cooking Instructions</h4>
+                                    <div className="space-y-4">
+                                        {currentRecipe.instructions.map((step, idx) => (
+                                            <label 
+                                                key={idx}
+                                                className="flex gap-3 cursor-pointer group"
+                                            >
+                                                <div className="flex-shrink-0 mt-0.5">
+                                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 font-bold text-xs">
+                                                        {idx + 1}
+                                                    </span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium group-hover:text-gray-950 dark:group-hover:text-white transition duration-200">
+                                                        {step}
+                                                    </p>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -909,6 +1233,59 @@ const ProductDetailsClient = () => {
 
                 {/* Recently Viewed Feature */}
                 <RecentlyViewedProducts currentId={product_id as string} />
+            </div>
+
+            {/* Mobile Sticky Add to Cart Bar */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 shadow-[0_-8px_30px_rgb(0,0,0,0.08)] flex items-center justify-between gap-4 safe-bottom">
+                <div className="flex flex-col">
+                    <span className="text-[10px] text-gray-400 uppercase font-bold">Total Price</span>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-xl font-black text-gray-900 dark:text-white">₹{(product?.price * quantity).toLocaleString()}</span>
+                        {product?.originalPrice && product?.originalPrice > product?.price && (
+                            <span className="text-xs text-gray-400 line-through">₹{(product?.originalPrice * quantity).toLocaleString()}</span>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800">
+                        <button
+                            onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                            className="p-2.5 text-gray-500 hover:text-primary disabled:opacity-30"
+                            disabled={quantity <= 1}
+                        >
+                            <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="px-2 font-bold text-sm min-w-[20px] text-center text-gray-800 dark:text-gray-200">{quantity}</span>
+                        <button
+                            onClick={() => setQuantity(q => Math.min(10, q + 1))}
+                            className="p-2.5 text-gray-500 hover:text-primary"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={adding || !product?.inStock}
+                        className={`px-5 py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all duration-300 shadow-md ${
+                            justAdded
+                                ? "bg-green-500 text-white"
+                                : product?.inStock
+                                    ? "bg-primary text-white hover:bg-primary shadow-primary/20"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+                    >
+                        {adding ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
+                        ) : justAdded ? (
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                        ) : (
+                            <ShoppingCart className="w-4 h-4 mr-1" />
+                        )}
+                        {justAdded ? "Added" : "Add to Cart"}
+                    </button>
+                </div>
             </div>
         </div>
     );
